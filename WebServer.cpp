@@ -59,7 +59,7 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
       /*  std::string documentRoot = "/home/joe/Programs/networking/WebServer";
         std::string url_str{msg_url}; */
 
-        const char *docRoot_c_str = "/home/joe/Programs/networking/WebServer";
+        #include "docRoot.cpp"
    
         int url_size = strlen(docRoot_c_str) + sizeof(msg_url); //sizeof() can be used for c-strings declared as an array of char's but strlen() must be used for char *pointers
         char url_c_str[url_size];
