@@ -459,7 +459,9 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
     sqlite3 *DB;
     sqlite3_stmt *statement;
 
-    if(!sqlite3_open("Kazakh.db", &DB)) {
+    
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
 
      //   int count = 0;
 
@@ -631,7 +633,7 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
     sqlite3* DB;
     sqlite3_stmt* statement;
 
-    if(!sqlite3_open("Kazakh.db", &DB)) {
+    if(!sqlite3_open(m_DB_path, &DB)) {
     int prep_code, run_code;
     const char* sql_text;
     std::string sql_text_str;
@@ -698,7 +700,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
     std::ostringstream html;
    
 
-    if(!sqlite3_open("Kazakh.db", &DB)) {
+    if(!sqlite3_open(m_DB_path, &DB)) {
     
     int prep_code, run_code;
     const char *sql_text;
@@ -869,7 +871,7 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
 
     std::ostringstream html;
 
-    if (!sqlite3_open("Kazakh.db", &DB)) {
+    if (!sqlite3_open(m_DB_path, &DB)) {
 
         int prep_code, run_code;
         const char *sql_text;
@@ -978,7 +980,7 @@ bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
     sqlite3_stmt* statement;
   
 
-    if(!sqlite3_open("Kazakh.db", &DB)) {
+    if(!sqlite3_open(m_DB_path, &DB)) {
     
     int prep_code, run_code;
     

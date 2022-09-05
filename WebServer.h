@@ -6,7 +6,7 @@
 
 class WebServer : public TcpListener {
     public:
-        WebServer(const char *ipAddress, int port) : TcpListener(ipAddress, port) { }
+        WebServer(const char *ipAddress, int port) : TcpListener(ipAddress, port), m_DB_path{"/home/joe/Programs/networking/WebServer/Kazakh.db"} { }
 
     protected:
         virtual void onClientConnected(int clientSocket);
@@ -40,5 +40,6 @@ class WebServer : public TcpListener {
         int                 m_bytes_handled;
         bool                m_POST_continue;
         char                m_url[50];
+        const char* m_DB_path;
 
 };
