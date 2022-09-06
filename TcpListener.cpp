@@ -4,7 +4,7 @@ int TcpListener::init() {
 
     m_socket = socket(AF_INET, SOCK_STREAM, 0); //AF_INET and SOCK_STREAM are both constants defined by a #define macro to be = 1
     if (m_socket == -1) {
-        std::cerr << "Fucked it ya wee bastard";
+        std::cerr << "socket() failed" << std::endl;
         return -1;
     }
     sockaddr_in hint;
@@ -15,11 +15,11 @@ int TcpListener::init() {
 
     //the bind() and listen() functions are called simultaneously with checking their return values, which is a bit gay and unclear imo, but it saves declaring unneccesary variables to hold their return values
     if (bind(m_socket, (sockaddr*)&hint, sizeof(hint)) == -1) {
-        std::cerr << "Can't fuckin bind to IP/port";            
+        std::cerr << "Can't bind to IP/port" << std::endl;
         return -2;
     }
     if (listen(m_socket, SOMAXCONN) == -1) {
-        std::cerr << "Listening's fucked";
+        std::cerr << "listen() failed" << std::endl;
         return -3;
     }
 

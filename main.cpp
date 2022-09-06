@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     int portno = atoi(argv[1]);
     WebServer webserv("0.0.0.0", portno);
     if(webserv.init() != 0) {
-        std::cout << "FUCK! init failed" << std::endl;
+        std::cout << "Init failed" << std::endl;
         return 0;
     } 
     webserv.run();
