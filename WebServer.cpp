@@ -54,14 +54,10 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
             std::cout << msg[i];
         }
         msg_url[lb_pos - 13] = '\0';
-        printf("\n%s\n", msg_url);
 
         short int page_type = 0;
         if(!strcmp(msg_url, "/dk/text_viewer")) page_type = 1;
         else if(!strcmp(msg_url, "/dk/add_texts")) page_type = 2;
-
-      /*  std::string documentRoot = "/home/joe/Programs/networking/WebServer";
-        std::string url_str{msg_url}; */
 
         #include "docRoot.cpp"
    
@@ -75,30 +71,6 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         std::string content = "<h1>404 Not Found</h1>"; 
 
         buildGETContent(page_type, url_c_str, content);       
-        /*
-        std::ifstream urlFile;
-        urlFile.open(url_c_str);
-        
-        if (urlFile.good())
-        {
-            std::cout << "This file exists and was opened successfully." << std::endl;
-
-            std::ostringstream ss_text;
-            std::string line;
-            while (std::getline(urlFile, line))
-            {
-                ss_text << line << '\n';
-            }
-
-            content = ss_text.str();
-
-            urlFile.close();
-        }
-        else
-        {
-            std::cout << "This file was not opened successfully." << std::endl;
-        }
-        */
 
         std::string content_type = "text/html";
         
@@ -366,7 +338,6 @@ void WebServer::buildPOSTedData(const char* msg, bool headers_present, int lengt
             m_post_data = msg + headers_length + 4;
         }
   
-       // return msg + headers_length + 4;
     }
     else {
         
