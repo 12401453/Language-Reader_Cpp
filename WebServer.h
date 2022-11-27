@@ -6,7 +6,7 @@
 
 class WebServer : public TcpListener {
     public:
-        WebServer(const char *ipAddress, int port) : TcpListener(ipAddress, port), m_DB_path{"/home/joe/Programs/networking/WebServer/Kazakh.db"} { }
+        WebServer(const char *ipAddress, int port) : TcpListener(ipAddress, port), m_DB_path{"/home/joe/Programs/networking/Kazakh_CPP/Kazakh.db"} { }
 
     protected:
         virtual void onClientConnected(int clientSocket);
@@ -18,6 +18,9 @@ class WebServer : public TcpListener {
         
         bool c_strStartsWith(const char* str1, const char* str2);
         int c_strFind(const char* haystack, const char* needle);
+
+        void buildGETContent(int page_type, char* url_c_str, std::string &content);
+        void insertTextSelect(std::ostringstream &html);
         
         int checkHeaderEnd(const char* msg);
         void buildPOSTedData(const char* msg, bool headers_present, int length);

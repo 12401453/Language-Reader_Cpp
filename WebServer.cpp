@@ -54,7 +54,11 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
             std::cout << msg[i];
         }
         msg_url[lb_pos - 13] = '\0';
-        std::cout << std::endl;
+        printf("\n%s\n", msg_url);
+
+        short int page_type = 0;
+        if(!strcmp(msg_url, "/dk/text_viewer")) page_type = 1;
+        else if(!strcmp(msg_url, "/dk/add_texts")) page_type = 2;
 
       /*  std::string documentRoot = "/home/joe/Programs/networking/WebServer";
         std::string url_str{msg_url}; */
@@ -68,11 +72,13 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         strcat(url_c_str, msg_url);
 
 
-        
+        std::string content = "<h1>404 Not Found</h1>"; 
 
+        buildGETContent(page_type, url_c_str, content);       
+        /*
         std::ifstream urlFile;
         urlFile.open(url_c_str);
-        std::string content = "<h1>404 Not Found</h1>";
+        
         if (urlFile.good())
         {
             std::cout << "This file exists and was opened successfully." << std::endl;
@@ -92,6 +98,7 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         {
             std::cout << "This file was not opened successfully." << std::endl;
         }
+        */
 
         std::string content_type = "text/html";
         
@@ -255,7 +262,67 @@ int WebServer::checkHeaderEnd(const char* msg) {
         }
 }
 
+ void WebServer::buildGETContent(int page_type, char* url_c_str, std::string &content) {
+    
+    std::ifstream urlFile;
+    urlFile.open(url_c_str);
+    
+    if (urlFile.good())
+    {
+        std::cout << "This file exists and was opened successfully." << std::endl;
 
+        std::ostringstream ss_text;
+        std::string line;
+        while (std::getline(urlFile, line))
+        {   
+            if(page_type > 0 && line.find("<?php") != -1) insertTextSelect(ss_text);
+            else ss_text << line << '\n';
+        }
+
+        content = ss_text.str();
+
+        urlFile.close();
+    }
+    else
+    {
+        std::cout << "This file was not opened successfully." << std::endl;
+    }
+        
+}
+
+
+void WebServer::insertTextSelect(std::ostringstream &html) {
+    sqlite3* DB;
+    sqlite3_stmt* statement;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        int prep_code, run_code;
+        const char *sql_text;
+
+        sql_text = "SELECT text_id, text_title FROM texts";
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+
+        int text_id = 0;
+        const char* text_title;
+        std::string text_title_str;
+
+        while(sqlite3_step(statement) == SQLITE_ROW) {
+            text_id = sqlite3_column_int(statement, 0);
+            text_title = (const char*)sqlite3_column_text(statement, 1);
+
+            icu::UnicodeString unicode_text_title = text_title;
+            unicode_text_title.findAndReplace("¬", "\'");
+            unicode_text_title.toUTF8String(text_title_str);
+
+            html << "<option value=\"" << text_id << "\">" << text_title_str << "</option>\n";
+            text_title_str = "";
+        }
+
+        sqlite3_finalize(statement);
+    
+        sqlite3_close(DB); 
+    }
+}
 
 void WebServer::buildPOSTedData(const char* msg, bool headers_present, int length) {
 
@@ -678,6 +745,11 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
     std::cout << dt_start << "-->" << dt_end << std::endl;
     
     }
+
+    std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
+    int size = POST_response.size() + 1;
+
+    sendToClient(clientSocket, POST_response.c_str(), size);
     return true;
 
 

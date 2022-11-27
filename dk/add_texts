@@ -46,7 +46,8 @@
   <label for="textselect">Text to delete:</label>
   <select id="textselect" name="textselect" onclick="deleteText()">
   <option value="0"></option>
-  <option value="1">dk</option>  </select></div>
+  <?php ?>
+  </select></div>
   <input type="submit" id="cleartext_button" class="deletion_button" style="margin-bottom: 12px;" value="Clear all texts" onclick="clearTable()"></button><br>
 </div>
 </div>

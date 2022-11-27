@@ -323,10 +323,10 @@ function clearTable() {
 
 
  function texts_link() {
-   window.location = "/dk/dk.html";
+   window.location = "/dk/text_viewer";
  }
  function add_text_link() {
-  window.location = "/dk/add_texts.php.html";
+  window.location = "/dk/add_texts";
 }
 
 function showDeletion() {
