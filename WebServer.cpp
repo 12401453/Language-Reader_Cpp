@@ -53,6 +53,7 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
             msg_url[i - 4] = msg[i];
             std::cout << msg[i];
         }
+        std::cout << std::endl;
         msg_url[lb_pos - 13] = '\0';
 
         short int page_type = 0;
