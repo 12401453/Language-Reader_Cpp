@@ -895,7 +895,9 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
     int content_length = content_str.size();
 
     std::ostringstream post_response_ss;
-    post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << content_str;
+    post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length;
+    post_response_ss << "\r\n" << "Set-Cookie: text_id=" << text_id[0];
+    post_response_ss << "\r\n\r\n" << content_str;
     int length = post_response_ss.str().size() + 1;
     sendToClient(clientSocket, post_response_ss.str().c_str(), length);
     std::cout << "Sent text to client" << std::endl;
