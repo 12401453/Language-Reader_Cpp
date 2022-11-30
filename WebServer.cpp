@@ -26,7 +26,6 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
 
   
   
-
     int lb_pos = checkHeaderEnd(msg);
     int get_or_post = getRequestType(msg);
   
@@ -68,6 +67,11 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         strcpy(url_c_str, docRoot_c_str);
         strcat(url_c_str, msg_url);
 
+        bool cookies_present = setCookie(m_cookie, msg);
+        std::cout << "Cookies present? " << cookies_present << std::endl;
+        if(cookies_present) {
+            std::cout << "Cookie key: " << m_cookie[0] << "; Cookie value: " << m_cookie[1] << std::endl;
+        }
 
         std::string content = "<h1>404 Not Found</h1>"; 
 
@@ -85,29 +89,6 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         if(!strcmp(fil_ext, ".css")) {
             content_type = "text/css";
         }
-     /*   if(!strcmp(fil_ext, ".fgt")) {
-            std::string server_sent_event = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n\r\ndata: One\n\n";
-            int size = server_sent_event.size() + 1;
-            sendToClient(clientSocket, server_sent_event.c_str(), size);
-            sleep(1);
-            server_sent_event = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n\r\ndata: Two\n\n";
-            size = server_sent_event.size() + 1;
-            sendToClient(clientSocket, server_sent_event.c_str(), size);
-            sleep(1);
-            server_sent_event = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n\r\ndata: Three\n\n";
-            size = server_sent_event.size() + 1;
-            sendToClient(clientSocket, server_sent_event.c_str(), size);
-            sleep(1);
-            server_sent_event = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n\r\ndata: Four\n\n";
-            size = server_sent_event.size() + 1;
-            sendToClient(clientSocket, server_sent_event.c_str(), size);
-            sleep(1);
-            server_sent_event = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n\r\ndata: Five\n\n";
-            size = server_sent_event.size() + 1;
-            sendToClient(clientSocket, server_sent_event.c_str(), size); 
-            return;
-        } */
-
 
         std::ostringstream oss;
         oss << "HTTP/1.1 200 OK\r\n";
@@ -207,32 +188,10 @@ int WebServer::getRequestType(const char* msg ) {
 }
 
 int WebServer::checkHeaderEnd(const char* msg) {
-    //could be simplified to: int lb_pos = c_strFind(msg, '\x0d'); int HTTP_line_pos = c_strFind(msg, "HTTP/1.1"); if(HTTP_line_pos != -1 && HTTP_line_pos < lb_pos) return lb_pos; else return -1;
-    
-    int lb_pos = 0;  
-    for (int i = 0; i < 1024; i++)
-    {
-
-        if (msg[i] == '\x0d')
-            break;
-       // std::cout << msg[i];
-        lb_pos++;
-    }
-    std::cout << std::endl;
-
-    char HTTP_line_end[10];
-    for (int i = 0; i < 10; i++)
-    {
-        HTTP_line_end[i] = msg[lb_pos - 8 + i];
-    }
-
-    if(c_strStartsWith(HTTP_line_end, "HTTP/1.1")) {
-        return lb_pos;
-    }
-    else { //even if a 0x0d byte is found in the message before the 1024th byte, we still return the error-code if there's no HTTP/1.1 header (the JS encoreURIComponent() will ensure no 0x0d bytes in the POSTed data anyway) to signal that this is overflow POSTed data with no headers 
-        
-        return -1;
-        }
+    int lb_pos = c_strFind(msg, "\x0d");
+    int HTTP_line_pos = c_strFind(msg, "HTTP/1.1");
+    if(HTTP_line_pos != -1 && HTTP_line_pos < lb_pos) return lb_pos;
+    else return -1;
 }
 
  void WebServer::buildGETContent(int page_type, char* url_c_str, std::string &content) {
@@ -487,6 +446,30 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/dk/retrieve_meanings.php")) return 2;
     else if(!strcmp(url, "/dk/delete_text.php")) return 1;
     else return 10;
+}
+
+bool WebServer::setCookie(std::string cookie[2], const char* msg) {
+    int cookie_start = c_strFind(msg, "\r\nCookie") + 10;
+    if(cookie_start == 9) return false; //c_strFind() returns -1 if unsuccessful, but I've just added 10 to it so the number signalling no cookies is 9
+    int key_length = c_strFind(msg + cookie_start, "=");
+
+    char key[key_length + 1];
+    for(int i = 0; i < key_length; i++) {
+        key[i] = (msg + cookie_start)[i];
+    }
+    key[key_length] = '\0';
+
+    int val_length = c_strFind(msg + cookie_start + key_length + 1, "\r\n");
+
+    char val[val_length + 1];
+    for(int i = 0; i < val_length; i++) {
+        val[i] = (msg + cookie_start + key_length + 1)[i];
+    }
+    val[val_length] = '\0';
+    
+    cookie[0] = key;
+    cookie[1] = val;
+    return true;
 }
 
 bool WebServer::addText(std::string _POST[3], int clientSocket) {

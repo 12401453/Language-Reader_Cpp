@@ -27,6 +27,7 @@ class WebServer : public TcpListener {
         void setURL(const char* msg);
         int getPostFields(const char* url);
         void handlePOSTedData(const char* post_data, int clientSocket);
+        bool setCookie(std::string cookie[2], const char* msg);
 
         bool addText(std::string _POST[3], int clientSocket);
         bool lemmaTooltips(std::string _POST[2], int clientSocket);
@@ -43,6 +44,7 @@ class WebServer : public TcpListener {
         int                 m_bytes_handled;
         bool                m_POST_continue;
         char                m_url[50];
-        const char* m_DB_path;
+        const char*         m_DB_path;
+        std::string         m_cookie[2];
 
 };
