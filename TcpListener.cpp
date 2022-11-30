@@ -11,9 +11,9 @@ int TcpListener::init() {
     hint.sin_family = AF_INET;
     hint.sin_port = htons(m_port); //host-to-network-short converts little-endian binary representation of the port-number to big-endian
     inet_pton(AF_INET, m_ipAddress, &hint.sin_addr); //converts IP in format 127.0.0.1 to an array of integers
-    //the second argument of bind() is the pointer to the sockaddr_in called hint, except it only excepts pointers to structs of type sockaddr, not sockaddr_in, so we have to cast the mem address of our hint struct to a pointer to a plain sockaddr struct, which is what the (sockaddr*) operator does
+    //the second argument of bind() is the pointer to the sockaddr_in called hint, except it only accepts pointers to structs of type sockaddr, not sockaddr_in, so we have to cast the mem address of our hint struct to a pointer to a plain sockaddr struct, which is what the (sockaddr*) operator does
 
-    //the bind() and listen() functions are called simultaneously with checking their return values, which is a bit gay and unclear imo, but it saves declaring unneccesary variables to hold their return values
+    //the bind() and listen() functions are called simultaneously with checking their return values, which is a bit unclear imo, but it saves declaring unneccesary variables to hold their return values
     if (bind(m_socket, (sockaddr*)&hint, sizeof(hint)) == -1) {
         std::cerr << "Can't bind to IP/port" << std::endl;
         return -2;

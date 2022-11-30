@@ -1037,4 +1037,3 @@ const makeDraggable = function () {
       else { document.getElementById("tt_styles").href = "tooltip_none_style_2.css";}
     }
   }); */
-

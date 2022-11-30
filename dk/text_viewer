@@ -69,4 +69,23 @@ textselector.addEventListener('change', event => {
       dummyselect.remove();
 });
 textselector.style.width = "100px";
+
+window.onload = () => {
+    let cookie_textselect = document.cookie.split("=")[1];
+
+    if(cookie_textselect !== undefined) {
+        let textselect = document.getElementById("textselect");
+        let text_options = textselect.options;
+
+        for(let i = 0; i < text_options.length; i++) {
+            if(text_options[i].value == cookie_textselect){
+                text_options[i].selected = true;
+                textselect.dispatchEvent(new Event('change'));
+                break;
+            }
+        }
+    }
+    else console.log("no cookie");
+
+  }
 </script>

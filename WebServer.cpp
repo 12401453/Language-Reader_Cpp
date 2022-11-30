@@ -701,7 +701,7 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
     
     }
 
-    std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
+    std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nClear-Site-Data: \"cookies\"\r\n\r\n";
     int size = POST_response.size() + 1;
 
     sendToClient(clientSocket, POST_response.c_str(), size);
@@ -1014,7 +1014,6 @@ bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
     int prep_code, run_code;
     
     std::string sql_text_str = "SELECT lang_id FROM texts WHERE text_id = "+text_id[0];
-    std::cout << "thus far" << std::endl;
     const char* sql_text = sql_text_str.c_str();
     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
     run_code = sqlite3_step(statement);

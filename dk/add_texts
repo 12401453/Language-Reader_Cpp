@@ -78,4 +78,5 @@ textselector.addEventListener('change', event => {
       dummyselect.remove();
 });
 textselector.style.width = "100px";
+
 </script>
