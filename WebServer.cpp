@@ -174,6 +174,35 @@ int WebServer::c_strFind(const char* haystack, const char* needle) {
     } 
 }
 
+int WebServer::c_strFindNearest(const char* haystack, const char* needle1, const char* needle2) {
+    int needles_startpos = 0;
+    int needle1_length = strlen(needle1);
+    int needle2_length = strlen(needle2);
+    int longest_needle_length = needle1_length < needle2_length ? needle2_length : needle1_length;
+    int haystack_length = strlen(haystack);
+    if(haystack_length < longest_needle_length) return -1;
+
+    char needles_buf[longest_needle_length + 1];
+    needles_buf[longest_needle_length] = '\0';
+
+    for(int i = 0; i < haystack_length; i++) {
+        for(int j = 0; j < longest_needle_length; j++) {
+            needles_buf[j] = haystack[j];
+        }
+        if(c_strStartsWith(needles_buf, needle1) || c_strStartsWith(needles_buf, needle2)) {
+            break;
+        }
+        needles_startpos++;
+        haystack++;
+    }
+
+    if(needles_startpos == haystack_length) {
+        return -1;
+    }
+    else {
+        return needles_startpos;
+    }
+}
 
 
 int WebServer::getRequestType(const char* msg ) {
@@ -466,7 +495,7 @@ bool WebServer::setCookie(std::string cookie[2], const char* msg) {
         return true;
     }
 
-    int val_length = c_strFind(msg + cookie_start + key_length + 1, "\r\n");
+    int val_length = c_strFindNearest(msg + cookie_start + key_length + 1, ";", "\r\n");
 
     char val[val_length + 1];
     for(int i = 0; i < val_length; i++) {

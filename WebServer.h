@@ -19,6 +19,8 @@ class WebServer : public TcpListener {
         bool c_strStartsWith(const char* str1, const char* str2);
         int c_strFind(const char* haystack, const char* needle);
 
+        int c_strFindNearest(const char* haystack, const char* needle1, const char* needle2);
+
         void buildGETContent(short int page_type, char* url_c_str, std::string &content, bool cookies_present);
         void insertTextSelect(std::ostringstream &html);
         
