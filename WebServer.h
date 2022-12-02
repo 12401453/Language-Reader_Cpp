@@ -19,7 +19,7 @@ class WebServer : public TcpListener {
         bool c_strStartsWith(const char* str1, const char* str2);
         int c_strFind(const char* haystack, const char* needle);
 
-        void buildGETContent(int page_type, char* url_c_str, std::string &content);
+        void buildGETContent(short int page_type, char* url_c_str, std::string &content, bool cookies_present);
         void insertTextSelect(std::ostringstream &html);
         
         int checkHeaderEnd(const char* msg);
@@ -32,6 +32,8 @@ class WebServer : public TcpListener {
         bool addText(std::string _POST[3], int clientSocket);
         bool lemmaTooltips(std::string _POST[2], int clientSocket);
         bool retrieveText(std::string text_id[1], int clientSocket);
+        void retrieveText(int cookie_textselect, std::ostringstream &html);
+
         bool retrieveTextSplitup(std::string _POST[3], int clientSocket);
         bool deleteText(std::string _POST[1], int clientSocket);
         bool getLangId(std::string text_id[1], int clientSocket);
