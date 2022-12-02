@@ -460,6 +460,11 @@ bool WebServer::setCookie(std::string cookie[2], const char* msg) {
         key[i] = (msg + cookie_start)[i];
     }
     key[key_length] = '\0';
+    if(strcmp(key, "text_id")) {
+        cookie[0] = "text_id";
+        cookie[1] = "0";
+        return true;
+    }
 
     int val_length = c_strFind(msg + cookie_start + key_length + 1, "\r\n");
 
