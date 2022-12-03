@@ -237,8 +237,13 @@ int WebServer::checkHeaderEnd(const char* msg) {
         while (std::getline(urlFile, line))
         {   
             if(page_type > 0 && line.find("<?php") != -1) insertTextSelect(ss_text);
-            else if(page_type == 1 && cookies_present && line.find("<?cky") != -1) retrieveText(std::stoi(m_cookie[1]), ss_text);
+            else if(page_type == 1 && cookies_present && line.find("<?cky") != -1) retrieveText(std::stoi(m_cookie[1]), ss_text); 
             else if(page_type == 1 && line.find("<?cky") != -1) ss_text << "<br><br>\n";
+            
+            //For some reason I do not understand, if you insert a <script> tag to declare the below JS variable outside of the script tag at the bottom, on Chrome Android the server very often will get stuck for absolutely ages on loading the Bookerly font file when you refresh the page, and the javascript engine will freeze for about 5-10seconds, but this never happens on Desktop. Thus I've had to make up another bullshit <?js tag to signal where to insert this C++-generated JS, and the only reason I'm inserting it server-side is because JS string functions are absolute dogshit and compared to my C-string parsing of the cookie text, doing it on the client by parsing the document.cookie string is ungodlily inefficient
+            else if(page_type == 1 && cookies_present && line.find("<?js") != -1) ss_text << "let cookie_textselect = " + m_cookie[1] + ";\n";
+            else if(page_type == 1 && line.find("<?js") != -1) ss_text << "let cookie_textselect = 0;\n";
+
             else ss_text << line << '\n';
         }
 
@@ -480,30 +485,23 @@ int WebServer::getPostFields(const char* url) {
 }
 
 bool WebServer::setCookie(std::string cookie[2], const char* msg) {
-    int cookie_start = c_strFind(msg, "\r\nCookie") + 10;
-    if(cookie_start == 9) return false; //c_strFind() returns -1 if unsuccessful, but I've just added 10 to it so the number signalling no cookies is 9
-    int key_length = c_strFind(msg + cookie_start, "=");
+    int cookie_start = c_strFind(msg, "\r\nCookie") + 9;
+    if(cookie_start == 8) return false; //c_strFind() returns -1 if unsuccessful, but I've just added 9 to it so the number signalling no cookies is 8
 
-    char key[key_length + 1];
-    for(int i = 0; i < key_length; i++) {
-        key[i] = (msg + cookie_start)[i];
-    }
-    key[key_length] = '\0';
-    if(strcmp(key, "text_id")) {
-        cookie[0] = "text_id";
-        cookie[1] = "0";
-        return true;
-    }
+    int cookieName_start = c_strFind(msg + cookie_start, " text_id=");
+    if(cookieName_start == -1) return false;
 
-    int val_length = c_strFindNearest(msg + cookie_start + key_length + 1, ";", "\r\n");
+    cookie[0] = "text_id";
+
+    int val_length = c_strFindNearest(msg + cookie_start + cookieName_start + 9, ";", "\r\n");
+    std::cout << val_length << std::endl;
 
     char val[val_length + 1];
     for(int i = 0; i < val_length; i++) {
-        val[i] = (msg + cookie_start + key_length + 1)[i];
+        val[i] = (msg + cookie_start + cookieName_start + 9)[i];
     }
     val[val_length] = '\0';
-    
-    cookie[0] = key;
+
     cookie[1] = val;
     return true;
 }
@@ -737,7 +735,7 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
     
     }
 
-    std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nClear-Site-Data: \"cookies\"\r\n\r\n";
+    std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nSet-Cookie: text_id=" + _POST[0] + "; Max-Age=0\r\n\r\n";
     int size = POST_response.size() + 1;
 
     sendToClient(clientSocket, POST_response.c_str(), size);
