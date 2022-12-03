@@ -4,9 +4,7 @@
 #include <fstream>
 #include "WebServer.h"
 #include <math.h>
-#include <iomanip> //REMOVE after testing
-
-
+#include <sys/stat.h>
 
 void WebServer::onClientConnected(int clientSocket) {
 
@@ -75,8 +73,6 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
 
         std::string content = "<h1>404 Not Found</h1>"; 
 
-        buildGETContent(page_type, url_c_str, content, cookies_present);       
-
         std::string content_type = "text/html";
         
         char fil_ext[5];
@@ -91,8 +87,19 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         }
         if(!strcmp(fil_ext, ".ttf")) {
             content_type = "font/ttf";
+            sendFontFile(url_c_str, clientSocket);
+            printf("\n--------------------------------------MESSAGE BEGIN--------------------------------------------------\n\n");
+            printf("%s", msg);
+            printf("\n-----------------------------------------------------------------------------------------------------\n");
+            printf("Size of the above message is %i bytes\n\n", length);
+            return;
         }
         //TODO it must be quicker to just dump the font-files as binary rather than reading them as C++ strings, and apache must do this because its server-response time is much quicker for font-files even on the raspberry pi which is a heap of shit
+
+
+        buildGETContent(page_type, url_c_str, content, cookies_present);       
+
+     
 
         std::ostringstream oss;
         oss << "HTTP/1.1 200 OK\r\n";
@@ -1265,4 +1272,62 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         
         html << "Database connection failed<br><br>\n";
     }
+}
+
+
+void WebServer::sendFontFile(char* url_c_str, int clientSocket) {
+
+    std::ifstream urlFile(url_c_str, std::ios::binary);
+    if (urlFile.good())
+    {
+        std::cout << "This file exists and was opened successfully." << std::endl;
+
+        struct stat size_result;    
+        int font_filesize = 0;
+        if(stat(url_c_str, &size_result) == 0) {
+            font_filesize = size_result.st_size;
+            std::cout << "Fontfile size: " << font_filesize << " bytes" << std::endl;
+        }
+        else {
+            std::cout << "Error reading fontfile size" << std::endl;
+            return;
+        }
+        std::string headers =  "HTTP/1.1 200 OK\r\nContent-Type: font/ttf\r\nContent-Length: "+ std::to_string(font_filesize) + "\r\n\r\n";
+        int headers_size = headers.size();
+        const char* headers_c_str = headers.c_str();
+
+        if(font_filesize < 1048576) {
+            char content_buf[headers_size + font_filesize + 1];
+
+            memcpy(content_buf, headers_c_str, headers_size); //.size() leaves off null-termination in its count
+
+            urlFile.read(content_buf + headers_size, font_filesize);
+
+            content_buf[headers_size + font_filesize] = '\0';
+
+            sendToClient(clientSocket, content_buf, headers_size + font_filesize);
+
+            urlFile.close();
+        }
+        else {
+            char* content_buf = new char[headers_size + font_filesize + 1];
+
+            memcpy(content_buf, headers_c_str, headers_size); //.size() leaves off null-termination in its count
+
+            urlFile.read(content_buf + headers_size, font_filesize);
+
+            content_buf[headers_size + font_filesize] = '\0';
+
+            sendToClient(clientSocket, content_buf, headers_size + font_filesize);
+
+            delete[] content_buf;
+            urlFile.close();
+        }      
+    }
+    else
+    {
+        std::cout << "This file was not opened successfully." << std::endl;
+        return;
+    }
+    
 }

@@ -23,6 +23,7 @@ class WebServer : public TcpListener {
 
         void buildGETContent(short int page_type, char* url_c_str, std::string &content, bool cookies_present);
         void insertTextSelect(std::ostringstream &html);
+        void sendFontFile(char* url_c_str, int clientSocket);
         
         int checkHeaderEnd(const char* msg);
         void buildPOSTedData(const char* msg, bool headers_present, int length);
