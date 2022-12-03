@@ -89,6 +89,10 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         if(!strcmp(fil_ext, ".css")) {
             content_type = "text/css";
         }
+        if(!strcmp(fil_ext, ".ttf")) {
+            content_type = "font/ttf";
+        }
+        //TODO it must be quicker to just dump the font-files as binary rather than reading them as C++ strings, and apache must do this because its server-response time is much quicker for font-files even on the raspberry pi which is a heap of shit
 
         std::ostringstream oss;
         oss << "HTTP/1.1 200 OK\r\n";
