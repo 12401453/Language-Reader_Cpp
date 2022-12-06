@@ -85,6 +85,9 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         if(!strcmp(fil_ext, ".css")) {
             content_type = "text/css";
         }
+        if(!strcmp(fil_ext + 1, ".js")) {
+            content_type = "application/javascript";
+        }
         if(!strcmp(fil_ext, ".ttf")) {
             content_type = "font/ttf";
             sendFontFile(url_c_str, clientSocket);
@@ -94,7 +97,7 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
             printf("Size of the above message is %i bytes\n\n", length);
             return;
         }
-        //TODO it must be quicker to just dump the font-files as binary rather than reading them as C++ strings, and apache must do this because its server-response time is much quicker for font-files even on the raspberry pi which is a heap of shit
+       
 
 
         buildGETContent(page_type, url_c_str, content, cookies_present);       
@@ -359,7 +362,7 @@ void WebServer::buildPOSTedData(const char* msg, bool headers_present, int lengt
 
 }
 
-std::string urlDecode(std::string &text) //stolen off a rando on stackexchange
+std::string WebServer::URIDecode(std::string &text) //stolen off a rando on stackexchange
 {
     std::string escaped;
 
@@ -385,6 +388,35 @@ std::string urlDecode(std::string &text) //stolen off a rando on stackexchange
         }
     }
 
+    return escaped;
+}
+
+std::string WebServer::htmlspecialchars(const std::string &innerHTML) {
+    std::string escaped;
+
+    for(auto i = innerHTML.begin(), nd = innerHTML.end(); i < nd; i++) {
+        char c = (*i);
+
+        switch(c) {
+            case '<':
+                escaped += "&lt;";
+                break;
+            case '>':
+                escaped += "&gt;";
+                break;
+            case '"':
+                escaped += "&quot;";
+                break;
+            case '\'':
+                escaped += "&#039;";
+                break;
+            case '&':
+                escaped += "&amp;";
+                break;
+            default:
+                escaped += c;
+        }
+    }
     return escaped;
 }
 
@@ -521,7 +553,7 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
     std::cout << "update_db.php" << std::endl;
    
     UErrorCode status = U_ZERO_ERROR;
-    std::string text_body = urlDecode(_POST[0]);
+    std::string text_body = URIDecode(_POST[0]);
 
     sqlite3 *DB;
     sqlite3_stmt *statement;
@@ -655,7 +687,7 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
         delete bi;
         delete matcher;
         
-        icu::UnicodeString unicode_text_title = urlDecode(_POST[1]).c_str();
+        icu::UnicodeString unicode_text_title = URIDecode(_POST[1]).c_str();
         std::string text_title;
         unicode_text_title.findAndReplace("'", "¬");
         unicode_text_title.findAndReplace("’", "¬");

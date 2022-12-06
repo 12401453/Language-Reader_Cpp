@@ -42,6 +42,7 @@ class WebServer : public TcpListener {
         bool getLangId(std::string text_id[1], int clientSocket);
 
         std::string URIDecode(std::string &text);
+        std::string htmlspecialchars(const std::string &innerHTML);
 
         const char*         m_post_data;
         std::string         m_post_data_incomplete;
