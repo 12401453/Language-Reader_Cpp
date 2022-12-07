@@ -22,7 +22,10 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
   
     m_POST_continue = true;
 
-  
+    printf("\n--------------------------------------MESSAGE BEGIN--------------------------------------------------\n\n");
+    printf("%s", msg);
+    printf("\n-----------------------------------------------------------------------------------------------------\n");
+    printf("Size of the above message is %i bytes\n\n", length);
   
     int lb_pos = checkHeaderEnd(msg);
     int get_or_post = getRequestType(msg);
@@ -91,10 +94,6 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         if(!strcmp(fil_ext, ".ttf")) {
             content_type = "font/ttf";
             sendFontFile(url_c_str, clientSocket);
-            printf("\n--------------------------------------MESSAGE BEGIN--------------------------------------------------\n\n");
-            printf("%s", msg);
-            printf("\n-----------------------------------------------------------------------------------------------------\n");
-            printf("Size of the above message is %i bytes\n\n", length);
             return;
         }
        
@@ -126,12 +125,6 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
             handlePOSTedData(m_post_data, clientSocket);
        } 
     } 
-
-
-    printf("\n--------------------------------------MESSAGE BEGIN--------------------------------------------------\n\n");
-    printf("%s", msg);
-    printf("\n-----------------------------------------------------------------------------------------------------\n");
-    printf("Size of the above message is %i bytes\n\n", length);
     
 }
 
@@ -474,8 +467,11 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
        std::cout << "POST value no." << i << ": " << post_values[i] << std::endl;
     }
 
-    if(!strcmp(m_url, "/dk/update_db.php")) {
-        bool php_func_success = addText(post_values, clientSocket);  
+    if(!strcmp(m_url, "/dk/get_lang_id.php")) {
+        bool php_func_success = getLangId(post_values, clientSocket);
+    }
+    if(!strcmp(m_url, "/dk/retrieve_engword.php")) {
+        bool php_func_success = retrieveEngword(post_values, clientSocket);
     }
     if(!strcmp(m_url, "/dk/lemma_tooltip.php")) {
         bool php_func_success = lemmaTooltips(post_values, clientSocket);
@@ -486,11 +482,11 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     if(!strcmp(m_url, "/dk/retrieve_text_splitup.php")) {
         bool php_func_success = retrieveTextSplitup(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/get_lang_id.php")) {
-        bool php_func_success = getLangId(post_values, clientSocket);
-    }
     if(!strcmp(m_url, "/dk/delete_text.php")) {
         bool php_func_success = deleteText(post_values, clientSocket);
+    }
+    if(!strcmp(m_url, "/dk/update_db.php")) {
+        bool php_func_success = addText(post_values, clientSocket);  
     }
 
     printf("m_url: %s\n", m_url);
@@ -584,7 +580,7 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         run_code = sqlite3_step(statement);
              
-        int dt_start = sqlite3_column_int(statement, 0) + 1;
+        sqlite3_int64 dt_start = sqlite3_column_int64(statement, 0) + 1;
         sqlite3_finalize(statement);
 
         const char *sql_BEGIN = "BEGIN IMMEDIATE";
@@ -642,7 +638,7 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
                     tb_copy.toUTF8String(chunk);
 
                     sql_text_str = "INSERT OR IGNORE INTO word_engine (word, lang_id) VALUES (\'"+chunk+"\', "+_POST[2]+")";
-                    std::cout << sql_text_str << std::endl;
+                    //std::cout << sql_text_str << std::endl;
                     sql_text = sql_text_str.c_str();
                     sql_commands[0] = sql_text;
 
@@ -699,7 +695,7 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
         std::cout << "dt_start: " << dt_start << ", text_title: " << text_title << ", last_insert_row_id: " << sqlite3_last_insert_rowid(DB) << std::endl;
 
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        sqlite3_bind_int(statement, 2, dt_start);
+        sqlite3_bind_int64(statement, 2, dt_start);
         sqlite3_bind_text(statement, 1, text_title_c_str, -1, SQLITE_STATIC);
         sqlite3_bind_int(statement, 3, lang_id);
 
@@ -735,7 +731,6 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
     if(!sqlite3_open(m_DB_path, &DB)) {
     int prep_code, run_code;
     const char* sql_text;
-    std::string sql_text_str;
     
     sql_text = "SELECT MAX(text_id) FROM texts";
     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
@@ -745,22 +740,20 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
 
     bool end_text = (end_text_id == text_id);
 
-   /* sql_text_str = "SELECT dt_start, dt_end FROM texts WHERE text_id = "+_POST[0];
-    sql_text = sql_text_str.c_str(); */
     sql_text = "SELECT dt_start, dt_end FROM texts WHERE text_id = ?";
     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
     sqlite3_bind_int(statement, 1, text_id);
     run_code = sqlite3_step(statement);
     std::cout << prep_code << " " << run_code << std::endl;
 
-    int dt_start = sqlite3_column_int(statement, 0);
-    int dt_end = sqlite3_column_int(statement, 1);
+    sqlite3_int64 dt_start = sqlite3_column_int64(statement, 0);
+    sqlite3_int64 dt_end = sqlite3_column_int64(statement, 1);
     sqlite3_finalize(statement);
 
     sql_text = "DELETE FROM display_text WHERE tokno >= ? AND tokno <= ?";
     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-    sqlite3_bind_int(statement, 1, dt_start);
-    sqlite3_bind_int(statement, 2, dt_end);
+    sqlite3_bind_int64(statement, 1, dt_start);
+    sqlite3_bind_int64(statement, 2, dt_end);
     run_code = sqlite3_step(statement);
     std::cout << prep_code << " " << run_code << std::endl;
     sqlite3_finalize(statement);
@@ -827,23 +820,34 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
     int prep_code, run_code;
     const char *sql_text;
 
-    sql_text = "SELECT dt_start, dt_end, text_title FROM texts WHERE text_id = ?";
+    sql_text = "SELECT dt_start, dt_end, text_title, lang_id FROM texts WHERE text_id = ?";
     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
     std::cout << "bind code: " << sqlite3_bind_int(statement, 1, text_id_int) << std::endl;
     run_code = sqlite3_step(statement);
 
     std::cout << prep_code << " " << run_code << std::endl;
 
-    int dt_start = sqlite3_column_int(statement, 0);
-    int dt_end = sqlite3_column_int(statement, 1);
-
-    html << "<h1 id=\"title\">" << sqlite3_column_text(statement, 2) << "</h1><br><div id=\"textbody\">&emsp;";
+    sqlite3_int64 dt_start = sqlite3_column_int64(statement, 0);
+    sqlite3_int64 dt_end = sqlite3_column_int64(statement, 1);
+    int lang_id = sqlite3_column_int(statement, 3);
+    
+    if(lang_id == 7) {
+        const char* text_title = (const char*)sqlite3_column_text(statement, 2);
+        icu::UnicodeString text_title_utf8 = text_title;
+        text_title_utf8.findAndReplace("¬", "\'");
+        std::string text_title_str;
+        text_title_utf8.toUTF8String(text_title_str);
+        html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">&emsp;";
+    }
+    else {
+        html << "<h1 id=\"title\">" << sqlite3_column_text(statement, 2) << "</h1><br><div id=\"textbody\">&emsp;";
+    }
     sqlite3_finalize(statement);
 
     sql_text = "SELECT count(*) FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space = 1 OR text_word = '\n')";
     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-    sqlite3_bind_int(statement, 1, dt_start);
-    sqlite3_bind_int(statement, 2, dt_end);
+    sqlite3_bind_int64(statement, 1, dt_start);
+    sqlite3_bind_int64(statement, 2, dt_end);
     run_code = sqlite3_step(statement);
     int chunk_total = sqlite3_column_int(statement, 0);
     sqlite3_finalize(statement);
@@ -851,13 +855,14 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
     
     sql_text = "SELECT * FROM display_text WHERE tokno >= ? AND tokno <= ?";
     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-    sqlite3_bind_int(statement, 1, dt_start);
-    sqlite3_bind_int(statement, 2, dt_end);
+    sqlite3_bind_int64(statement, 1, dt_start);
+    sqlite3_bind_int64(statement, 2, dt_end);
     //run_code = sqlite3_step(statement);
 
     int chunk_count {1};
     float words_per_page {750};
-    int tokno, space, word_engine_id, lemma_meaning_no, lemma_id;
+    sqlite3_int64 tokno;
+    int space, word_engine_id, lemma_meaning_no, lemma_id;
 
     sqlite3_stmt* stmt;
     const char* sql_word_eng = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
@@ -867,7 +872,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
     bool following_a_space = true;
 
     while(sqlite3_step(statement) == SQLITE_ROW && chunk_count <= words_per_page) {
-        tokno = sqlite3_column_int(statement, 0);
+        tokno = sqlite3_column_int64(statement, 0);
         space = sqlite3_column_int(statement, 2);
         word_engine_id = sqlite3_column_int(statement, 3);
         text_word = (const char*)sqlite3_column_text(statement, 1);
@@ -929,7 +934,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
         chunk_count = 1;
         int pagenos = (int)ceil(chunk_total/words_per_page);
-        int page_toknos[pagenos];
+        sqlite3_int64 page_toknos[pagenos];
         
         
         page_toknos[0] = dt_start;
@@ -938,12 +943,12 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
         sql_text = "SELECT tokno FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space = 1 OR text_word = '\n')";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        sqlite3_bind_int(statement, 1, dt_start);
-        sqlite3_bind_int(statement, 2, dt_end);
+        sqlite3_bind_int64(statement, 1, dt_start);
+        sqlite3_bind_int64(statement, 2, dt_end);
 
         while(sqlite3_step(statement) == SQLITE_ROW) {
           
-            tokno = sqlite3_column_int(statement, 0);
+            tokno = sqlite3_column_int64(statement, 0);
             
             if(chunk_count % 750 == 0) {
                 page_toknos[arr_index] = tokno + 1;
@@ -1000,8 +1005,8 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
         int prep_code, run_code;
         const char *sql_text;
 
-        int dt_start = std::stoi(_POST[0]);
-        int dt_end = std::stoi(_POST[1]);
+        sqlite3_int64 dt_start = std::stoi(_POST[0]);
+        sqlite3_int64 dt_end = std::stoi(_POST[1]);
         int page_cur = std::stoi(_POST[2]);
 
         if(page_cur == 1) {
@@ -1010,13 +1015,14 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
 
         sql_text = "SELECT * FROM display_text WHERE tokno >= ? AND tokno <= ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        sqlite3_bind_int(statement, 1, dt_start);
-        sqlite3_bind_int(statement, 2, dt_end);
+        sqlite3_bind_int64(statement, 1, dt_start);
+        sqlite3_bind_int64(statement, 2, dt_end);
         // run_code = sqlite3_step(statement);
 
         int chunk_count{1};
         float words_per_page{750};
-        int tokno, space, word_engine_id, lemma_meaning_no, lemma_id;
+        sqlite3_int64 tokno;
+        int space, word_engine_id, lemma_meaning_no, lemma_id;
 
         sqlite3_stmt *stmt;
         const char *sql_word_eng = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
@@ -1027,7 +1033,7 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
         bool following_a_space = true;
 
         while(sqlite3_step(statement) == SQLITE_ROW && chunk_count <= words_per_page) {
-            tokno = sqlite3_column_int(statement, 0);
+            tokno = sqlite3_column_int64(statement, 0);
             space = sqlite3_column_int(statement, 2);
             word_engine_id = sqlite3_column_int(statement, 3);
             text_word = (const char*)sqlite3_column_text(statement, 1);
@@ -1150,14 +1156,14 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         int prep_code, run_code;
         const char *sql_text;
 
-        sql_text = "SELECT dt_start, dt_end, text_title FROM texts WHERE text_id = ?";
+        sql_text = "SELECT dt_start, dt_end, text_title, lang_id FROM texts WHERE text_id = ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         std::cout << "bind code: " << sqlite3_bind_int(statement, 1, cookie_textselect) << std::endl;
         run_code = sqlite3_step(statement);
 
         std::cout << prep_code << " " << run_code << std::endl;
 
-        int dt_start = sqlite3_column_int(statement, 0);
+        sqlite3_int64 dt_start = sqlite3_column_int64(statement, 0);
         //if the cookie refers to a deleted text then SQLite will convert the null given by this query of an empty row to 0, which is falsey in C++
         if(!dt_start) {
             html << "<br><br>\n";
@@ -1165,15 +1171,26 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
             sqlite3_close(DB);
             return;
         }
-        int dt_end = sqlite3_column_int(statement, 1);
+        sqlite3_int64 dt_end = sqlite3_column_int64(statement, 1);
+        int lang_id = sqlite3_column_int(statement, 3);
         
-        html << "<h1 id=\"title\">" << sqlite3_column_text(statement, 2) << "</h1><br><div id=\"textbody\">&emsp;";
+        if(lang_id == 7) {
+            const char* text_title = (const char*)sqlite3_column_text(statement, 2);
+            icu::UnicodeString text_title_utf8 = text_title;
+            text_title_utf8.findAndReplace("¬", "\'");
+            std::string text_title_str;
+            text_title_utf8.toUTF8String(text_title_str);
+            html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">&emsp;";
+        }
+        else {
+            html << "<h1 id=\"title\">" << sqlite3_column_text(statement, 2) << "</h1><br><div id=\"textbody\">&emsp;";
+        }
         sqlite3_finalize(statement);
 
         sql_text = "SELECT count(*) FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space = 1 OR text_word = '\n')";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        sqlite3_bind_int(statement, 1, dt_start);
-        sqlite3_bind_int(statement, 2, dt_end);
+        sqlite3_bind_int64(statement, 1, dt_start);
+        sqlite3_bind_int64(statement, 2, dt_end);
         run_code = sqlite3_step(statement);
         int chunk_total = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
@@ -1181,13 +1198,14 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         
         sql_text = "SELECT * FROM display_text WHERE tokno >= ? AND tokno <= ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        sqlite3_bind_int(statement, 1, dt_start);
-        sqlite3_bind_int(statement, 2, dt_end);
+        sqlite3_bind_int64(statement, 1, dt_start);
+        sqlite3_bind_int64(statement, 2, dt_end);
         //run_code = sqlite3_step(statement);
 
         int chunk_count {1};
         float words_per_page {750};
-        int tokno, space, word_engine_id, lemma_meaning_no, lemma_id;
+        sqlite3_int64 tokno;
+        int space, word_engine_id, lemma_meaning_no, lemma_id;
 
         sqlite3_stmt* stmt;
         const char* sql_word_eng = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
@@ -1197,7 +1215,7 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         bool following_a_space = true;
 
         while(sqlite3_step(statement) == SQLITE_ROW && chunk_count <= words_per_page) {
-            tokno = sqlite3_column_int(statement, 0);
+            tokno = sqlite3_column_int64(statement, 0);
             space = sqlite3_column_int(statement, 2);
             word_engine_id = sqlite3_column_int(statement, 3);
             text_word = (const char*)sqlite3_column_text(statement, 1);
@@ -1259,7 +1277,7 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
 
             chunk_count = 1;
             int pagenos = (int)ceil(chunk_total/words_per_page);
-            int page_toknos[pagenos];
+            sqlite3_int64 page_toknos[pagenos];
             
             
             page_toknos[0] = dt_start;
@@ -1268,12 +1286,12 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
 
             sql_text = "SELECT tokno FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space = 1 OR text_word = '\n')";
             prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-            sqlite3_bind_int(statement, 1, dt_start);
-            sqlite3_bind_int(statement, 2, dt_end);
+            sqlite3_bind_int64(statement, 1, dt_start);
+            sqlite3_bind_int64(statement, 2, dt_end);
 
             while(sqlite3_step(statement) == SQLITE_ROW) {
             
-                tokno = sqlite3_column_int(statement, 0);
+                tokno = sqlite3_column_int64(statement, 0);
                 
                 if(chunk_count % 750 == 0) {
                     page_toknos[arr_index] = tokno + 1;
@@ -1362,4 +1380,60 @@ void WebServer::sendFontFile(char* url_c_str, int clientSocket) {
         return;
     }
     
+}
+
+bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
+    
+    UErrorCode status = U_ZERO_ERROR;
+    sqlite3 *DB;
+    sqlite3_stmt *statement;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+
+        int word_engine_id = std::stoi(_POST[0]);
+        sqlite_int64 tokno_current = std::stoi(_POST[1]);
+        int lang_id = std::stoi(_POST[2]);
+
+        const char* word_eng_word;
+        int first_lemma_id = 0;
+
+        int existing_lemma_id = 0;
+
+        int prep_code, run_code;
+
+        const char* sql_text = "SELECT word, first_lemma_id FROM word_engine WHERE word_engine_id = ?";
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, word_engine_id);
+        run_code = sqlite3_step(statement);
+        word_eng_word = (const char*)sqlite3_column_text(statement, 0);
+        icu::UnicodeString word_eng_word_uftf8 = word_eng_word;
+        std::string word_eng_word_str;
+        word_eng_word_uftf8.toUTF8String(word_eng_word_str);
+
+        first_lemma_id = sqlite3_column_int(statement, 1); //will be 0 if the field is empty
+        sqlite3_finalize(statement);
+
+        //std::string word_eng_word_str {word_eng_word};
+
+        sql_text = "SELECT lemma_id FROM display_text WHERE tokno = ?";
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int64(statement, 1, tokno_current);
+        run_code = sqlite3_step(statement);
+        existing_lemma_id = sqlite3_column_int(statement, 0);
+        sqlite3_finalize(statement);
+
+
+
+        std::cout << "word_eng_word = " << word_eng_word_str << "; first_lemma_id = " << first_lemma_id << "; existing_lemma_id = " << existing_lemma_id << std::endl;
+
+
+        sqlite3_close(DB);
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on retrieveEngword\n";
+        return false;
+    }
+
+
 }

@@ -91,6 +91,12 @@ window.onload = () => {
             pageno.classList.add("current_pageno");
           }
         });
+
+        let tt_btns = document.querySelectorAll('.tooltip');
+
+        tt_btns.forEach(tt_btn => {
+          tt_btn.onclick = showAnnotate;
+        });
       }
       else console.log("cookie text has been deleted by another client");   
     }

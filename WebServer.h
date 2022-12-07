@@ -36,8 +36,8 @@ class WebServer : public TcpListener {
         bool lemmaTooltips(std::string _POST[2], int clientSocket);
         bool retrieveText(std::string text_id[1], int clientSocket);
         void retrieveText(int cookie_textselect, std::ostringstream &html);
-
         bool retrieveTextSplitup(std::string _POST[3], int clientSocket);
+        bool retrieveEngword(std::string _POST[3], int clientSocket);
         bool deleteText(std::string _POST[1], int clientSocket);
         bool getLangId(std::string text_id[1], int clientSocket);
 
