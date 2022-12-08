@@ -1405,29 +1405,88 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_int(statement, 1, word_engine_id);
         run_code = sqlite3_step(statement);
+        
         word_eng_word = (const char*)sqlite3_column_text(statement, 0);
-        icu::UnicodeString word_eng_word_uftf8 = word_eng_word;
-        std::string word_eng_word_str;
-        word_eng_word_uftf8.toUTF8String(word_eng_word_str);
+        std::string word_eng_word_str = "";
+        if(word_eng_word != nullptr) word_eng_word_str = word_eng_word;
 
         first_lemma_id = sqlite3_column_int(statement, 1); //will be 0 if the field is empty
         sqlite3_finalize(statement);
+        short int lemma_meaning_no = 0;
 
-        //std::string word_eng_word_str {word_eng_word};
-
-        sql_text = "SELECT lemma_id FROM display_text WHERE tokno = ?";
+        sql_text = "SELECT lemma_id, lemma_meaning_no FROM display_text WHERE tokno = ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_int64(statement, 1, tokno_current);
         run_code = sqlite3_step(statement);
         existing_lemma_id = sqlite3_column_int(statement, 0);
+        lemma_meaning_no = sqlite3_column_int(statement, 1);
         sqlite3_finalize(statement);
-
-
 
         std::cout << "word_eng_word = " << word_eng_word_str << "; first_lemma_id = " << first_lemma_id << "; existing_lemma_id = " << existing_lemma_id << std::endl;
 
+        std::string lemma_tag_content = "";
+        std::string lemma_textarea_content = "";
+        int lemma_id = 0;
+     
+        short int pos = 1;
+
+        if(!first_lemma_id) {
+            lemma_tag_content = word_eng_word_str;
+        }
+        else if(!existing_lemma_id) {
+            sql_text = "SELECT lemma, pos, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10 FROM lemmas WHERE lemma_id = ?";
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_int(statement, 1, first_lemma_id);
+            run_code = sqlite3_step(statement);
+
+            const unsigned char* lemma_rawsql = sqlite3_column_text(statement, 0);
+            if(lemma_rawsql != nullptr) lemma_tag_content = (const char*)lemma_rawsql;
+
+            pos = sqlite3_column_int(statement, 1);
+
+            //ensure that the first non-empty meaning is returned incase some bastard fills in meaning no.10 first
+            const unsigned char* lemma_textarea_content_rawsql;
+            for(int i = 2; i < 12; i++) {
+                lemma_textarea_content_rawsql = sqlite3_column_text(statement, i);
+                if(lemma_textarea_content_rawsql != nullptr) {
+                    lemma_textarea_content = (const char*)lemma_textarea_content_rawsql;
+                    lemma_meaning_no = i - 1;
+                    break;
+                }
+            }
+            sqlite3_finalize(statement);
+        }
+        else {
+            std::string sql_text_str = "SELECT lemma, pos, eng_trans"+std::to_string(lemma_meaning_no)+" FROM lemmas WHERE lemma_id = ?";
+            sql_text = sql_text_str.c_str();
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_int(statement, 1, existing_lemma_id);
+            run_code = sqlite3_step(statement);
+
+            const unsigned char* lemma_rawsql = sqlite3_column_text(statement, 0);
+            if(lemma_rawsql != nullptr) lemma_tag_content = (const char*)lemma_rawsql;
+            pos = sqlite3_column_int(statement, 1);
+
+            const unsigned char* lemma_textarea_rawsql = sqlite3_column_text(statement, 2);
+            if(lemma_textarea_rawsql != nullptr) lemma_textarea_content = (const char*)lemma_textarea_rawsql;
+
+            sqlite3_finalize(statement);
+        }
 
         sqlite3_close(DB);
+
+
+        std::ostringstream json;
+        json << "{\"lemma_tag_content\":\"" << htmlspecialchars(lemma_tag_content) << "\",\"lemma_textarea_content_html\":\"" << htmlspecialchars(lemma_textarea_content) << "\",\"lemma_textarea_content\":\"" << lemma_textarea_content << "\",\"lemma_meaning_no\":\"" << lemma_meaning_no << "\",\"lemma_id\":\"" << lemma_id << "\",\"pos\":\"" << pos << "\"}";
+
+        int content_length = json.str().size();
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        int length = post_response.str().size() + 1;
+
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+
+        
         return true;
     }
     else {
