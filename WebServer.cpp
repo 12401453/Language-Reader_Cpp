@@ -1449,7 +1449,7 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
             for(int i = 2; i < 12; i++) {
                 lemma_textarea_content_rawsql = sqlite3_column_text(statement, i);
                 if(lemma_textarea_content_rawsql != nullptr) {
-                    lemma_textarea_content = (const char*)lemma_textarea_content_rawsql;
+                    lemma_textarea_content = (const char*)lemma_textarea_content_rawsql; //this is implicitly a std::string construction from const char*
                     lemma_meaning_no = i - 1;
                     break;
                 }
@@ -1491,6 +1491,72 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
     }
     else {
         std::cout << "Database connection failed on retrieveEngword\n";
+        return false;
+    }
+}
+
+bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
+
+    sqlite3* DB;
+    sqlite3_stmt* statement;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        int word_engine_id = std::stoi(_POST[0]);
+        std::string lemma_form = _POST[1];
+        std::string lemma_meaning = _POST[2];
+        short int lemma_meaning_no = std::stoi(_POST[3]);
+        short int lang_id = std::stoi(_POST[4]);
+        sqlite3_int64 tokno = std::stoi(_POST[5]);
+        short int pos = std::stoi(_POST[6]);
+        short int submitted_lemma_meaning_no = std::stoi(_POST[7]);
+        
+        const char* sql_text = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
+        int prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, word_engine_id);
+        int run_code = sqlite3_step(statement);
+        int first_lemma_id = sqlite3_column_int(statement, 0);
+        sqlite3_finalize(statement);
+
+        if(!first_lemma_id) {
+            //this will get skipped if we are assigning an existing lemma to a new form
+            std::string sql_text_str = "INSERT OR IGNORE INTO lemmas (lemma, eng_trans"+_POST[3]+", lang_id, pos) VALUES (?, ?, ?, ?)";
+            sql_text = sql_text_str.c_str();
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(statement, 2, lemma_meaning.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_int(statement, 3, lang_id);
+            sqlite3_bind_int(statement, 4, pos);
+            run_code = sqlite3_step(statement);
+            sqlite3_finalize(statement);
+
+            //get lemma_id of the lemma we just (tried to) insert (it may already have been in the table so we have to get it by its set of unique columns)
+            sql_text = "SELECT lemma_id FROM lemmas WHERE lemma = ? AND lang_id = ? AND pos = ?";
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_int(statement, 2, lang_id);
+            sqlite3_bind_int(statement, 3, pos);
+            run_code = sqlite3_step(statement);
+            int target_lemma_id = sqlite3_column_int(statement, 0);
+            sqlite3_finalize(statement);
+
+            //assign the correct lemma_id to this form in the word_engine (this scope only runs if no first_lemma_id is set in the word_engine so cannot be overwriting anything here)
+            sql_text = "UPDATE word_engine SET first_lemma_id = ? WHERE word_engine_id = ?";
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_int(statement, 1, target_lemma_id);
+            sqlite3_bind_int(statement, 2, word_engine_id);
+            run_code = sqlite3_step(statement);
+            sqlite3_finalize(statement);
+        }
+        else if() {
+            
+        }
+
+
+
+        sqlite3_close(DB);
+    }
+    else {
+        std::cout << "Database connection failed on recordLemma\n";
         return false;
     }
 
