@@ -892,7 +892,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
             first_lemma_id = sqlite3_column_int(stmt, 0);
             sqlite3_finalize(stmt);
 
-            if(lemma_id) {
+            if(lemma_id || first_lemma_id) {
                 html << "<span class=\"tooltip lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
             }
             else {
@@ -1054,7 +1054,7 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
                 first_lemma_id = sqlite3_column_int(stmt, 0);
                 sqlite3_finalize(stmt);
 
-                if(lemma_id) {
+                if(lemma_id || first_lemma_id) {
                     html << "<span class=\"tooltip lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
                 }
                 else {
@@ -1235,7 +1235,7 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
                 first_lemma_id = sqlite3_column_int(stmt, 0);
                 sqlite3_finalize(stmt);
 
-                if(lemma_id) {
+                if(lemma_id || first_lemma_id) {
                     html << "<span class=\"tooltip lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
                 }
                 else {
@@ -1502,8 +1502,8 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
 
     if(!sqlite3_open(m_DB_path, &DB)) {
         int word_engine_id = std::stoi(_POST[0]);
-        std::string lemma_form = _POST[1];
-        std::string lemma_meaning = _POST[2];
+        std::string lemma_form = URIDecode(_POST[1]); 
+        std::string lemma_meaning = URIDecode(_POST[2]);
         short int lemma_meaning_no = std::stoi(_POST[3]);
         short int lang_id = std::stoi(_POST[4]);
         sqlite3_int64 tokno = std::stoi(_POST[5]);
@@ -1515,6 +1515,13 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
         sqlite3_bind_int(statement, 1, word_engine_id);
         int run_code = sqlite3_step(statement);
         int first_lemma_id = sqlite3_column_int(statement, 0);
+        sqlite3_finalize(statement);
+
+        sql_text = "SELECT lemma_id FROM display_text WHERE tokno = ?";
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int64(statement, 1, tokno);
+        run_code = sqlite3_step(statement);
+        int lemma_id_current = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
         if(!first_lemma_id) {
@@ -1546,14 +1553,35 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
             sqlite3_bind_int(statement, 2, word_engine_id);
             run_code = sqlite3_step(statement);
             sqlite3_finalize(statement);
+
+            if(submitted_lemma_meaning_no == lemma_meaning_no) {
+                sql_text = "UPDATE display_text SET lemma_id = ?, lemma_meaning_no = ? WHERE tokno = ?";
+                prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+                sqlite3_bind_int(statement, 1, target_lemma_id);
+                sqlite3_bind_int(statement, 2, submitted_lemma_meaning_no);
+                sqlite3_bind_int64(statement, 3, tokno);
+                run_code = sqlite3_step(statement);
+                sqlite3_finalize(statement);
+            }
         }
-        else if() {
-            
+        //this runs if we do have a first_lemma_id value but no explicit lemma_id bound to this display_text word
+        else if(!lemma_id_current) {
+            //this will get skipped if we are assigning an existing lemma to a new form
+            std::string sql_text_str = "INSERT OR IGNORE INTO lemmas (lemma, eng_trans"+_POST[3]+", lang_id, pos) VALUES (?, ?, ?, ?)";
+            sql_text = sql_text_str.c_str();
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(statement, 2, lemma_meaning.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_int(statement, 3, lang_id);
+            sqlite3_bind_int(statement, 4, pos);
+            run_code = sqlite3_step(statement);
+            sqlite3_finalize(statement);
         }
 
 
 
         sqlite3_close(DB);
+        return true;
     }
     else {
         std::cout << "Database connection failed on recordLemma\n";
