@@ -42,6 +42,8 @@ class WebServer : public TcpListener {
         bool deleteText(std::string _POST[1], int clientSocket);
         bool getLangId(std::string text_id[1], int clientSocket);
 
+        bool pullInLemma(std::string _POST[4], int clientSocket);
+
         std::string URIDecode(std::string &text);
         std::string htmlspecialchars(const std::string &innerHTML);
 

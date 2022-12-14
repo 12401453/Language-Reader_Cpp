@@ -483,7 +483,7 @@ const selectPoS = function () {
 }; 
 
 const pullInLemma = function (can_skip = true) {
-
+  
   let lemma_form = document.getElementById('lemma_tag').value;
   if (lemma_form == lemma_form_tag_intial && can_skip || document.getElementById('lemma_textarea').value != "") {
     return;
