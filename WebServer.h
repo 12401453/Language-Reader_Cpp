@@ -46,6 +46,7 @@ class WebServer : public TcpListener {
 
         std::string URIDecode(std::string &text);
         std::string htmlspecialchars(const std::string &innerHTML);
+        std::string escapeQuotes(const std::string &quoteystring);
 
         const char*         m_post_data;
         std::string         m_post_data_incomplete;

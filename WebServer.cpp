@@ -413,6 +413,22 @@ std::string WebServer::htmlspecialchars(const std::string &innerHTML) {
     return escaped;
 }
 
+std::string WebServer::escapeQuotes(const std::string &quoteystring) {
+    std::string escaped;
+    for(auto i = quoteystring.begin(), nd = quoteystring.end(); i < nd; i++) {
+
+        char c = (*i); //the quotation mark is always a single-byte ASCII char so this is fine
+        switch(c) {
+            case '\x22':
+                escaped += "\\\"";
+                break;
+            default:
+                escaped += c;
+        }
+    }
+    return escaped;
+}
+
 //in order to avoid using std::vector I cannot save the array of the POSTed data into a variable which persists outside this function, because the size of the array is only known if I know which POST data I am processing, which means the code to create an array out of the m_post_data has to be repeated everytime a function to handle it is called
 void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     printf("------------------------COMPLETE POST DATA------------------------\n%s\n-------------------------------------------------------\n", post_data);
@@ -1486,7 +1502,7 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
 
 
         std::ostringstream json;
-        json << "{\"lemma_tag_content\":\"" << htmlspecialchars(lemma_tag_content) << "\",\"lemma_textarea_content_html\":\"" << htmlspecialchars(lemma_textarea_content) << "\",\"lemma_textarea_content\":\"" << lemma_textarea_content << "\",\"lemma_meaning_no\":\"" << lemma_meaning_no << "\",\"lemma_id\":\"" << lemma_id << "\",\"pos\":\"" << pos << "\"}";
+        json << "{\"lemma_tag_content\":\"" << htmlspecialchars(lemma_tag_content) << "\",\"lemma_textarea_content_html\":\"" << htmlspecialchars(lemma_textarea_content) << "\",\"lemma_textarea_content\":\"" << escapeQuotes(lemma_textarea_content) << "\",\"lemma_meaning_no\":\"" << lemma_meaning_no << "\",\"lemma_id\":\"" << lemma_id << "\",\"pos\":\"" << pos << "\"}";
 
         int content_length = json.str().size();
         std::ostringstream post_response;
@@ -1648,21 +1664,48 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
 }
 
 bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
-
-
     
-      
-    std::ostringstream json;
-    json << "{\"lemma_textarea_content\":" << "null" << ",\"lemma_id\":" << "null}";
+    sqlite3* DB;
+    sqlite3_stmt* statement;
 
-    int content_length = json.str().size();
-    std::ostringstream post_response;
-    post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
-    int length = post_response.str().size() + 1;
+    if(!sqlite3_open(m_DB_path, &DB)) {
 
-    sendToClient(clientSocket, post_response.str().c_str(), length);
-    
-    
-    return true;
+        std::string sql_text_str = "SELECT eng_trans"+_POST[1]+", lemma_id FROM lemmas WHERE lemma = \'"+_POST[0]+"\' AND pos = "+_POST[2]+" AND lang_id = "+_POST[3];
+        std::cout << sql_text_str << std::endl;
+
+        sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+        sqlite3_step(statement);
+        int lemma_id = sqlite3_column_int(statement, 1);
+        std::string lemma_textarea_content;
+        if(lemma_id) {
+            lemma_textarea_content = sqlite3_column_text(statement, 0) == nullptr ? "null" : (const char*)sqlite3_column_text(statement, 0);
+        }
+        
+        sqlite3_finalize(statement);
+
+        std::ostringstream json;
+
+        if(!lemma_id) {
+            json << "{\"lemma_textarea_content\":null,\"lemma_id\":null}";
+        }
+        else {
+            json << "{\"lemma_textarea_content\":\"" << escapeQuotes(lemma_textarea_content) << "\",\"lemma_id\":\"" << lemma_id << "\"}";
+        }
+
+        int content_length = json.str().size();
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        int length = post_response.str().size() + 1;
+
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+
+        sqlite3_close(DB);
+        
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on pullInLemma()" << std::endl;
+        return false;
+    }
 
 }
