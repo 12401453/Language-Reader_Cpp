@@ -616,9 +616,8 @@ const lemmaRecord = function () {
     
     const httpRequest = (method, url) => {
 
-    let lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim());
-    lemma_meaning = encodeURIComponent(lemma_meaning);
-   // let lemma_meaning = encodeURIComponent(document.getElementById('lemma_textarea').value);
+    let lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim().replaceAll("'", "''"));
+    lemma_meaning = encodeURIComponent(lemma_meaning.replaceAll("'", "''")); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them
 
     let send_data = "word_engine_id=" + word_engine_id + "&lemma_form=" + lemma_form + "&lemma_meaning=" + lemma_meaning + "&lemma_meaning_no=" + lemma_meaning_no + "&lang_id=" + lang_id + "&tokno_current=" + tokno_current + "&pos=" + pos +"&clicked_lemma_meaning_no=" + clicked_lemma_meaning_no;
 
