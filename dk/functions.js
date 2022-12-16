@@ -484,8 +484,8 @@ const selectPoS = function () {
 
 const pullInLemma = function (can_skip = true) {
   
-  let lemma_form = document.getElementById('lemma_tag').value;
-  if (lemma_form == lemma_form_tag_intial && can_skip || document.getElementById('lemma_textarea').value != "") {
+  let lemma_form = document.getElementById('lemma_tag').value.trim();
+  if (lemma_form == lemma_form_tag_initial && can_skip) { //second condition is not good
     return;
   }
   document.getElementById('save_button').onclick = "";
@@ -502,10 +502,12 @@ const pullInLemma = function (can_skip = true) {
         let json_response = xhttp.response;
         console.log(json_response);
         lemma_id = json_response.lemma_id;
-        meanings = {};
-        meanings[lemma_meaning_no] = json_response.lemma_textarea_content;
-        document.getElementById("lemma_textarea").value = meanings[lemma_meaning_no];
-
+        if(lemma_id != null) {
+          meanings = {};
+          meanings[lemma_meaning_no] = json_response.lemma_textarea_content;
+          lemma_textarea_content_initial = json_response.lemma_textarea_content;
+          document.getElementById("lemma_textarea").value = meanings[lemma_meaning_no];
+        }
         document.getElementById('save_button').onclick = lemmaRecord;
       }
     }
@@ -820,7 +822,8 @@ const lemmaRecordTooltipUpdate = function (current_words) {
 
 
 let pos = 1;
-let lemma_form_tag_intial = "";
+let lemma_form_tag_initial = "";
+let lemma_textarea_content_initial = "";
 let lemma_meaning_no = 1;
 let lemma_id = 0;
 let meanings = {};
@@ -865,8 +868,9 @@ function showAnnotate(event) {
 
         let json_response = xhttp.response;
         let lemma_tag_content = json_response.lemma_tag_content;
-        lemma_form_tag_intial = lemma_tag_content;
+        lemma_form_tag_initial = lemma_tag_content;
         let lemma_textarea_content = json_response.lemma_textarea_content;
+        lemma_textarea_content_initial = lemma_textarea_content;
         let lemma_textarea_content_html = json_response.lemma_textarea_content_html;
         lemma_meaning_no = Number(json_response.lemma_meaning_no);
         lemma_id = Number(json_response.lemma_id);

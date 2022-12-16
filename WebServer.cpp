@@ -1648,6 +1648,9 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
 }
 
 bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
+
+
+    
       
     std::ostringstream json;
     json << "{\"lemma_textarea_content\":" << "null" << ",\"lemma_id\":" << "null}";
