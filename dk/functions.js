@@ -490,7 +490,7 @@ const pullInLemma = function (can_skip = true) {
   }
   document.getElementById('save_button').onclick = "";
   const httpRequest = (method, url) => {
-    let send_data = "lemma_form=" + lemma_form + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=" + pos + "&lang_id=" + lang_id;
+    let send_data = "lemma_form=" + encodeURIComponent(lemma_form.replaceAll("'", "''")) + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=" + pos + "&lang_id=" + lang_id;
 
     const xhttp = new XMLHttpRequest();
     xhttp.open(method, url, true);
@@ -504,9 +504,12 @@ const pullInLemma = function (can_skip = true) {
         lemma_id = json_response.lemma_id;
         if(lemma_id != null) {
           meanings = {};
-          meanings[lemma_meaning_no] = json_response.lemma_textarea_content;
-          lemma_textarea_content_initial = json_response.lemma_textarea_content;
-          document.getElementById("lemma_textarea").value = meanings[lemma_meaning_no];
+          let new_lemma_textarea_content = json_response.lemma_textarea_content;
+          if(new_lemma_textarea_content != "") {
+            meanings[lemma_meaning_no] = new_lemma_textarea_content;
+          }
+          lemma_textarea_content_initial = new_lemma_textarea_content;
+          document.getElementById("lemma_textarea").value = new_lemma_textarea_content;
         }
         document.getElementById('save_button').onclick = lemmaRecord;
       }
@@ -522,15 +525,17 @@ function switchMeaningAJAX() {
 
     const xhttp = new XMLHttpRequest();
     xhttp.open(method, url, true);
-    xhttp.responseType = 'json';
+    xhttp.responseType = 'text';
     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
     xhttp.onload = () => {
       if (xhttp.readyState == 4) {
-        let json_response = xhttp.response;
-        console.log(json_response);
-        if(json_response.lemma_textarea_content != null) {
-          meanings[lemma_meaning_no] = json_response.lemma_textarea_content;
+        //let json_response = xhttp.response;
+        let response_meaning = xhttp.response;
+        console.log(response_meaning);
+        //console.log(json_response);
+        if(response_meaning != "") {
+          meanings[lemma_meaning_no] = response_meaning;
         }
         document.getElementById("lemma_textarea").value = meanings[lemma_meaning_no] == undefined ? "" : meanings[lemma_meaning_no];
       }

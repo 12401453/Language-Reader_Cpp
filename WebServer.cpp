@@ -5,6 +5,7 @@
 #include "WebServer.h"
 #include <math.h>
 #include <sys/stat.h>
+#include <vector>
 
 void WebServer::onClientConnected(int clientSocket) {
 
@@ -489,6 +490,9 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     if(!strcmp(m_url, "/dk/retrieve_engword.php")) {
         bool php_func_success = retrieveEngword(post_values, clientSocket);
     }
+    if(!strcmp(m_url, "/dk/retrieve_meanings.php")) {
+        bool php_func_success = retrieveMeanings(post_values, clientSocket);
+    }
     if(!strcmp(m_url, "/dk/lemma_tooltip.php")) {
         bool php_func_success = lemmaTooltips(post_values, clientSocket);
     }
@@ -803,9 +807,47 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
 }
 
 bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
-    std::cout << "lemma_tooltip.php" << std::endl;
-    
-    return false;
+    sqlite3* DB;
+    sqlite3_stmt* statement;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+
+        int tooltip_count = 1;
+        //word_engine_id's are generally going to be smaller than toknos so more efficient to iterate through them
+        for(auto i = _POST[1].begin(), nd=_POST[1].end(); i < nd; i++) {
+            char c = (*i);
+            if(c == ',') tooltip_count++;
+        }
+
+        std::vector<sqlite3_int64> toknos;
+        std::vector<int> word_engine_ids;
+
+        toknos.reserve(tooltip_count); 
+        word_engine_ids.reserve(tooltip_count);
+
+        std::string tokno_str;
+        for(auto i = _POST[0].begin(), nd=_POST[0].end(); i < nd; i++) {
+            char c = (*i);
+            if(c == ',') {
+                sqlite3_int64 tokno = std::stoi(tokno_str);
+                toknos.emplace_back(tokno);
+                break;
+            }
+            tokno_str += c;
+            if(nd - 1 == i) {
+                sqlite3_int64 tokno = std::stoi(tokno_str);
+                toknos.emplace_back(tokno);
+            }
+        }
+
+        sqlite3_close(DB);
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed in lemmaTooltips()" << std::endl;
+        return false;
+
+    }
 }
 
 bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
@@ -1454,6 +1496,16 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
 
         if(!first_lemma_id) {
             lemma_tag_content = word_eng_word_str;
+
+            //could return more than one row but we just take the first as the default
+            std::string sql_text_str = "SELECT eng_trans1, pos FROM lemmas WHERE lemma = \'"+word_eng_word_str+"\' AND lang_id = "+_POST[2];
+            prep_code = sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+            run_code = sqlite3_step(statement);
+            const unsigned char* lemma_textarea_content_rawsql = sqlite3_column_text(statement, 0);
+            if(lemma_textarea_content_rawsql != nullptr) lemma_textarea_content = (const char*)lemma_textarea_content_rawsql;
+            pos = sqlite3_column_int(statement, 1);
+            if(!pos) pos = 1;
+            sqlite3_finalize(statement);
         }
         else if(!existing_lemma_id) {
             sql_text = "SELECT lemma, pos, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10 FROM lemmas WHERE lemma_id = ?";
@@ -1585,6 +1637,7 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
         sql_text_str = "UPDATE lemmas SET eng_trans"+_POST[3]+" = \'"+lemma_meaning+"\' WHERE lemma_id = ?";
         sql_text = sql_text_str.c_str();
         std::cout << sql_text_str << std::endl;
+        std::cout << "target_lemma_id: " << target_lemma_id << std::endl;
         sql_text = sql_text_str.c_str();
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         //sqlite3_bind_text(statement, 1, lemma_meaning.c_str(), -1, SQLITE_STATIC);
@@ -1670,7 +1723,7 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
 
     if(!sqlite3_open(m_DB_path, &DB)) {
 
-        std::string sql_text_str = "SELECT eng_trans"+_POST[1]+", lemma_id FROM lemmas WHERE lemma = \'"+_POST[0]+"\' AND pos = "+_POST[2]+" AND lang_id = "+_POST[3];
+        std::string sql_text_str = "SELECT eng_trans"+_POST[1]+", lemma_id FROM lemmas WHERE lemma = \'"+URIDecode(_POST[0])+"\' AND pos = "+_POST[2]+" AND lang_id = "+_POST[3];
         std::cout << sql_text_str << std::endl;
 
         sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
@@ -1678,7 +1731,7 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
         int lemma_id = sqlite3_column_int(statement, 1);
         std::string lemma_textarea_content;
         if(lemma_id) {
-            lemma_textarea_content = sqlite3_column_text(statement, 0) == nullptr ? "null" : (const char*)sqlite3_column_text(statement, 0);
+            lemma_textarea_content = sqlite3_column_text(statement, 0) == nullptr ? "" : (const char*)sqlite3_column_text(statement, 0);
         }
         
         sqlite3_finalize(statement);
@@ -1708,4 +1761,39 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
         return false;
     }
 
+}
+
+bool WebServer::retrieveMeanings(std::string _POST[2], int clientSocket) {
+    
+    sqlite3* DB;
+    sqlite3_stmt* statement;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        int prep_code, run_code;
+        std::string sql_text_str = "SELECT eng_trans"+_POST[1]+" FROM lemmas WHERE lemma_id = "+_POST[0];
+        prep_code = sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+        run_code = sqlite3_step(statement);
+
+        std::string lemma_textarea_content = "";
+        const unsigned char* lemma_textarea_content_rawsql = sqlite3_column_text(statement, 0);
+        if(lemma_textarea_content_rawsql != nullptr) lemma_textarea_content = (const char*)lemma_textarea_content_rawsql;
+
+        sqlite3_finalize(statement);
+
+        int content_length = lemma_textarea_content.size();
+
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << lemma_textarea_content;
+
+        int length = post_response.str().size() + 1;
+
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+
+        sqlite3_close(DB);
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on retrieveMeanings()" << std::endl;
+        return false;
+    }
 }
