@@ -808,9 +808,21 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
 
 bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
     sqlite3* DB;
-    sqlite3_stmt* statement;
+    sqlite3_stmt* statement1;
+    sqlite3_stmt* statement2;
+    sqlite3_stmt* statement3;
+    sqlite3_stmt* statement4;
 
     if(!sqlite3_open(m_DB_path, &DB)) {
+
+        sqlite3_stmt* statement1;
+        sqlite3_stmt* statement2;
+        sqlite3_stmt* statement3;
+
+        const char* sql_text1 = "SELECT lemma_id, lemma_meaning_no FROM display_text WHERE tokno = ?";
+        const char* sql_text2 = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
+        const char* sql_text3 = "SELECT lemma, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10, pos FROM lemmas WHERE lemma_id = ?";
+        
 
         int tooltip_count = 1;
         //word_engine_id's are generally going to be smaller than toknos so more efficient to iterate through them
@@ -825,13 +837,14 @@ bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
         toknos.reserve(tooltip_count); 
         word_engine_ids.reserve(tooltip_count);
 
-        std::string tokno_str;
+        std::string tokno_str = "";
         for(auto i = _POST[0].begin(), nd=_POST[0].end(); i < nd; i++) {
             char c = (*i);
             if(c == ',') {
                 sqlite3_int64 tokno = std::stoi(tokno_str);
                 toknos.emplace_back(tokno);
-                break;
+                tokno_str = "";
+                continue;
             }
             tokno_str += c;
             if(nd - 1 == i) {
@@ -839,6 +852,26 @@ bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
                 toknos.emplace_back(tokno);
             }
         }
+        std::string word_engine_id_str = "";
+        for(auto i = _POST[1].begin(), nd=_POST[1].end(); i < nd; i++) {
+            char c = (*i);
+            if(c == ',') {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_engine_ids.emplace_back(word_engine_id);
+                word_engine_id_str = "";
+                continue;
+            }
+            word_engine_id_str += c;
+            if(nd - 1 == i) {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_engine_ids.emplace_back(word_engine_id);
+            }
+        }
+
+        std::ostringstream json;
+        json << "[";
+
+
 
         sqlite3_close(DB);
         return true;
