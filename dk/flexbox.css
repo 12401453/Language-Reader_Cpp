@@ -446,6 +446,10 @@
   background-color: #ac0d9c;
 }
 
+#pos_tag_ques {
+  background-color: hsl(345, 100%, 70%);
+}
+
 .nav_arrow {
   cursor: default;
   color: grey;

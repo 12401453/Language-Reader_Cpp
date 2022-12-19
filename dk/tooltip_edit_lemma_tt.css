@@ -246,5 +246,8 @@ cursor: pointer;
 #pos_tag_part_tt {
   background-color: #ac0d9c;
 }
+#pos_tag_ques_tt {
+  background-color: hsl(345, 100%, 70%);
+}
 
 

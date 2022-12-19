@@ -25,7 +25,7 @@
 <span id="lang_button">
   <label for="langselect">Language:</label>
   <select id="langselect" name="langselect" form="formid">
-  <option value="4">Bulgarian</option><option value="8">Danish</option><option value="2">Kazakh</option><option value="3">Polish</option><option value="1">Russian</option><option value="7">Turkish</option>  
+  <option value="4">Bulgarian</option><option value="8">Danish</option><option value="2">Kazakh</option><option value="3">Polish</option><option value="1">Russian</option><option value="7">Turkish</option><option value="9">French</option><option value="10">German</option>
   </select></span><br><br><br>
 
 
