@@ -904,7 +904,7 @@ bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
                 pos = sqlite3_column_int(statement4, 2);
 
                 std::cout << "lemma_form: " << lemma_form << ", lemma_trans: " << lemma_trans << ", pos: " << pos << std::endl;
-                sqlite3_reset(statement1);
+                //sqlite3_reset(statement1);
                 sqlite3_finalize(statement4);
             }
             else {
@@ -934,15 +934,19 @@ bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
                 sqlite3_reset(statement3);
                 std::cout << "lemma_form: " << lemma_form << ", lemma_trans: " << lemma_trans << ", pos: " << pos << std::endl;     
             }
+            //I'm sure these need to be htmlspecialchars()'d as well/instead (as that escapes quotes with html codes)
             json << "{\"lemma_form\":\"" << escapeQuotes(lemma_form) << "\",\"lemma_trans\":\"" << escapeQuotes(lemma_trans) << "\",\"pos\":\"" << pos << "\"}";
             x++;
             if(x != tooltip_count) {
                 json << ",";
             } //for some reason the browser only recognises the response as JSON if there is no trailing comma
+            sqlite3_reset(statement1);
         } 
         sqlite3_finalize(statement1);
         sqlite3_finalize(statement2);
         sqlite3_finalize(statement3);
+
+        sqlite3_close(DB);
 
         json << "]";
         int content_length = json.str().size();
@@ -952,8 +956,7 @@ bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
 
         int length = post_response.str().size() + 1;
         sendToClient(clientSocket, post_response.str().c_str(), length);
-
-        sqlite3_close(DB);
+       
         return true;
     }
     else {
@@ -1281,7 +1284,6 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
 
 bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
 
-    UErrorCode status = U_ZERO_ERROR;
     sqlite3* DB;
     sqlite3_stmt* statement;
   
@@ -1305,9 +1307,10 @@ bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
     html << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << lang_id;
     int length = html.str().size() + 1;
 
-    sendToClient(clientSocket, html.str().c_str(), length);
-
     sqlite3_close(DB);
+
+    sendToClient(clientSocket, html.str().c_str(), length);
+    
     return true;
     }
     else return false;
@@ -1860,6 +1863,8 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
         
         sqlite3_finalize(statement);
 
+        sqlite3_close(DB);
+
         std::ostringstream json;
 
         if(!lemma_id) {
@@ -1876,7 +1881,7 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
 
         sendToClient(clientSocket, post_response.str().c_str(), length);
 
-        sqlite3_close(DB);
+       
         
         return true;
     }
@@ -1904,6 +1909,8 @@ bool WebServer::retrieveMeanings(std::string _POST[2], int clientSocket) {
 
         sqlite3_finalize(statement);
 
+        sqlite3_close(DB);
+
         int content_length = lemma_textarea_content.size();
 
         std::ostringstream post_response;
@@ -1913,7 +1920,7 @@ bool WebServer::retrieveMeanings(std::string _POST[2], int clientSocket) {
 
         sendToClient(clientSocket, post_response.str().c_str(), length);
 
-        sqlite3_close(DB);
+        
         return true;
     }
     else {
