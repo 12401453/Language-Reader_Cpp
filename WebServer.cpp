@@ -935,7 +935,7 @@ bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
                 std::cout << "lemma_form: " << lemma_form << ", lemma_trans: " << lemma_trans << ", pos: " << pos << std::endl;     
             }
             //I'm sure these need to be htmlspecialchars()'d as well/instead (as that escapes quotes with html codes)
-            json << "{\"lemma_form\":\"" << escapeQuotes(lemma_form) << "\",\"lemma_trans\":\"" << escapeQuotes(lemma_trans) << "\",\"pos\":\"" << pos << "\"}";
+            json << "{\"lemma_form\":\"" << htmlspecialchars(lemma_form) << "\",\"lemma_trans\":\"" << htmlspecialchars(lemma_trans) << "\",\"pos\":\"" << pos << "\"}";
             x++;
             if(x != tooltip_count) {
                 json << ",";
