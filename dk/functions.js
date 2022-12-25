@@ -522,8 +522,9 @@ const pullInLemma = function (can_skip = true) {
         let json_response = xhttp.response;
         console.log(json_response);
         lemma_id = json_response.lemma_id;
+        meanings = {};
         if(lemma_id != null) {
-          meanings = {};
+          
           let new_lemma_textarea_content = json_response.lemma_textarea_content;
           if(new_lemma_textarea_content != "") {
             meanings[lemma_meaning_no] = new_lemma_textarea_content;
@@ -865,6 +866,7 @@ let word_engine_id = 0;
 
 
 function showAnnotate(event) {
+  meanings = {};
    
   display_word = event.target;
   tokno_current = event.target.dataset.tokno;
