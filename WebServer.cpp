@@ -968,7 +968,7 @@ bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
 bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
     int text_id_int = std::stoi(text_id[0]);
-    std::cout << text_id << std::endl;
+    std::cout << text_id_int << std::endl;
 
     if(text_id_int == 0) {
        std::ostringstream html;
