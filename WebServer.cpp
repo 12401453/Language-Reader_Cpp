@@ -369,7 +369,7 @@ std::string WebServer::URIDecode(std::string &text) //stolen off a rando on stac
         case '%':
             if (i[1] && i[2])
             {
-                char hs[]{i[1], i[2]};
+                char hs[]{i[1], i[2], '\0'};
                 escaped += static_cast<char>(strtol(hs, nullptr, 16));
                 i += 2;
             }
