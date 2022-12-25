@@ -1010,17 +1010,17 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
     sqlite3_int64 dt_end = sqlite3_column_int64(statement, 1);
     int lang_id = sqlite3_column_int(statement, 3);
     
-    if(lang_id == 7) {
+    
         const char* text_title = (const char*)sqlite3_column_text(statement, 2);
         icu::UnicodeString text_title_utf8 = text_title;
         text_title_utf8.findAndReplace("¬", "\'");
         std::string text_title_str;
         text_title_utf8.toUTF8String(text_title_str);
         html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">&emsp;";
-    }
-    else {
+    
+  /*  else {
         html << "<h1 id=\"title\">" << sqlite3_column_text(statement, 2) << "</h1><br><div id=\"textbody\">&emsp;";
-    }
+    } */
     sqlite3_finalize(statement);
 
     sql_text = "SELECT count(*) FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space = 1 OR text_word = '\n')";
@@ -1353,17 +1353,17 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         sqlite3_int64 dt_end = sqlite3_column_int64(statement, 1);
         int lang_id = sqlite3_column_int(statement, 3);
         
-        if(lang_id == 7) {
+        
             const char* text_title = (const char*)sqlite3_column_text(statement, 2);
             icu::UnicodeString text_title_utf8 = text_title;
             text_title_utf8.findAndReplace("¬", "\'");
             std::string text_title_str;
             text_title_utf8.toUTF8String(text_title_str);
             html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">&emsp;";
-        }
-        else {
+        
+     /*   else {
             html << "<h1 id=\"title\">" << sqlite3_column_text(statement, 2) << "</h1><br><div id=\"textbody\">&emsp;";
-        }
+        } */
         sqlite3_finalize(statement);
 
         sql_text = "SELECT count(*) FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space = 1 OR text_word = '\n')";
