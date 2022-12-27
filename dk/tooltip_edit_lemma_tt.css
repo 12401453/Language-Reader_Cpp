@@ -34,6 +34,9 @@ cursor: pointer;
   color: rgb(252, 119, 119);
   cursor: pointer;
   }
+  .lemma_set_unexplicit {
+    color: rgb(0 255 186 / 76%);
+}
 
 
 

@@ -159,7 +159,7 @@ int WebServer::c_strFind(const char* haystack, const char* needle) {
     int needle_length = strlen(needle);
     int haystack_length = strlen(haystack);
     if(haystack_length < needle_length) return -1;
-    char needle_buf[needle_length + 1];
+    char needle_buf[needle_length + 1]; //yes I'm stack-allocating variable-length arrays because g++ lets me and I want the efficiency; it will segfault just the same if I pre-allocate an arbitrary length array which the data is too big for anyway, and I absolutely will not use any of the heap-allocated C++ containers for the essential HTTP message parsing, which needs to be imperceptibly fast
 
     needle_buf[needle_length] = '\0';
     for(int i = 0; i < haystack_length; i++) {
@@ -356,7 +356,7 @@ void WebServer::buildPOSTedData(const char* msg, bool headers_present, int lengt
 
 }
 
-std::string WebServer::URIDecode(std::string &text) //stolen off a rando on stackexchange
+std::string WebServer::URIDecode(std::string &text) //stolen off a rando on stackexchange who forgot to null-terminate the char-array before he strtol()'d it, which caused big problems
 {
     std::string escaped;
 
@@ -1838,7 +1838,6 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
 
     if(!sqlite3_open(m_DB_path, &DB)) {
 
-        //TODO add in the logic to change the SQL to also get pos if the pos == 0 which will come from the javascript I also ahve to change
         std::string sql_text_str = "";
         short int pos = std::stoi(_POST[2]);
         if(pos == 0) {

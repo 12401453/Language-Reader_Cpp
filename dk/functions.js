@@ -8,6 +8,7 @@ function tt_type() {
     tooltips_shown = false;
   }
   else {
+    document.getElementById("tt_toggle").disabled = true;
     lemmaTooltip();
     tooltips_shown = true; //redundant but done incase the AJAX request in lemmaTooltips() fails
   }
@@ -207,13 +208,17 @@ function progressBar(word_count) {
 function loadText() {
 
   let newtext_raw = document.getElementById('newtext').value.trim();
-  if(newtext_raw == '') {return; }
+  let text_title_raw = document.getElementById('text_title').value.trim();
+  if(text_title_raw == '' && newtext_raw == '') { return; }
+  if(text_title_raw == '') { alert("Do not leave Text Title blank"); return; }
+  if(newtext_raw == '') {alert("You cannot submit a blank text"); return; }
   let words = newtext_raw.split(' ');
   let word_count = words.length;
 
   let newtext = encodeURIComponent(newtext_raw);
  
-  let text_title = encodeURIComponent(document.getElementById('text_title').value.trim());
+  
+  let text_title = encodeURIComponent(text_title_raw);
   let langselect = document.getElementById('langselect').value;
 
   
@@ -499,7 +504,7 @@ const selectPoS = function () {
 const pullInLemma = function (can_skip = true) {
   
   let lemma_form = document.getElementById('lemma_tag').value.trim();
-  if (lemma_form == lemma_form_tag_initial && can_skip) { //second condition is not good
+  if (lemma_form == lemma_form_tag_initial && can_skip) {
     return;
   }
   document.getElementById('save_button').onclick = "";
@@ -643,6 +648,8 @@ const lemmaRecord = function () {
   }
   
   let clicked_lemma_meaning_no = lemma_meaning_no;
+  let meanings_length = Object.keys(meanings).length;
+  let count = 1;
   for (let lemma_meaning_no in meanings) {
     lemma_meaning = meanings[lemma_meaning_no];
     
@@ -671,9 +678,12 @@ const lemmaRecord = function () {
         current_words.forEach(current_word => {
           current_word.classList.add("lemma_set");
         });
-        if(tooltips_shown == true) {
-          lemmaRecordTooltipUpdate(current_words); //this being repeated for every meaning{} sometimes causes an issue with double tooltips; the lemma_record.php scripts are fired off without waiting for the previous one to return
+        console.log("meanings_lengths: ", meanings_length); //remove
+        console.log("count: ", count); //remove
+        if(tooltips_shown == true && count == meanings_length) {
+          lemmaRecordTooltipUpdate(current_words); //this being repeated for every meaning{} sometimes causes an issue with double tooltips; the lemma_record.php scripts are fired off without waiting for the previous one to return. possibly should get length of the meanings{} array and only run this on the final iteration (DONE)
         }
+        count++;
       }
     }
     xhttp.send(send_data);
@@ -738,7 +748,6 @@ const setLemmaTagSize = function () {
 };
 
 const lemmaTooltip = function () {
-
   let lemma_tooltips = document.querySelectorAll('.lemma_tt');
   lemma_tooltips.forEach(lemma_tooltip => {
     lemma_tooltip.remove();
@@ -787,6 +796,7 @@ const lemmaTooltip = function () {
           lemma_set_word.innerHTML = lemma_set_word.innerHTML + lemma_tt_box;
           i++;
         });
+        document.getElementById("tt_toggle").disabled = false;
       }
 
     }
@@ -1065,6 +1075,41 @@ const makeDraggable = function () {
 
 };
 
+
+const differentiateAnnotations = function () {
+  let lemma_set_words = document.querySelectorAll('.lemma_set');
+  let set_toknos = new Array();
+
+  lemma_set_words.forEach(lemma_set_word => {
+    set_toknos.push(lemma_set_word.data.tokno);
+  });
+
+  const httpRequest = (method, url) => {
+    let send_data = "toknos="+set_toknos;
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhttp.responseType = 'text';
+
+    xhttp.onload = () => {
+      console.log("sent");
+      if(xhttp.readyState == 4) {
+
+        let not_explicit_set_toknos = xhttp.response.split(",");
+
+        not_explicit_set_toknos.forEach(not_explicit_set_tokno => {
+          let dataselectorstring = '[data-tokno="'+not_explicit_set_tokno+'"]';
+          document.querySelector(dataselectorstring).classList.add("lemma_set_unexplicit");
+        });
+      }
+    }
+
+    xhttp.send(send_data);
+  };
+
+  httpRequest("POST", "diff_annot.php");
+
+};
 
 
 /*
