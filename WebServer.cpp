@@ -1045,6 +1045,8 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
     sqlite3_stmt* stmt;
     const char* sql_word_eng = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
+    sqlite3_prepare_v2(DB, sql_word_eng, -1, &stmt, NULL);
+
     int first_lemma_id;
     const char* text_word;
     bool newline = false;
@@ -1065,11 +1067,11 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
             lemma_id = sqlite3_column_int(statement, 5);
             lemma_meaning_no = sqlite3_column_int(statement, 4);
 
-            sqlite3_prepare_v2(DB, sql_word_eng, -1, &stmt, NULL);
+            
             sqlite3_bind_int(stmt, 1, word_engine_id);
             sqlite3_step(stmt);
             first_lemma_id = sqlite3_column_int(stmt, 0);
-            sqlite3_finalize(stmt);
+            sqlite3_reset(stmt);
 
             if(lemma_id || first_lemma_id) {
                 html << "<span class=\"tooltip lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
@@ -1104,8 +1106,9 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
             
 
     }
-    html << "</div>";
+    sqlite3_finalize(stmt);
     sqlite3_finalize(statement);
+    html << "</div>";
     
 
     if(chunk_total > words_per_page) {
@@ -1205,6 +1208,7 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
 
         sqlite3_stmt *stmt;
         const char *sql_word_eng = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
+        sqlite3_prepare_v2(DB, sql_word_eng, -1, &stmt, NULL);
         int first_lemma_id;
         const char *text_word;
 
@@ -1227,11 +1231,11 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
                 lemma_id = sqlite3_column_int(statement, 5);
                 lemma_meaning_no = sqlite3_column_int(statement, 4);
 
-                sqlite3_prepare_v2(DB, sql_word_eng, -1, &stmt, NULL);
+                
                 sqlite3_bind_int(stmt, 1, word_engine_id);
                 sqlite3_step(stmt);
                 first_lemma_id = sqlite3_column_int(stmt, 0);
-                sqlite3_finalize(stmt);
+                sqlite3_reset(stmt);
 
                 if(lemma_id || first_lemma_id) {
                     html << "<span class=\"tooltip lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
@@ -1267,6 +1271,7 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
 
         }
         sqlite3_finalize(statement);
+        sqlite3_finalize(stmt);
         sqlite3_close(DB);
         std::string content_str = html.str();
         int content_length = content_str.size();
@@ -1388,6 +1393,7 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
 
         sqlite3_stmt* stmt;
         const char* sql_word_eng = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
+        sqlite3_prepare_v2(DB, sql_word_eng, -1, &stmt, NULL);
         int first_lemma_id;
         const char* text_word;
         bool newline = false;
@@ -1408,11 +1414,11 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
                 lemma_id = sqlite3_column_int(statement, 5);
                 lemma_meaning_no = sqlite3_column_int(statement, 4);
 
-                sqlite3_prepare_v2(DB, sql_word_eng, -1, &stmt, NULL);
+                
                 sqlite3_bind_int(stmt, 1, word_engine_id);
                 sqlite3_step(stmt);
                 first_lemma_id = sqlite3_column_int(stmt, 0);
-                sqlite3_finalize(stmt);
+                sqlite3_reset(stmt);
 
                 if(lemma_id || first_lemma_id) {
                     html << "<span class=\"tooltip lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
@@ -1447,8 +1453,9 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
                 
 
         }
-        html << "</div>";
+        sqlite3_finalize(stmt);
         sqlite3_finalize(statement);
+        html << "</div>";
         
 
         if(chunk_total > words_per_page) {
