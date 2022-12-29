@@ -1073,8 +1073,11 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
             first_lemma_id = sqlite3_column_int(stmt, 0);
             sqlite3_reset(stmt);
 
-            if(lemma_id || first_lemma_id) {
-                html << "<span class=\"tooltip lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
+            if(lemma_id) {
+                html << "<span class=\"tooltip lemma_set_unexplicit lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
+            }
+            else if(first_lemma_id) {
+                html << "<span class=\"tooltip lemma_set_unexplicit\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
             }
             else {
                 html << "<span class=\"tooltip\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
@@ -1237,8 +1240,11 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
                 first_lemma_id = sqlite3_column_int(stmt, 0);
                 sqlite3_reset(stmt);
 
-                if(lemma_id || first_lemma_id) {
-                    html << "<span class=\"tooltip lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
+                if(lemma_id) {
+                    html << "<span class=\"tooltip lemma_set_unexplicit lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
+                }
+                else if(first_lemma_id) {
+                    html << "<span class=\"tooltip lemma_set_unexplicit\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
                 }
                 else {
                     html << "<span class=\"tooltip\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
@@ -1420,8 +1426,11 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
                 first_lemma_id = sqlite3_column_int(stmt, 0);
                 sqlite3_reset(stmt);
 
-                if(lemma_id || first_lemma_id) {
-                    html << "<span class=\"tooltip lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
+                if(lemma_id) {
+                    html << "<span class=\"tooltip lemma_set_unexplicit lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
+                }
+                else if(first_lemma_id) {
+                    html << "<span class=\"tooltip lemma_set_unexplicit\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
                 }
                 else {
                     html << "<span class=\"tooltip\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";

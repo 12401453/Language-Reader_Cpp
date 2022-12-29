@@ -2,7 +2,7 @@
 <html>
 
 <head>
-<link rel="stylesheet" type="text/css" href="tooltip_edit.css" id="tt_styles">
+<link rel="stylesheet" type="text/css" href="tooltip_prevs.css" id="tt_styles">
 <link rel="stylesheet" type="text/css" href="flexbox.css" id="flexbox_styles">
 
   <link href="style.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
@@ -29,8 +29,11 @@
   </select></div>
   <br><br><br>
   <div id="tt_button">
-<label for="tt_toggle">Tooltip previews</label>
-<input type="checkbox" id="tt_toggle" name="tt_toggle" onclick="tt_type()">
+    <label for="tt_toggle">Tooltip previews</label>
+    <input type="checkbox" id="tt_toggle" name="tt_toggle" onclick="tt_type()">
+  </div><br>
+  <div id="tt_button"><label for="diffannot_toggle">Mark automatic annotations</label>
+    <input type="checkbox" id="diffannot_toggle" name="diffannot_toggle" onclick="differentiateAnnotations()">
   </div><br>  
 <p1 id="p1">
 <?cky ?>

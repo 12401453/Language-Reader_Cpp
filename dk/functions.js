@@ -669,14 +669,13 @@ const lemmaRecord = function () {
       console.log("sent");
       // console.log(xhttp.responseText);
       if (xhttp.readyState == 4) {
-        console.log("Lemma updated");
-      //  document.getElementById('annot_box').remove();        
-        // display_word.classList.add("lemma_set");
+        console.log("Lemma updated");      
+       
+        document.querySelector('[data-tokno="'+tokno_current+'"]').classList.add("lemma_set");
         let dataselectorstring = '[data-word_engine_id="' + word_engine_id + '"]';
-
         let current_words = document.querySelectorAll(dataselectorstring);
         current_words.forEach(current_word => {
-          current_word.classList.add("lemma_set");
+          current_word.classList.add("lemma_set_unexplicit");
         });
         console.log("meanings_lengths: ", meanings_length); //remove
         console.log("count: ", count); //remove
@@ -720,9 +719,13 @@ const lemmaDelete = function () {
           let current_words = document.querySelectorAll(dataselectorstring);
           current_words.forEach(current_word => {
             current_word.classList.remove("lemma_set");
-          });
-          
+            current_word.classList.remove("lemma_set_unexplicit");
+          });     
         }
+        else {
+          document.querySelector('[data-tokno="'+tokno_current+'"]').classList.remove("lemma_set");
+        }
+
         if(tooltips_shown) {
           lemmaTooltip();
         }
@@ -753,7 +756,7 @@ const lemmaTooltip = function () {
     lemma_tooltip.remove();
   });
 
-  let lemma_set_words = document.querySelectorAll('.lemma_set');
+  let lemma_set_words = document.querySelectorAll('.lemma_set_unexplicit');
   let set_toknos = new Array();
   let set_word_eng_ids = new Array();
   lemma_set_words.forEach(lemma_set_word => {
@@ -763,13 +766,7 @@ const lemmaTooltip = function () {
     set_word_eng_ids.push(lemma_set_word_eng_id);
   
   });
-  /* let toknos_POST_data = "toknos=";
-  set_toknos.forEach(tokno => {
-    toknos_POST_data += `${tokno},`;
-  });
-  toknos_POST_data = toknos_POST_data.slice(0, -1); */
 
-  document.getElementById("tt_styles").setAttribute("href", "tooltip_edit_lemma_tt.css");
   const httpRequest = (method, url) => {
 
     // let send_data = toknos_POST_data;
@@ -783,7 +780,7 @@ const lemmaTooltip = function () {
       if(xhttp.readyState == 4) {
         tooltips_shown = true;
         json_lemma_transes = xhttp.response;
-        console.log(json_lemma_transes);
+       // console.log(json_lemma_transes);
         if(json_lemma_transes == null) {
          return;
         }
@@ -836,7 +833,7 @@ const lemmaRecordTooltipUpdate = function (current_words) {
       if (xhttp.readyState == 4) {
         tooltips_shown = true;
         json_lemma_transes = xhttp.response;
-        console.log(json_lemma_transes);
+       // console.log(json_lemma_transes);
         if (json_lemma_transes == null) {
           return;
         }
@@ -880,9 +877,7 @@ function showAnnotate(event) {
    
   display_word = event.target;
   tokno_current = event.target.dataset.tokno;
-  
- // document.getElementById("tt_styles").setAttribute("href", "tooltip_edit.css");
-  
+    
   let previous_selections = document.querySelectorAll('.tooltip_selected');
   previous_selections.forEach(previous_selection => {
     previous_selection.classList.add("tooltip");
@@ -1022,9 +1017,6 @@ const delAnnotate = function () {
   });
   meanings = {};
   annot_box.remove();
-  if(tooltips_shown == true) {
-    document.getElementById("tt_styles").setAttribute("href", "tooltip_edit_lemma_tt.css");
-  }
 };
 
 const makeDraggable = function () {
@@ -1075,39 +1067,16 @@ const makeDraggable = function () {
 
 };
 
-
+let diff_unexplicit_annot = false;
 const differentiateAnnotations = function () {
-  let lemma_set_words = document.querySelectorAll('.lemma_set');
-  let set_toknos = new Array();
-
-  lemma_set_words.forEach(lemma_set_word => {
-    set_toknos.push(lemma_set_word.data.tokno);
-  });
-
-  const httpRequest = (method, url) => {
-    let send_data = "toknos="+set_toknos;
-    const xhttp = new XMLHttpRequest();
-    xhttp.open(method, url, true);
-    xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhttp.responseType = 'text';
-
-    xhttp.onload = () => {
-      console.log("sent");
-      if(xhttp.readyState == 4) {
-
-        let not_explicit_set_toknos = xhttp.response.split(",");
-
-        not_explicit_set_toknos.forEach(not_explicit_set_tokno => {
-          let dataselectorstring = '[data-tokno="'+not_explicit_set_tokno+'"]';
-          document.querySelector(dataselectorstring).classList.add("lemma_set_unexplicit");
-        });
-      }
-    }
-
-    xhttp.send(send_data);
-  };
-
-  httpRequest("POST", "diff_annot.php");
+  if(diff_unexplicit_annot) {
+    document.getElementById("tt_styles").href = "tooltip_prevs.css";
+    diff_unexplicit_annot = false;
+  }
+  else {
+    document.getElementById("tt_styles").href = "tooltip_prevs_diff.css";
+    diff_unexplicit_annot = true;
+  }
 
 };
 
