@@ -927,7 +927,7 @@ function showAnnotate(event) {
           annot_box.remove();
         }
 
-        let annot_box = document.createRange().createContextualFragment('<div id="annot_box" data-word_engine_id="' + word_engine_id +'"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="context_box" class="box">Context translation</span><span id="morph_box" class="box">Morphology</span><span id="multiword_box" class="box">Multiword</span><span id="accent_box" class="box">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag">'+lemma_tag_content+'</textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off">'+lemma_textarea_content_html+'</textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number">'+lemma_meaning_no+'</span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
+        let annot_box = document.createRange().createContextualFragment('<div id="annot_box" data-word_engine_id="' + word_engine_id +'"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag">'+lemma_tag_content+'</textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off">'+lemma_textarea_content_html+'</textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number">'+lemma_meaning_no+'</span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
 
         document.getElementById('spoofspan').after(annot_box);
         if(lemma_meaning_no == 1) {
@@ -967,10 +967,21 @@ function showAnnotate(event) {
             current_box.style.backgroundColor = "#172136";
           }
           current_box = box;
-          document.getElementById('lemma_textarea').focus();
           current_box.style.color = "rgb(0, 255, 34)";
           current_box.style.backgroundColor = "#040a16";
+
+          if(current_box.id == "lemma_box") {
+            document.getElementById("right_body").style.visibility = "visible";
+            document.getElementById("right_footer").style.visibility = "visible";
+            document.getElementById('lemma_textarea').focus();
+          }
+          else {
+            document.getElementById("right_body").style.visibility = "hidden";
+            document.getElementById("right_footer").style.visibility = "hidden";
+          }
         }
+        
+
         //below does the same as above but less efficiently
       /* const panelSelect = function () {
 
