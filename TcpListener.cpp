@@ -53,7 +53,7 @@ int TcpListener::run() {
 
                 //this only gets called if the listening socket is determined to have some data for us to read by select(), which only happens when a client connects to the server on the listening socket, so this only triggers upon new client connections
                 if (sock == m_socket) {
-                    std::cout << "sock == listening" << std::endl;
+                    std::cout << "sock == listening - Client connected" << std::endl;
                     int client = accept(m_socket, nullptr, nullptr);
                     FD_SET(client, &m_master);
 
@@ -70,7 +70,7 @@ int TcpListener::run() {
 
                     //if there were in fact no bytes to be read off the client socket, even though select told us there was, then this is because the client has disconnected from the socket and we need to close it and remove it from fd_set using FD_CLR()
                     if(bytesIn <= 0) {
-                        std::cout << "bytesIn <= 0" << std::endl;
+                        std::cout << "bytesIn <= 0\nClient disconnected\n" << std::endl;
                         onClientDisconnected(sock);
                         close(sock);
                         FD_CLR(sock, &m_master);
