@@ -10,9 +10,10 @@ int TcpListener::init() {
     sockaddr_in hint;
     hint.sin_family = AF_INET;
     hint.sin_port = htons(m_port); //host-to-network-short converts little-endian binary representation of the port-number to big-endian
-    inet_pton(AF_INET, m_ipAddress, &hint.sin_addr); //converts IP in format 127.0.0.1 to an array of integers
-    //the second argument of bind() is the pointer to the sockaddr_in called hint, except it only accepts pointers to structs of type sockaddr, not sockaddr_in, so we have to cast the mem address of our hint struct to a pointer to a plain sockaddr struct, which is what the (sockaddr*) operator does
+    //inet_pton is "internet pointer-to-a-string-to-a-number", and it assigns an IP address to the sin_addr field of the sockaddr_in hint struct
+    inet_pton(AF_INET, m_ipAddress, &hint.sin_addr); //converts IP in format 127.0.0.1 to an array of integers. The third parameter is a pointer to the field of the hint struct which we are filling out with the format-converted IP address
 
+    //the second argument of bind() is the pointer to the sockaddr_in called hint, except it only accepts pointers to structs of type sockaddr, not sockaddr_in, so we have to cast the mem address of our hint struct to a pointer to a plain sockaddr struct, which is what the (sockaddr*) operator does
     //the bind() and listen() functions are called simultaneously with checking their return values, which is a bit unclear imo, but it saves declaring unneccesary variables to hold their return values
     if (bind(m_socket, (sockaddr*)&hint, sizeof(hint)) == -1) {
         std::cerr << "Can't bind to IP/port" << std::endl;
@@ -55,9 +56,9 @@ int TcpListener::run() {
                     std::cout << "sock == listening" << std::endl;
                     int client = accept(m_socket, nullptr, nullptr);
                     FD_SET(client, &m_master);
-                    
+
                     onClientConnected(client);
-                    
+
                 }
 
                 //if the socket determined to have data to read in it by select() is not the listening socket then we assume first that it is a client socket and we try to read the bytes on it into the buf array using recv()
@@ -77,17 +78,17 @@ int TcpListener::run() {
                     else {
                         std::cout << "bytesIn > 0" << std::endl;
                         onMessageReceived(sock, buf, bytesIn);
-                     
+
                     }
                 }
             }
         }
-    } 
+    }
     return 0;
 }
 
 void TcpListener::sendToClient(int clientSocket, const char* msg, int length) {
-    
+
     send(clientSocket, msg, length, 0);
 }
 
@@ -96,13 +97,13 @@ void TcpListener::broadcastToClients(int sendingClient, const char* msg, int len
         int outSock = i;//master.fd_array[i];
 
         //the outSock is another connected client socket, so this code is only called if more than one client is connected (if the outSock is a member of the fd_set master). It loops round and sends the incoming data in buf to each outSock it finds so that the message gets to each client, but it has to differentiate between other connected clients and the main listening socket (which listens for new client connections) and the client which is currently writing to the server (stored in sock), which is why we have the second if-statement; it writes the contents of buf to all the sockets in fd_set master EXCEPT the listening socket and the client-socket which wrote the message
-    
+
         if(outSock != m_socket && outSock != sendingClient) {
             sendToClient(outSock, msg, length);
         }
-        
+
     }
-                    
+
 }
 
 void TcpListener::onMessageReceived(int clientSocket, const char* msg, int length) {
