@@ -466,17 +466,36 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     }
     std::string post_values[post_fields];
     for(int i = 0; i < post_fields; i++) {
-        char ith_post_value[amp_positions_arr[i] - equals_positions_arr[i] + 1];
-        printf("length of post_value array: %i\n", amp_positions_arr[i] - equals_positions_arr[i] + 1);
-        for(int j = 0; j < amp_positions_arr[i] - equals_positions_arr[i] - 1; j++) {
-            ith_post_value[j] = post_data[equals_positions_arr[i] + 1 + j];
-           // printf("j = %i, char = %c | ", j, post_data[equals_positions_arr[i] + 1 + j]);
+        //this could be a really long text so if over a certain size needs to be heap-allocated (however it's also used for literally all POST requests, most of which are tiny, so the limit for stack-allocation will be 512Kb)
+        int ith_post_value_length = amp_positions_arr[i] - equals_positions_arr[i] + 1;
+        
+        if(ith_post_value_length > 524288) {
+            char* ith_post_value = new char[ith_post_value_length];
+            printf("length of post_value array: %i\n", ith_post_value_length);
+            for(int j = 0; j < amp_positions_arr[i] - equals_positions_arr[i] - 1; j++) {
+                ith_post_value[j] = post_data[equals_positions_arr[i] + 1 + j];
+            // printf("j = %i, char = %c | ", j, post_data[equals_positions_arr[i] + 1 + j]);
+            }
+            ith_post_value[amp_positions_arr[i] - equals_positions_arr[i] - 1] = '\0';
+            
+            std::string ith_post_value_str {ith_post_value};
+            delete[] ith_post_value;
+      
+            post_values[i] = ith_post_value_str;
         }
-        ith_post_value[amp_positions_arr[i] - equals_positions_arr[i] - 1] = '\0';
-        std::string ith_post_value_str {ith_post_value};
-        //const char* ith_post_value_cnst = ith_post_value;
-
-        post_values[i] = ith_post_value_str;
+        else {
+            char ith_post_value[ith_post_value_length];  //In Windows I will make this probably a 4096 bytes fixed-sized-array, because no-one needs 512Kb to hold a lang_id etc.
+            printf("length of post_value array: %i\n", ith_post_value_length);
+            for(int j = 0; j < amp_positions_arr[i] - equals_positions_arr[i] - 1; j++) {
+                ith_post_value[j] = post_data[equals_positions_arr[i] + 1 + j];
+            // printf("j = %i, char = %c | ", j, post_data[equals_positions_arr[i] + 1 + j]);
+            }
+            ith_post_value[amp_positions_arr[i] - equals_positions_arr[i] - 1] = '\0';
+            
+            std::string ith_post_value_str {ith_post_value};
+      
+            post_values[i] = ith_post_value_str;
+        }    
     }
 
     for (int i = 0; i < post_fields; i++)
