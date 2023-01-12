@@ -6,7 +6,7 @@
 
 class WebServer : public TcpListener {
     public:
-        WebServer(const char *ipAddress, int port) : TcpListener(ipAddress, port), m_DB_path{"/home/joe/Programs/networking/Kazakh_CPP/Kazakh.db"} { }
+        WebServer(const char *ipAddress, int port) : TcpListener(ipAddress, port), m_DB_path{"Kazakh.db"} { }
 
     protected:
         virtual void onClientConnected(int clientSocket);

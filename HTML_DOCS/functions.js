@@ -328,10 +328,10 @@ function deleteText() {
 
 
  function texts_link() {
-   window.location = "/dk/text_viewer";
+   window.location = "/text_viewer";
  }
  function add_text_link() {
-  window.location = "/dk/add_texts";
+  window.location = "/add_texts";
 }
 
 function showDeletion() {

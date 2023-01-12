@@ -58,15 +58,15 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         msg_url[lb_pos - 13] = '\0';
 
         short int page_type = 0;
-        if(!strcmp(msg_url, "/dk/text_viewer")) page_type = 1;
-        else if(!strcmp(msg_url, "/dk/add_texts")) page_type = 2;
+        if(!strcmp(msg_url, "/text_viewer")) page_type = 1;
+        else if(!strcmp(msg_url, "/add_texts")) page_type = 2;
 
-        #include "docRoot.cpp"
+        //#include "docRoot.cpp"
    
-        int url_size = strlen(docRoot_c_str) + sizeof(msg_url); //sizeof() can be used for c-strings declared as an array of char's but strlen() must be used for char *pointers
+        int url_size = strlen("HTML_DOCS") + sizeof(msg_url); //sizeof() can be used for c-strings declared as an array of char's but strlen() must be used for char *pointers
         char url_c_str[url_size];
     
-        strcpy(url_c_str, docRoot_c_str);
+        strcpy(url_c_str, "HTML_DOCS");
         strcat(url_c_str, msg_url);
 
         bool cookies_present = setCookie(m_cookie, msg);
@@ -503,37 +503,37 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
        std::cout << "POST value no." << i << ": " << post_values[i] << std::endl;
     }
 
-    if(!strcmp(m_url, "/dk/get_lang_id.php")) {
+    if(!strcmp(m_url, "/get_lang_id.php")) {
         bool php_func_success = getLangId(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/retrieve_engword.php")) {
+    if(!strcmp(m_url, "/retrieve_engword.php")) {
         bool php_func_success = retrieveEngword(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/retrieve_meanings.php")) {
+    if(!strcmp(m_url, "/retrieve_meanings.php")) {
         bool php_func_success = retrieveMeanings(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/lemma_tooltip.php")) {
+    if(!strcmp(m_url, "/lemma_tooltip.php")) {
         bool php_func_success = lemmaTooltips(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/lemma_delete.php")) {
+    if(!strcmp(m_url, "/lemma_delete.php")) {
         bool php_func_success = deleteLemma(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/lemma_record.php")) {
+    if(!strcmp(m_url, "/lemma_record.php")) {
         bool php_func_success = recordLemma(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/retrieve_text.php")) {
+    if(!strcmp(m_url, "/retrieve_text.php")) {
         bool php_func_success = retrieveText(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/retrieve_text_splitup.php")) {
+    if(!strcmp(m_url, "/retrieve_text_splitup.php")) {
         bool php_func_success = retrieveTextSplitup(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/delete_text.php")) {
+    if(!strcmp(m_url, "/delete_text.php")) {
         bool php_func_success = deleteText(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/dk/update_db.php")) {
+    if(!strcmp(m_url, "/update_db.php")) {
         bool php_func_success = addText(post_values, clientSocket);  
     }
-    if(!strcmp(m_url, "/dk/pull_lemma.php")) {
+    if(!strcmp(m_url, "/pull_lemma.php")) {
         bool php_func_success = pullInLemma(post_values, clientSocket);
     }
 
@@ -557,17 +557,17 @@ void WebServer::setURL(const char* msg) {
 }
 
 int WebServer::getPostFields(const char* url) {
-    if(!strcmp(url, "/dk/update_db.php")) return 3;
-    else if(!strcmp(url, "/dk/lemma_tooltip.php")) return 2;
-    else if(!strcmp(url, "/dk/retrieve_text.php")) return 1;
-    else if(!strcmp(url, "/dk/retrieve_text_splitup.php")) return 3;
-    else if(!strcmp(url, "/dk/get_lang_id.php")) return 1;
-    else if(!strcmp(url, "/dk/pull_lemma.php")) return 4;
-    else if(!strcmp(url, "/dk/lemma_record.php")) return 8;
-    else if(!strcmp(url, "/dk/lemma_delete.php")) return 3;
-    else if(!strcmp(url, "/dk/retrieve_engword.php")) return 3;
-    else if(!strcmp(url, "/dk/retrieve_meanings.php")) return 2;
-    else if(!strcmp(url, "/dk/delete_text.php")) return 1;
+    if(!strcmp(url, "/update_db.php")) return 3;
+    else if(!strcmp(url, "/lemma_tooltip.php")) return 2;
+    else if(!strcmp(url, "/retrieve_text.php")) return 1;
+    else if(!strcmp(url, "/retrieve_text_splitup.php")) return 3;
+    else if(!strcmp(url, "/get_lang_id.php")) return 1;
+    else if(!strcmp(url, "/pull_lemma.php")) return 4;
+    else if(!strcmp(url, "/lemma_record.php")) return 8;
+    else if(!strcmp(url, "/lemma_delete.php")) return 3;
+    else if(!strcmp(url, "/retrieve_engword.php")) return 3;
+    else if(!strcmp(url, "/retrieve_meanings.php")) return 2;
+    else if(!strcmp(url, "/delete_text.php")) return 1;
     else return 10;
 }
 
