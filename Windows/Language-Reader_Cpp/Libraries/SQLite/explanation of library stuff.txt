@@ -1,0 +1,4 @@
+the SQLite website only gives you either sqlite3.h sqlite3.c which are the header and C files for the entire thing, or sqlite3.dll and sqlite3.def. I couldn't get the sqlite3.c file to compile alongside my C++ project as it is probably incompatible as a C file, so you have to dynamic link-it, but the bastards don't give you a sqlite3.dll.lib file (a "stub" library which is compile-time linked but only contains directions into the .dll file which sits alongside your .exe file), so to get the equivalent I had to do 
+	lib /def:sqlite3.def /out:sqlite3.lib
+in the x64 dev tools command-line (to make sure I got the 64-bit one), then I can include that sqlite3.lib as a dependency in the VS project.
+You still also need the sqlite3.h file in the included libraries path
