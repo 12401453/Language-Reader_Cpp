@@ -1,5 +1,5 @@
 /* type '-lsqlite3' when compiling with g++ to include the sqlite3 library because the header file seems to just be forward declarations */
-/* ICU library if installed on the system can be included with g++ sqlite.cpp -l sqlite3 `pkg-config --libs --cflags icu-uc icu-io` -o sqlite */
+/* ICU library if installed on the system can be included with g++ <source files> `pkg-config --libs --cflags icu-uc icu-io` -o <binary name>*/
 #include <sstream>
 #include <fstream>
 #include "WebServer.h"
