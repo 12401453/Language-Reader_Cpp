@@ -23,10 +23,9 @@ void WebServer::onMessageReceived(SOCKET clientSocket, const char* msg, int leng
 
     m_POST_continue = true;
 
-    printf("\n--------------------------------------MESSAGE BEGIN--------------------------------------------------\n\n");
-    printf("%s", msg);
-    printf("\n-----------------------------------------------------------------------------------------------------\n");
-    printf("Size of the above message is %i bytes\n\n", length);
+    std::cout << "\n--------------------------------------MESSAGE BEGIN--------------------------------------------------\n\n" << msg;
+    std::cout << "\n-----------------------------------------------------------------------------------------------------\n";
+    std::cout << "Size of the above message is " << length << " bytes\n\n";
 
     int lb_pos = checkHeaderEnd(msg);
     int get_or_post = getRequestType(msg);
@@ -89,7 +88,7 @@ void WebServer::onMessageReceived(SOCKET clientSocket, const char* msg, int leng
             fil_ext[i] = url_c_str[url_size - 5 + i];
         }
         fil_ext[4] = '\0';
-        printf("fil_ext = %s\n", fil_ext);
+        std::cout << "fil_ext = " << fil_ext << std::endl;
 
         if (!strcmp(fil_ext, ".css")) {
             content_type = "text/css";
@@ -324,7 +323,7 @@ void WebServer::buildPOSTedData(const char* msg, bool headers_present, int lengt
             cl_figures++;
         }
         cl_figures--;
-        printf("Number of digits in content-length: %i\n", cl_figures);
+        std::cout << "Number of digits in content-length: " << cl_figures << std::endl;
 
         //char content_length_str[cl_figures + 1];
         char content_length_str[4096];
@@ -334,7 +333,7 @@ void WebServer::buildPOSTedData(const char* msg, bool headers_present, int lengt
         }
         content_length_str[cl_figures] = '\0';
         int content_length = atoi(content_length_str);
-        printf("Parsed-out content-length: %i\n", content_length);
+        std::cout << "Parsed-out content-length: " << content_length << std::endl;
 
         int headers_length = strstr(msg, "\r\n\r\n") - msg;
         m_POST_continue = false;
@@ -443,7 +442,7 @@ std::string WebServer::escapeQuotes(const std::string& quoteystring) {
 
 //in order to avoid using std::vector I cannot save the array of the POSTed data into a variable which persists outside this function, because the size of the array is only known if I know which POST data I am processing, which means the code to create an array out of the m_post_data has to be repeated everytime a function to handle it is called
 void WebServer::handlePOSTedData(const char* post_data, SOCKET clientSocket) {
-    printf("------------------------COMPLETE POST DATA------------------------\n%s\n-------------------------------------------------------\n", post_data);
+    std::cout << "------------------------COMPLETE POST DATA------------------------\n" << post_data << "\n-------------------------------------------------------\n";
 
     int post_fields = getPostFields(m_url);
 
@@ -474,10 +473,10 @@ void WebServer::handlePOSTedData(const char* post_data, SOCKET clientSocket) {
 
 
     for (int i = 0; i < post_fields; i++) {
-        printf("equals position no. %i: %i\n", i, equals_positions_arr[i]);
+        std::cout << "equals position no. " << i << ": " << equals_positions_arr[i] << std::endl;
     }
     for (int i = 0; i < post_fields - 1; i++) {
-        printf("amp position no. %i: %i\n", i, amp_positions_arr[i]);
+        std::cout << "amp position no. " << i << ": " << amp_positions_arr[i] << std::endl;
     }
     //std::string post_values[post_fields];
     std::string post_values[512];
@@ -487,7 +486,7 @@ void WebServer::handlePOSTedData(const char* post_data, SOCKET clientSocket) {
     
         if (ith_post_value_length > 8192) {
             char* ith_post_value = new char[ith_post_value_length];
-            printf("length of post_value array: %i\n", amp_positions_arr[i] - equals_positions_arr[i] + 1);
+            std::cout << "length of post_value array: " << ith_post_value_length << std::endl;
             
             for (int j = 0; j < amp_positions_arr[i] - equals_positions_arr[i] - 1; j++) {
                 ith_post_value[j] = post_data[equals_positions_arr[i] + 1 + j];
@@ -501,7 +500,7 @@ void WebServer::handlePOSTedData(const char* post_data, SOCKET clientSocket) {
         else {
             char ith_post_value[8192];
             memset(ith_post_value, '\0', 8192);
-            printf("length of post_value array: %i\n", amp_positions_arr[i] - equals_positions_arr[i] + 1);
+            std::cout << "length of post_value array: " << ith_post_value_length << std::endl;
 
             for (int j = 0; j < amp_positions_arr[i] - equals_positions_arr[i] - 1; j++) {
                 ith_post_value[j] = post_data[equals_positions_arr[i] + 1 + j];
@@ -553,7 +552,7 @@ void WebServer::handlePOSTedData(const char* post_data, SOCKET clientSocket) {
         bool php_func_success = pullInLemma(post_values, clientSocket);
     }
 
-    printf("m_url: %s\n", m_url);
+    std::cout << "m_url: " << m_url << std::endl;
 
 }
 
