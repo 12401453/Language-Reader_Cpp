@@ -6,7 +6,9 @@
 
 class WebServer : public TcpListener {
     public:
-        WebServer(const char *ipAddress, int port) : TcpListener(ipAddress, port), m_DB_path{"Kazakh.db"} { }
+        WebServer(const char *ipAddress, int port, bool show_output) : TcpListener(ipAddress, port), m_DB_path{"Kazakh.db"}, m_show_output{show_output} {
+            if(!m_show_output) std::cout.setstate(std::ios_base::failbit);
+         }
 
     protected:
         virtual void onClientConnected(int clientSocket);
@@ -58,5 +60,7 @@ class WebServer : public TcpListener {
         char                m_url[50];
         const char*         m_DB_path;
         std::string         m_cookie[2];
+
+        bool                m_show_output;
 
 };
