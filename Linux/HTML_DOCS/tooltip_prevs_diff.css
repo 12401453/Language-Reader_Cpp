@@ -5,12 +5,17 @@ display: inline-block;
 /*color: rgb(252, 119, 119); */
 color: #cbd9f4;
 cursor: pointer;
-/* border-bottom: 1px dotted black; */
+border-bottom: 2px solid rgb(23, 33, 54, 0);
 }
 
 .tooltip:hover {
-  color: rgb(252, 119, 119);
+  color: rgb(255 115 205);
 }
+
+.multiword {
+  border-bottom: 2px dotted rgb(0 255 186 / 50%);
+}
+
 
 .lemma_set_unexplicit {
   color: rgb(0 255 186 / 76%);
@@ -37,7 +42,7 @@ cursor: pointer;
 .tooltip_selected {
   position: relative;
   display: inline-block;
-  color: rgb(252, 119, 119);
+  color: rgb(255 115 205);
   cursor: pointer;
   }
 

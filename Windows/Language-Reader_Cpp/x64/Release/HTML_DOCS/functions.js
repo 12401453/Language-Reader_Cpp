@@ -1108,3 +1108,10 @@ const differentiateAnnotations = function () {
       else { document.getElementById("tt_styles").href = "tooltip_none_style_2.css";}
     }
   }); */
+
+  const underlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px solid rgb(0, 255, 186)";})); };
+
+  const removeUnderlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px dotted rgb(0, 255, 186, 0.5)";})); };
+
+  document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseover', underlineMultiwords);});
+  document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseout', removeUnderlineMultiwords);});

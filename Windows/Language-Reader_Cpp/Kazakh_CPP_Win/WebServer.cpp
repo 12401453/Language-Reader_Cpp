@@ -80,7 +80,7 @@ void WebServer::onMessageReceived(SOCKET clientSocket, const char* msg, int leng
 
         std::string content = "<h1>404 Not Found</h1>";
 
-        std::string content_type = "text/html";
+        std::string content_type = "text/html;charset=UTF-8";
 
         char fil_ext[5];
         memset(fil_ext, '\0', 5);

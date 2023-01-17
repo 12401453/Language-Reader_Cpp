@@ -76,7 +76,7 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
 
         std::string content = "<h1>404 Not Found</h1>"; 
 
-        std::string content_type = "text/html";
+        std::string content_type = "text/html;charset=UTF-8";
         
         char fil_ext[5];
         for(int i = 0; i < 4; i++) {
