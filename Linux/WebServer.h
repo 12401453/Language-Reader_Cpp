@@ -44,6 +44,7 @@ class WebServer : public TcpListener {
         bool deleteLemma(std::string _POST[3], int clientSocket);
         bool deleteText(std::string _POST[1], int clientSocket);
         bool getLangId(std::string text_id[1], int clientSocket);
+        bool clearTable(int clientSocket);
 
         bool pullInLemma(std::string _POST[4], int clientSocket);
         bool retrieveMeanings(std::string _POST[2], int clientSocket);

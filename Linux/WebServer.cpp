@@ -435,6 +435,11 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     
     int post_fields = getPostFields(m_url);
 
+    if(post_fields == 0 && !strcmp(m_url, "/clear_table.php")) { //clearing the table could be ruinous so adding the extra condition is prudent and should never be run except if post_fields == 0
+        bool php_func_success = clearTable(clientSocket);
+        return;
+    }
+
     int equals_positions_arr[post_fields];
     int equals_pos = 0;
     for(int i = 0; i < post_fields; i++) {
@@ -567,6 +572,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/retrieve_engword.php")) return 3;
     else if(!strcmp(url, "/retrieve_meanings.php")) return 2;
     else if(!strcmp(url, "/delete_text.php")) return 1;
+    else if(!strcmp(url, "/clear_table.php")) return 0;
     else return 10;
 }
 
@@ -2063,6 +2069,72 @@ bool WebServer::deleteLemma(std::string _POST[3], int clientSocket) {
     }
     else {
         std::cout << "Database connection failed on deleteLemma()" << std::endl;
+        return false;
+    }
+
+}
+
+bool WebServer::clearTable(int clientSocket) {
+
+    sqlite3* DB;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        sqlite3_stmt* statement;
+
+        const char *sql_BEGIN = "BEGIN IMMEDIATE";
+        const char *sql_COMMIT = "COMMIT";
+
+        sqlite3_prepare_v2(DB, sql_BEGIN, -1, &statement, NULL);
+        sqlite3_step(statement);
+        sqlite3_finalize(statement);
+
+        const char* sql_text = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_meaning_no INTEGER, lemma_id INTEGER)";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sql_text = "DROP TABLE IF EXISTS chunks;CREATE TABLE chunks (dt_start INTEGER, dt_end INTEGER)";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sql_text = "DROP TABLE IF EXISTS word_engine;CREATE TABLE word_engine (word_engine_id INTEGER PRIMARY KEY, word TEXT, lang_id INTEGER, first_lemma_id INTEGER, UNIQUE(word, lang_id))";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sql_text = "DROP TABLE IF EXISTS texts;CREATE TABLE texts (text_id INTEGER PRIMARY KEY, text_title TEXT, dt_start INTEGER, dt_end INTEGER, lang_id INTEGER, text_tag TEXT)";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sql_text = "DROP TABLE IF EXISTS lemmas;CREATE TABLE lemmas (lemma_id INTEGER PRIMARY KEY, lemma TEXT, eng_trans1 TEXT, eng_trans2 TEXT, eng_trans3 TEXT, eng_trans4 TEXT, eng_trans5 TEXT, eng_trans6 TEXT, eng_trans7 TEXT, eng_trans8 TEXT, eng_trans9 TEXT, eng_trans10 TEXT, lang_id INTEGER, pos INTEGER, UNIQUE(lemma, lang_id, pos))";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sql_text = "DROP TABLE IF EXISTS multiword_index;CREATE TABLE multiword_index (multiword_id INTEGER, dt_start INTEGER, dt_end INTEGER, UNIQUE(dt_start, dt_end))";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sql_text = "DROP TABLE IF EXISTS multiwords;CREATE TABLE multiwords (multiword_id INTEGER PRIMARY KEY, word_engine_id1 INTEGER, word_engine_id2 INTEGER, word_engine_id3 INTEGER, word_engine_id4 INTEGER, word_engine_id5 INTEGER, word_engine_id6 INTEGER, word_engine_id7 INTEGER, word_engine_id8 INTEGER, word_engine_id9 INTEGER, word_engine_id10 INTEGER, eng_trans1 TEXT, eng_trans2 TEXT, eng_trans3 TEXT, eng_trans4 TEXT, eng_trans5 TEXT, lang_id INTEGER, UNIQUE(lang_id, word_engine_id1, word_engine_id2, word_engine_id3, word_engine_id4, word_engine_id5, word_engine_id6, word_engine_id7, word_engine_id8, word_engine_id9, word_engine_id10))";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sql_text = "DROP TABLE IF EXISTS languages;CREATE TABLE languages (lang_id INTEGER PRIMARY KEY, lang_name TEXT UNIQUE)";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sql_text = "DROP TABLE IF EXISTS context_trans;CREATE TABLE context_trans (dt_start INTEGER, dt_end INTEGER, eng_trans TEXT, UNIQUE(dt_start, dt_end))";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sql_text = "INSERT INTO languages (lang_id, lang_name) VALUES (8, 'Danish'), (7, 'Turkish'), (1, 'Russian'), (2, 'Kazakh'), (3, 'Polish'), (4, 'Bulgarian')";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+
+        sqlite3_prepare_v2(DB, sql_COMMIT, -1, &statement, NULL);
+        sqlite3_step(statement);
+        sqlite3_finalize(statement);
+
+        sql_text = "VACUUM";
+        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
+        
+
+        sqlite3_close(DB);
+
+        std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
+        int size = POST_response.size() + 1;
+        sendToClient(clientSocket, POST_response.c_str(), size);
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on clearTable()" << std::endl;
         return false;
     }
 
