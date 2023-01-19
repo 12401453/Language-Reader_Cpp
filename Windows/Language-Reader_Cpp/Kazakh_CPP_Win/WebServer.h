@@ -21,7 +21,6 @@ private:
 
     bool c_strStartsWith(const char* str1, const char* str2);
     int c_strFind(const char* haystack, const char* needle);
-
     int c_strFindNearest(const char* haystack, const char* needle1, const char* needle2);
 
     void buildGETContent(short int page_type, char* url_c_str, std::string& content, bool cookies_present);
@@ -45,6 +44,7 @@ private:
     bool deleteLemma(std::string _POST[3], SOCKET clientSocket);
     bool deleteText(std::string _POST[1], SOCKET clientSocket);
     bool getLangId(std::string text_id[1], SOCKET clientSocket);
+    bool clearTable(SOCKET clientSocket);
 
     bool pullInLemma(std::string _POST[4], SOCKET clientSocket);
     bool retrieveMeanings(std::string _POST[2], SOCKET clientSocket);

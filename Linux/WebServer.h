@@ -8,7 +8,7 @@ class WebServer : public TcpListener {
     public:
         WebServer(const char *ipAddress, int port, bool show_output) : TcpListener(ipAddress, port), m_DB_path{"Kazakh.db"}, m_show_output{show_output} {
             if(!m_show_output) std::cout.setstate(std::ios_base::failbit);
-         }
+        }
 
     protected:
         virtual void onClientConnected(int clientSocket);
@@ -20,7 +20,6 @@ class WebServer : public TcpListener {
         
         bool c_strStartsWith(const char* str1, const char* str2);
         int c_strFind(const char* haystack, const char* needle);
-
         int c_strFindNearest(const char* haystack, const char* needle1, const char* needle2);
 
         void buildGETContent(short int page_type, char* url_c_str, std::string &content, bool cookies_present);

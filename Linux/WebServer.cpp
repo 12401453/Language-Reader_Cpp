@@ -510,34 +510,34 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     if(!strcmp(m_url, "/get_lang_id.php")) {
         bool php_func_success = getLangId(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/retrieve_engword.php")) {
+    else if(!strcmp(m_url, "/retrieve_engword.php")) {
         bool php_func_success = retrieveEngword(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/retrieve_meanings.php")) {
+    else if(!strcmp(m_url, "/retrieve_meanings.php")) {
         bool php_func_success = retrieveMeanings(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/lemma_tooltip.php")) {
+    else if(!strcmp(m_url, "/lemma_tooltip.php")) {
         bool php_func_success = lemmaTooltips(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/lemma_delete.php")) {
+    else if(!strcmp(m_url, "/lemma_delete.php")) {
         bool php_func_success = deleteLemma(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/lemma_record.php")) {
+    else if(!strcmp(m_url, "/lemma_record.php")) {
         bool php_func_success = recordLemma(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/retrieve_text.php")) {
+    else if(!strcmp(m_url, "/retrieve_text.php")) {
         bool php_func_success = retrieveText(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/retrieve_text_splitup.php")) {
+    else if(!strcmp(m_url, "/retrieve_text_splitup.php")) {
         bool php_func_success = retrieveTextSplitup(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/delete_text.php")) {
+    else if(!strcmp(m_url, "/delete_text.php")) {
         bool php_func_success = deleteText(post_values, clientSocket);
     }
-    if(!strcmp(m_url, "/update_db.php")) {
+    else if(!strcmp(m_url, "/update_db.php")) {
         bool php_func_success = addText(post_values, clientSocket);  
     }
-    if(!strcmp(m_url, "/pull_lemma.php")) {
+    else if(!strcmp(m_url, "/pull_lemma.php")) {
         bool php_func_success = pullInLemma(post_values, clientSocket);
     }
 
