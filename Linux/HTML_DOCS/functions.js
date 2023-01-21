@@ -876,7 +876,7 @@ function showAnnotate(event) {
   meanings = {};
    
   display_word = event.target;
-  tokno_current = event.target.dataset.tokno;
+  tokno_current = event.target.dataset.tokno; 
     
   let previous_selections = document.querySelectorAll('.tooltip_selected');
   previous_selections.forEach(previous_selection => {
@@ -1013,7 +1013,8 @@ function showAnnotate(event) {
    }
     xhttp.send(send_data);
   }
- 
+  //let mw_page_index = event.target.dataset.multiword;
+  //if(mw_page_index != undefined) { httpRequest("POST", "retrieve_engword_multi")}
   httpRequest("POST", "retrieve_engword.php");
 
 }
