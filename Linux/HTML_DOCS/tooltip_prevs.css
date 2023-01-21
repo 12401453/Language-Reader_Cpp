@@ -83,10 +83,7 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
 .tooltip .lemma_tt, .tooltip_selected .lemma_tt {
 
     visibility: hidden;
-    min-width: 170px;
     width: 170px;
-    max-width: 240px;
-    /* width: fit-content; */
     height: fit-content;
     background-color: #071022;
     color: #cbd9f4;
@@ -106,8 +103,6 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
     align-items: stretch;
     flex-grow: 0;
     cursor: default;
-
-    transition: width 1s;
   
   }
 
@@ -168,7 +163,6 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
   white-space: normal;
   
   min-height: 10px;
- /* max-width: 180px; */
   max-height: 200px;
   overflow-y: auto;
   
@@ -257,11 +251,13 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
 #pos_tag_ques_tt {
   background-color: hsl(345, 100%, 70%);
 }
+#pos_tag_multiword {
+  background-color: #cbd9f4;
+}
 
 
 .appendages {
-  /*background-color: #6495ed94;*/
-  
+ 
   position: absolute;
   font-family: Calibri;
   font-size: 16px;
