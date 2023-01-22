@@ -690,10 +690,11 @@ const lemmaRecord = function () {
 
   httpRequest("POST", "lemma_record.php");
   }
-  document.getElementById('annot_box').remove();
+  /* document.getElementById('annot_box').remove();
   display_word.classList.add("tooltip");
   display_word.classList.remove("tooltip_selected");
-  meanings = {};
+  meanings = {}; */
+  delAnnotate();
 };
 
 const lemmaDelete = function () {
@@ -711,9 +712,9 @@ const lemmaDelete = function () {
         let lemma_still_set = xhttp.responseText.trim() == "0" ? false : true;
 
         console.log('Lemma deleted');
-        document.getElementById('annot_box').remove();
+       /* document.getElementById('annot_box').remove();
         display_word.classList.add("tooltip");
-        display_word.classList.remove("tooltip_selected");
+        display_word.classList.remove("tooltip_selected"); */
         if(lemma_still_set == false) {
           let dataselectorstring = '[data-word_engine_id="' + word_engine_id + '"]';
           let current_words = document.querySelectorAll(dataselectorstring);
@@ -725,6 +726,7 @@ const lemmaDelete = function () {
         else {
           document.querySelector('[data-tokno="'+tokno_current+'"]').classList.remove("lemma_set");
         }
+        delAnnotate();
 
         if(tooltips_shown) {
           lemmaTooltip();
@@ -734,8 +736,23 @@ const lemmaDelete = function () {
     xhttp.send(send_data);
   };
   httpRequest("POST", "lemma_delete.php");
-  meanings = {};
+  //meanings = {};
+};
 
+const delAnnotate = function () {
+  let annot_box = document.getElementById('annot_box');
+
+ /* let previous_selections = document.querySelectorAll('.tooltip_selected');
+  previous_selections.forEach(previous_selection => {
+    previous_selection.classList.add("tooltip");
+    previous_selection.classList.remove("tooltip_selected");
+  }); */
+  display_word.classList.add("tooltip");
+  display_word.classList.remove("tooltip_selected");
+  display_word = null;
+  meanings = {};
+  box_no = 0;
+  annot_box.remove();
 };
 
 const setLemmaTagSize = function () {
@@ -871,12 +888,17 @@ let display_word;
 let tokno_current = 0;
 let word_engine_id = 0;
 
+let box_no = 0;
 
 function showAnnotate(event) {
   meanings = {};
    
   display_word = event.target;
-  tokno_current = event.target.dataset.tokno; 
+  tokno_current = event.target.dataset.tokno;
+
+  let mw_page_index = event.target.dataset.multiword;
+  if(mw_page_index != undefined) { box_no = 2;}
+  else {box_no = 1;}
     
   let previous_selections = document.querySelectorAll('.tooltip_selected');
   previous_selections.forEach(previous_selection => {
@@ -927,7 +949,7 @@ function showAnnotate(event) {
           annot_box.remove();
         }
 
-        let annot_box = document.createRange().createContextualFragment('<div id="annot_box" data-word_engine_id="' + word_engine_id +'"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag">'+lemma_tag_content+'</textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off">'+lemma_textarea_content_html+'</textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number">'+lemma_meaning_no+'</span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
+        let annot_box = document.createRange().createContextualFragment('<div id="annot_box" data-word_engine_id="' + word_engine_id +'"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag">'+lemma_tag_content+'</textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off">'+lemma_textarea_content_html+'</textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number">'+lemma_meaning_no+'</span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
 
         document.getElementById('spoofspan').after(annot_box);
         if(lemma_meaning_no == 1) {
@@ -971,38 +993,24 @@ function showAnnotate(event) {
           current_box.style.backgroundColor = "#040a16";
 
           if(current_box.id == "lemma_box") {
+            box_no = 1;
+            document.getElementById("right_body").style.visibility = "visible";
+            document.getElementById("right_footer").style.visibility = "visible";
+            document.getElementById('lemma_textarea').focus();
+          }
+          else if(current_box.id == "multiword_box") {
+            box_no = 2;
             document.getElementById("right_body").style.visibility = "visible";
             document.getElementById("right_footer").style.visibility = "visible";
             document.getElementById('lemma_textarea').focus();
           }
           else {
+            box_no = 0;
             document.getElementById("right_body").style.visibility = "hidden";
             document.getElementById("right_footer").style.visibility = "hidden";
           }
         }
-        
-
-        //below does the same as above but less efficiently
-      /* const panelSelect = function () {
-
-          const boxes = document.querySelectorAll('.box');
-          boxes.forEach(box => {
-            box.style.color = "rgb(0 255 34 / 41%)";
-            box.style.backgroundColor = "#172136";
-            box.style.border = "none";
-          });
-          document.getElementById('lemma_textarea').focus();
-          this.style.color = "rgb(0, 255, 34)";
-          this.style.backgroundColor = "#040a16";
-
-        }; 
-
-        document.getElementById('lemma_box').onclick = panelSelect;
-        document.getElementById('context_box').onclick = panelSelect;
-        document.getElementById('morph_box').onclick = panelSelect;
-        document.getElementById('multiword_box').onclick = panelSelect;
-        document.getElementById('accent_box').onclick = panelSelect;  */
-        
+              
         document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
         
         document.getElementById('lemma_tag').oninput = setLemmaTagSize;
@@ -1013,24 +1021,12 @@ function showAnnotate(event) {
    }
     xhttp.send(send_data);
   }
-  //let mw_page_index = event.target.dataset.multiword;
-  //if(mw_page_index != undefined) { httpRequest("POST", "retrieve_engword_multi")}
+  
   httpRequest("POST", "retrieve_engword.php");
 
 }
 
-const delAnnotate = function () {
-  let annot_box = document.getElementById('annot_box');
-
-  let previous_selections = document.querySelectorAll('.tooltip_selected');
-  previous_selections.forEach(previous_selection => {
-    previous_selection.classList.add("tooltip");
-    previous_selection.classList.remove("tooltip_selected");
-  });
-  meanings = {};
-  annot_box.remove();
-};
-
+//this is copied
 const makeDraggable = function () {
   dragAnnotBox(document.getElementById("annot_box"));
 
