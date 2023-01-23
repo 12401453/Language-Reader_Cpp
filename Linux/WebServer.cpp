@@ -1709,7 +1709,7 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
 
 
         std::ostringstream json;
-        json << "{\"lemma_tag_content\":\"" << htmlspecialchars(lemma_tag_content) << "\",\"lemma_textarea_content_html\":\"" << htmlspecialchars(lemma_textarea_content) << "\",\"lemma_textarea_content\":\"" << escapeQuotes(lemma_textarea_content) << "\",\"lemma_meaning_no\":\"" << lemma_meaning_no << "\",\"lemma_id\":\"" << lemma_id << "\",\"pos\":\"" << pos << "\"}";
+        json << "{\"lemma_tag_content\":\"" << escapeQuotes(lemma_tag_content) << "\",\"lemma_textarea_content\":\"" << escapeQuotes(lemma_textarea_content) << "\",\"lemma_meaning_no\":\"" << lemma_meaning_no << "\",\"lemma_id\":\"" << lemma_id << "\",\"pos\":\"" << pos << "\"}";
 
         int content_length = json.str().size();
         std::ostringstream post_response;

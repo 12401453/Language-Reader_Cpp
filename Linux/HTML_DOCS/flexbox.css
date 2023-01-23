@@ -32,8 +32,13 @@
 .box:hover {
   background-color: #040a16 !important;
 }
-
+/*
 #lemma_box {
+  color:  rgb(0, 255, 34);
+  background-color: #040a16;
+} */
+
+.current_box {
   color:  rgb(0, 255, 34);
   background-color: #040a16;
 }

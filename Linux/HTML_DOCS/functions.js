@@ -759,7 +759,7 @@ const setLemmaTagSize = function () {
   let lemma_tag = document.getElementById('lemma_tag');
   let hidden_lemma_tag = document.getElementById('hidden_lemma_tag');
 
-  hidden_lemma_tag.innerHTML = lemma_tag.value;
+  hidden_lemma_tag.textContent = lemma_tag.value;
 
   let new_width = hidden_lemma_tag.offsetWidth+"px";
   let new_height = hidden_lemma_tag.offsetHeight+"px";
@@ -889,6 +889,7 @@ let tokno_current = 0;
 let word_engine_id = 0;
 
 let box_no = 0;
+///////////////////////////////
 
 function showAnnotate(event) {
   meanings = {};
@@ -930,7 +931,7 @@ function showAnnotate(event) {
         lemma_form_tag_initial = lemma_tag_content;
         let lemma_textarea_content = json_response.lemma_textarea_content;
         lemma_textarea_content_initial = lemma_textarea_content;
-        let lemma_textarea_content_html = json_response.lemma_textarea_content_html;
+        //let lemma_textarea_content_html = json_response.lemma_textarea_content_html;
         lemma_meaning_no = Number(json_response.lemma_meaning_no);
         lemma_id = Number(json_response.lemma_id);
         pos = Number(json_response.pos);
@@ -949,9 +950,13 @@ function showAnnotate(event) {
           annot_box.remove();
         }
 
-        let annot_box = document.createRange().createContextualFragment('<div id="annot_box" data-word_engine_id="' + word_engine_id +'"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag">'+lemma_tag_content+'</textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off">'+lemma_textarea_content_html+'</textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number">'+lemma_meaning_no+'</span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
+        let annot_box = document.createRange().createContextualFragment('<div id="annot_box" data-word_engine_id="' + word_engine_id +'"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number">'+lemma_meaning_no+'</span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
 
         document.getElementById('spoofspan').after(annot_box);
+        document.getElementById('lemma_tag').value = lemma_tag_content;
+        document.getElementById('lemma_textarea').value = lemma_textarea_content; //might be able to get rid of _html versions on back and frontend doing it this way
+
+
         if(lemma_meaning_no == 1) {
           document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
           document.getElementById("meaning_leftarrow").classList.remove("nav_arrow");
@@ -972,7 +977,18 @@ function showAnnotate(event) {
         document.getElementById('meaning_rightarrow').onclick = switchMeaning;
         document.getElementById('lemma_tag').onblur = pullInLemma;
 
-        let current_box = document.getElementById('lemma_box');
+        //let current_box = document.getElementById('lemma_box');
+        switch(box_no) {
+          case 1:
+            document.getElementById("lemma_box").classList.add("current_box");
+            break;
+          case 2:
+            document.getElementById("multiword_box").classList.add("current_box");
+            break;
+          default:
+            document.getElementById("lemma_box").classList.add("current_box");  
+        }
+        let current_box = document.querySelector('.current_box');
 
         let left_column = document.getElementById('left_column');
 
@@ -985,12 +1001,10 @@ function showAnnotate(event) {
 
         function selectBox(box) {
           if (current_box) {
-            current_box.style.color = "rgb(0 255 34 / 41%)";
-            current_box.style.backgroundColor = "#172136";
+            current_box.classList.remove("current_box");
           }
           current_box = box;
-          current_box.style.color = "rgb(0, 255, 34)";
-          current_box.style.backgroundColor = "#040a16";
+          current_box.classList.add("current_box");
 
           if(current_box.id == "lemma_box") {
             box_no = 1;
@@ -1016,15 +1030,14 @@ function showAnnotate(event) {
         document.getElementById('lemma_tag').oninput = setLemmaTagSize;
         setLemmaTagSize();
           
-      }
-     
+      }    
    }
     xhttp.send(send_data);
   }
   
   httpRequest("POST", "retrieve_engword.php");
 
-}
+};
 
 //this is copied
 const makeDraggable = function () {
