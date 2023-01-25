@@ -1,0 +1,13 @@
+Multiwords need to be tied to their constituent words' lemmas, but this means for words like aujourd'hui there needs to be the possibility of a dummy null-lemma which can later be replaced by a proper lemma if one learns the meaning of the constituent parts (usually a learner only learns the true underlying meaning of the constituent parts at a later stage, e.g. сондай-ақ = также, but literally it means "like that-<emphatic particle>").
+For the purposes of auto-marking, the default should be to auto-mark multiword sets if 
+    A) they are pairs of lemmas at offset 0 from each other, or members of the same <span class="chunk">
+    B) they are 4+ lemmas long, as above this number the chance for random occurrences of such words together is diminished
+Where only dummy-lemmatisation is available the auto-marking will have to base itself on display_text forms and restrict itself to sets with offset of 0 from each other. Within the multiword-interface the prompts and auto-meaning-filling can be less strict, as these results will have to be user-confirmed anyway.
+
+All this shit will add logic to the retrieveText() functions which if it gets too cumbersome will make PHP slow down, so the algorithm determining what to automark has to be ruthlessly efficient.
+There should also be some sort of restriction based on intervening punctuation about what can be marked as belonging to the same multiword-set; one can envisage very terse German where separable-verb prepositions end up yonside of a semicolon, but generally speaking semicolons, full-stops, exclamation-marks etc. should be seen as clause-boundaries and the user should be banned from spanning a multiword-set across them.
+
+It's probable that the multiword-tooltip will have to be some kind of addition or modification to the core single-word's lemma-tooltip, and it should need more explicit user-interaction in order to give up its information, e.g. a small appendage to the lemma-tooltip which when clicked will reveal the multiword meaning and optionally also bring up the flexbox open to the multiword section.
+For null-lemmas the full version of the multiword-tooltip should be displayed on hover, while for non-null lemmas the full version should replace the lemma-version when the appendage is clicked.
+
+How or whether we display the canonical form of multiword phrases in a tooltip is very tricky: hyphenated words would need the hyphen or look retarded, but including all the punctuation between Germanic separable verb parts would be ridiculous, so perhaps we default to showing punctuation between contiguous member-words.
