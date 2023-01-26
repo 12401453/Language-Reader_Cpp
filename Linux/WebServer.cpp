@@ -436,6 +436,7 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     int post_fields = getPostFields(m_url);
 
     if(post_fields == 0 && !strcmp(m_url, "/clear_table.php")) { //clearing the table could be ruinous so adding the extra condition is prudent and should never be run except if post_fields == 0
+        std::cout << "m_url: " << m_url << std::endl;
         bool php_func_success = clearTable(clientSocket);
         return;
     }
