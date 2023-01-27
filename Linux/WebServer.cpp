@@ -541,6 +541,9 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     else if(!strcmp(m_url, "/pull_lemma.php")) {
         bool php_func_success = pullInLemma(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/retrieve_multiword.php")) {
+        bool php_func_success = retrieveMultiword(post_values, clientSocket);
+    }
 
     std::cout << "m_url: " << m_url << std::endl;
     
@@ -573,6 +576,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/retrieve_engword.php")) return 3;
     else if(!strcmp(url, "/retrieve_meanings.php")) return 2;
     else if(!strcmp(url, "/delete_text.php")) return 1;
+    else if(!strcmp(url, "/retrieve_multiword.php")) return 3;
     else if(!strcmp(url, "/clear_table.php")) return 0;
     else return 10;
 }
@@ -2136,6 +2140,34 @@ bool WebServer::clearTable(int clientSocket) {
     }
     else {
         std::cout << "Database connection failed on clearTable()" << std::endl;
+        return false;
+    }
+
+}
+
+bool WebServer::retrieveMultiword(std::string _POST[3], int clientSocket) {
+
+    sqlite3* DB;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        sqlite3_stmt* statement;
+
+        std::ostringstream json;
+        json << "{\"multiword_tag_content\":\"" << escapeQuotes("multiword test lemma") << "\",\"multiword_textarea_content\":\"" << escapeQuotes("multiword test textarea content. FUCK!") << "\",\"multiword_meaning_no\":\"" << 7 << "\",\"multiword_id\":\"" << 2 << "\",\"pos\":\"" << 5 << "\"}";
+
+        int content_length = json.str().size();
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        int length = post_response.str().size() + 1;
+
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+        
+        sqlite3_close(DB);
+        return true;
+    }
+
+    else {
+        std::cout << "Database connection failed on retrieveMultiword()" << std::endl;
         return false;
     }
 
