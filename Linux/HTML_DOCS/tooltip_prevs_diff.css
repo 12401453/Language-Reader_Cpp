@@ -46,7 +46,14 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
   cursor: pointer;
   }
 
+.mw_selectable:hover {
+  color: orange;
+}
 
+.mw_current_select {
+  border-bottom: 2px solid rgb(0 255 186 / 50%);
+  color: orange;;
+}
 
 
 

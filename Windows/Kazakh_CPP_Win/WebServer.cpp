@@ -882,14 +882,14 @@ bool WebServer::lemmaTooltips(std::string _POST[2], SOCKET clientSocket) {
         for (auto i = _POST[0].begin(), nd = _POST[0].end(); i < nd; i++) {
             char c = (*i);
             if (c == ',') {
-                sqlite3_int64 tokno = std::stoi(tokno_str);
+                sqlite3_int64 tokno = std::stol(tokno_str);
                 toknos.emplace_back(tokno);
                 tokno_str = "";
                 continue;
             }
             tokno_str += c;
             if (nd - 1 == i) {
-                sqlite3_int64 tokno = std::stoi(tokno_str);
+                sqlite3_int64 tokno = std::stol(tokno_str);
                 toknos.emplace_back(tokno);
             }
         }
@@ -1237,8 +1237,8 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], SOCKET clientSocket) {
         int prep_code, run_code;
         const char* sql_text;
 
-        sqlite3_int64 dt_start = std::stoi(_POST[0]);
-        sqlite3_int64 dt_end = std::stoi(_POST[1]);
+        sqlite3_int64 dt_start = std::stol(_POST[0]);
+        sqlite3_int64 dt_end = std::stol(_POST[1]);
         int page_cur = std::stoi(_POST[2]);
 
         if (page_cur == 1) {
@@ -1800,7 +1800,8 @@ bool WebServer::recordLemma(std::string _POST[8], SOCKET clientSocket) {
         int target_lemma_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
-        sql_text_str = "UPDATE lemmas SET eng_trans" + _POST[3] + " = \'" + lemma_meaning + "\' WHERE lemma_id = ?";
+        if(lemma_meaning == "") sql_text_str = "UPDATE lemmas SET eng_trans"+_POST[3]+" = NULL WHERE lemma_id = ?";
+        else sql_text_str = "UPDATE lemmas SET eng_trans"+_POST[3]+" = \'"+lemma_meaning+"\' WHERE lemma_id = ?";
         sql_text = sql_text_str.c_str();
         std::cout << sql_text_str << std::endl;
         std::cout << "target_lemma_id: " << target_lemma_id << std::endl;
@@ -1813,7 +1814,7 @@ bool WebServer::recordLemma(std::string _POST[8], SOCKET clientSocket) {
 
         if (!lemma_id_current) {
 
-            if (submitted_lemma_meaning_no == lemma_meaning_no) {
+            if (lemma_meaning_no == submitted_lemma_meaning_no) {
                 sql_text_str = "UPDATE display_text SET lemma_id = ?, lemma_meaning_no = " + _POST[7] + " WHERE tokno = " + _POST[5];
                 sql_text = sql_text_str.c_str();
                 prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
@@ -1839,7 +1840,7 @@ bool WebServer::recordLemma(std::string _POST[8], SOCKET clientSocket) {
             }
             //if the lemma we are submitting is the same as that already bound to this display_word then we leave the lemma_id unchanged as just re-set the lemma_meaning_no
             else {
-                if (lemma_meaning_no = submitted_lemma_meaning_no) {
+                if (lemma_meaning_no == submitted_lemma_meaning_no) {
                     sql_text_str = "UPDATE display_text SET lemma_meaning_no = " + _POST[7] + " WHERE tokno = " + _POST[5];
                     sql_text = sql_text_str.c_str();
                     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);

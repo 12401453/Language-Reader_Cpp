@@ -865,14 +865,14 @@ bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
         for(auto i = _POST[0].begin(), nd=_POST[0].end(); i < nd; i++) {
             char c = (*i);
             if(c == ',') {
-                sqlite3_int64 tokno = std::stoi(tokno_str);
+                sqlite3_int64 tokno = std::stol(tokno_str);
                 toknos.emplace_back(tokno);
                 tokno_str = "";
                 continue;
             }
             tokno_str += c;
             if(nd - 1 == i) {
-                sqlite3_int64 tokno = std::stoi(tokno_str);
+                sqlite3_int64 tokno = std::stol(tokno_str);
                 toknos.emplace_back(tokno);
             }
         }
@@ -1219,8 +1219,8 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
         int prep_code, run_code;
         const char *sql_text;
 
-        sqlite3_int64 dt_start = std::stoi(_POST[0]);
-        sqlite3_int64 dt_end = std::stoi(_POST[1]);
+        sqlite3_int64 dt_start = std::stol(_POST[0]);
+        sqlite3_int64 dt_end = std::stol(_POST[1]);
         int page_cur = std::stoi(_POST[2]);
 
         if(page_cur == 1) {
@@ -1794,7 +1794,8 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
         int target_lemma_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
-        sql_text_str = "UPDATE lemmas SET eng_trans"+_POST[3]+" = \'"+lemma_meaning+"\' WHERE lemma_id = ?";
+        if(lemma_meaning == "") sql_text_str = "UPDATE lemmas SET eng_trans"+_POST[3]+" = NULL WHERE lemma_id = ?";
+        else sql_text_str = "UPDATE lemmas SET eng_trans"+_POST[3]+" = \'"+lemma_meaning+"\' WHERE lemma_id = ?";
         sql_text = sql_text_str.c_str();
         std::cout << sql_text_str << std::endl;
         std::cout << "target_lemma_id: " << target_lemma_id << std::endl;
@@ -1807,7 +1808,7 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
 
         if(!lemma_id_current) {
 
-            if(submitted_lemma_meaning_no == lemma_meaning_no) {
+            if(lemma_meaning_no == submitted_lemma_meaning_no) {
                 sql_text_str = "UPDATE display_text SET lemma_id = ?, lemma_meaning_no = "+_POST[7]+" WHERE tokno = "+_POST[5];
                 sql_text = sql_text_str.c_str();
                 prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
@@ -1833,7 +1834,7 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
             }
             //if the lemma we are submitting is the same as that already bound to this display_word then we leave the lemma_id unchanged as just re-set the lemma_meaning_no
             else {
-                if(lemma_meaning_no = submitted_lemma_meaning_no) {
+                if(lemma_meaning_no == submitted_lemma_meaning_no) {
                     sql_text_str = "UPDATE display_text SET lemma_meaning_no = "+_POST[7]+" WHERE tokno = "+_POST[5];
                     sql_text = sql_text_str.c_str();
                     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
@@ -2148,12 +2149,92 @@ bool WebServer::clearTable(int clientSocket) {
 bool WebServer::retrieveMultiword(std::string _POST[3], int clientSocket) {
 
     sqlite3* DB;
+    UErrorCode status = U_ZERO_ERROR;
 
     if(!sqlite3_open(m_DB_path, &DB)) {
         sqlite3_stmt* statement;
 
+        sqlite3_int64 tokno = std::stol(_POST[1]);
+        int word_engine_id = std::stoi(_POST[0]);
+        int lang_id = std::stoi(_POST[2]);
+
+        //std::vector<sqlite3_int64> adjacent_toknos;
+        //adjacent_toknos.reserve(100);
+
+        icu::UnicodeString regexp = "\\p{STerm}";
+        icu::RegexMatcher matcher(regexp, 0, status);
+        
+        //const char* text_word = "";
+        icu::UnicodeString text_word = "";
+        const unsigned char* text_word_rawsql;
+        const char* sql_text = "SELECT text_word, tokno, word_engine_id FROM display_text WHERE tokno = ?";
+        sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+
+        int display_text_word_eng_id = 0;
+        std::ostringstream adjacent_toknos_array;
+        adjacent_toknos_array << "[";
+
+        for(int i = -1; i > -51; i--) {
+           
+            text_word = "";
+            std::cout << "bind_code: " << sqlite3_bind_int64(statement, 1, tokno + i) << std::endl;
+            std::cout << "run code: " << sqlite3_step(statement) << std::endl;
+
+            display_text_word_eng_id = sqlite3_column_int(statement, 2);
+            if(display_text_word_eng_id) {
+                adjacent_toknos_array << sqlite3_column_int64(statement, 1) << ",";
+            }
+            else {
+                text_word_rawsql = sqlite3_column_text(statement, 0);
+                if(text_word_rawsql != nullptr) text_word = (const char*)text_word_rawsql;
+
+                matcher.reset(text_word);
+                if(matcher.find()) {
+                    sqlite3_reset(statement);
+                    break;
+                }
+                /*
+                if(!strcmp(text_word, ".") || !strcmp(text_word, ";") || !strcmp(text_word, "!") || !strcmp(text_word, "?") || !strcmp(text_word, ".")) {
+                    break;
+                }*/
+            }
+            sqlite3_reset(statement);
+        }
+        for(int i = 1; i < 51; i++) {
+           
+            text_word = "";
+            std::cout << "bind_code: " << sqlite3_bind_int64(statement, 1, tokno + i) << std::endl;
+            std::cout << "run code: " << sqlite3_step(statement) << std::endl;
+
+            display_text_word_eng_id = sqlite3_column_int(statement, 2);
+            if(display_text_word_eng_id) {
+                adjacent_toknos_array << sqlite3_column_int64(statement, 1) << ",";
+            }
+            else {
+                text_word_rawsql = sqlite3_column_text(statement, 0);
+                if(text_word_rawsql != nullptr) text_word = (const char*)text_word_rawsql;
+
+                matcher.reset(text_word);
+                if(matcher.find()) {
+                    sqlite3_reset(statement);
+                    break;
+                }
+                /* this way is probably far quicker and sufficient for most European languages, but the ICU way is more robust
+                if(!strcmp(text_word, ".") || !strcmp(text_word, ";") || !strcmp(text_word, "!") || !strcmp(text_word, "?") || !strcmp(text_word, ".")) {
+                    break;
+                }*/
+            }
+            sqlite3_reset(statement);
+        }
+
+
+        sqlite3_finalize(statement);
+        int strm_pos = adjacent_toknos_array.tellp();
+        if(strm_pos > 1) adjacent_toknos_array.seekp(strm_pos - 1);
+        adjacent_toknos_array << "]";
+
         std::ostringstream json;
-        json << "{\"multiword_tag_content\":\"" << escapeQuotes("multiword test lemma") << "\",\"multiword_textarea_content\":\"" << escapeQuotes("multiword test textarea content. FUCK!") << "\",\"multiword_meaning_no\":\"" << 7 << "\",\"multiword_id\":\"" << 2 << "\",\"pos\":\"" << 5 << "\"}";
+        json << "{\"multiword_tag_content\":\"" << escapeQuotes("multiword test lemma") << "\",\"multiword_textarea_content\":\"" << escapeQuotes("multiword test textarea content. FUCK!") << "\",\"multiword_meaning_no\":\"" << 7 << "\",\"multiword_id\":\"" << 2 << "\",\"pos\":\"" << 5 << "\",\"adjacent_toknos\":" << adjacent_toknos_array.str() << "}";
 
         int content_length = json.str().size();
         std::ostringstream post_response;
