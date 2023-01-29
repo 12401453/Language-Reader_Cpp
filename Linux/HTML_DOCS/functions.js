@@ -761,6 +761,12 @@ const delAnnotate = function () {
   display_word.classList.remove("tooltip_selected");
   display_word = null;
   meanings = Object.create(null);
+  multiword_meanings = Object.create(null);
+  multiword_indices = Object.create(null);
+  document.querySelectorAll('.mw_selectable').forEach(mws => {
+    mws.classList.remove("mw_selectable", "mw_current_select");
+    mws.onclick = showAnnotate;
+  });
   box_no = 0;
   pos = 1;
   pos_initial = 1;
@@ -898,7 +904,7 @@ let multiword_indices = Object.create(null);
 let tooltips_shown = false;
 let pos_initial = 1;
 
-let display_word;
+let display_word = null;
 let tokno_current = 0;
 let word_engine_id = 0;
 
@@ -907,19 +913,19 @@ let box_no = 0;
 
 function showAnnotate(event) {
   meanings = Object.create(null);
-   
+  if(display_word != null) delAnnotate();
   display_word = event.target;
   tokno_current = display_word.dataset.tokno;
 
   //let mw_page_index = display_word.dataset.multiword;
   //if(mw_page_index != undefined) { box_no = 2;}
   //else {box_no = 1;}
-    
+   /*  
   let previous_selections = document.querySelectorAll('.tooltip_selected');
   previous_selections.forEach(previous_selection => {
     previous_selection.classList.add("tooltip");
     previous_selection.classList.remove("tooltip_selected");
-  });
+  }); */
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
 
@@ -1101,6 +1107,7 @@ const selectMultiword = (event) => {
   let mw_candidate = event.target;
   if(mw_candidate.matches('.mw_current_select')) {
     mw_candidate.classList.remove("mw_current_select");
+    delete multiword_indices[mw_candidate.dataset.tokno];
   }
   else {
     mw_candidate.classList.add("mw_current_select");

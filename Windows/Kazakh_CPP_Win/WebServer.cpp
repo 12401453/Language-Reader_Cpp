@@ -643,7 +643,6 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
         std::istringstream iss(text_body);
 
         int prep_code, run_code;
-        const char* sql_commands[1];
         std::string sql_text_str;
         const char* sql_text;
 
@@ -703,7 +702,7 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
                 if (is_a_word) {
 
                     tb_copy.toUTF8String(text_word);
-                    if (_POST[2] == "7") {
+                    if (lang_id == 7) {
                         tb_copy.toLower(icu::Locale("tr", "TR"));
                     }
                     else {
@@ -715,15 +714,12 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
                     sql_text_str = "INSERT OR IGNORE INTO word_engine (word, lang_id) VALUES (\'" + chunk + "\', " + _POST[2] + ")";
                     //std::cout << sql_text_str << std::endl;
                     sql_text = sql_text_str.c_str();
-                    sql_commands[0] = sql_text;
-
-                    for (int i = 0; i < 1; i++) {
-                        prep_code = sqlite3_prepare_v2(DB, sql_commands[i], -1, &statement, NULL);
-                        run_code = sqlite3_step(statement);
-                        sqlite3_finalize(statement);
-                        //   std::cout << prep_code << std::endl;
-                        //    std::cout << run_code << std::endl;
-                    }
+                           
+                    prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+                    run_code = sqlite3_step(statement);
+                    sqlite3_finalize(statement);
+                      
+                    
 
                     sql_text_str = "INSERT INTO display_text (word_engine_id, text_word) SELECT word_engine_id, \'" + text_word + "\' FROM word_engine WHERE word = \'" + chunk + "\' AND lang_id = " + _POST[2];
                     // std::cout << sql_text_str << std::endl;
