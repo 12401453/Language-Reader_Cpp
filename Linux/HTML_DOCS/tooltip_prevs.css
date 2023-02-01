@@ -107,6 +107,8 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
     align-items: stretch;
     flex-grow: 0;
     cursor: default;
+
+    word-break: break-word;
   
   }
 

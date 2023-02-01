@@ -1891,6 +1891,7 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
         std::cout << sql_text_str << std::endl;
 
         sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+        //sqlite3_bind_text(statement, 1, URIDecode(_POST[0]).c_str(), -1, SQLITE_STATIC);
         sqlite3_step(statement);
         int lemma_id = sqlite3_column_int(statement, 1);
         std::string lemma_textarea_content;
@@ -2172,8 +2173,8 @@ bool WebServer::retrieveMultiword(std::string _POST[3], int clientSocket) {
         for(int i = -1; i > -51; i--) {
            
             text_word = "";
-            //std::cout << "bind_code: " << sqlite3_bind_int64(statement, 1, tokno + i) << std::endl;
-            //std::cout << "run code: " << sqlite3_step(statement) << std::endl;
+            sqlite3_bind_int64(statement, 1, tokno + i);
+            sqlite3_step(statement);
 
             display_text_word_eng_id = sqlite3_column_int(statement, 2);
             if(display_text_word_eng_id) {
@@ -2188,7 +2189,7 @@ bool WebServer::retrieveMultiword(std::string _POST[3], int clientSocket) {
                     sqlite3_reset(statement);
                     break;
                 }
-                /*
+                /* this way is probably far quicker and sufficient for most European languages, but the ICU way is more robust
                 if(!strcmp(text_word, ".") || !strcmp(text_word, ";") || !strcmp(text_word, "!") || !strcmp(text_word, "?") || !strcmp(text_word, ".")) {
                     break;
                 }*/
@@ -2198,8 +2199,8 @@ bool WebServer::retrieveMultiword(std::string _POST[3], int clientSocket) {
         for(int i = 1; i < 51; i++) {
            
             text_word = "";
-           // std::cout << "bind_code: " << sqlite3_bind_int64(statement, 1, tokno + i) << std::endl;
-           // std::cout << "run code: " << sqlite3_step(statement) << std::endl;
+            sqlite3_bind_int64(statement, 1, tokno + i);
+            sqlite3_step(statement);
 
             display_text_word_eng_id = sqlite3_column_int(statement, 2);
             if(display_text_word_eng_id) {

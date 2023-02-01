@@ -519,7 +519,7 @@ const pullInLemma = function (can_skip = true) {
   }
   document.getElementById('save_button').onclick = "";
   const httpRequest = (method, url) => {
-    let send_data = "lemma_form=" + encodeURIComponent(lemma_form.replaceAll("'", "''")) + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=";
+    let send_data = "lemma_form=" + encodeURIComponent(lemma_form.replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C")) + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=";
     if(pos == pos_initial) {
       send_data += "0&lang_id=" + lang_id;
     }
@@ -665,8 +665,8 @@ const lemmaRecord = function () {
     
     const httpRequest = (method, url) => {
 
-    let lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim().replaceAll("'", "''"));
-    lemma_meaning = encodeURIComponent(lemma_meaning.replaceAll("'", "''")); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them
+    let lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim().replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C"));
+    lemma_meaning = encodeURIComponent(lemma_meaning.replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C")); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them. Back-slash doubling is not done on the php version because it calls addslashes() on the backend
 
     let send_data = "word_engine_id=" + word_engine_id + "&lemma_form=" + lemma_form + "&lemma_meaning=" + lemma_meaning + "&lemma_meaning_no=" + lemma_meaning_no + "&lang_id=" + lang_id + "&tokno_current=" + tokno_current + "&pos=" + pos +"&clicked_lemma_meaning_no=" + clicked_lemma_meaning_no;
 
@@ -758,7 +758,8 @@ const delAnnotate = function () {
     previous_selection.classList.remove("tooltip_selected");
   }); */
   display_word.classList.add("tooltip");
-  display_word.classList.remove("tooltip_selected");
+  display_word.classList.remove("tooltip_selected", "mw_current_select");
+  display_word.onclick = showAnnotate;
   display_word = null;
   meanings = Object.create(null);
   multiword_meanings = Object.create(null);
@@ -926,6 +927,7 @@ function showAnnotate(event) {
     previous_selection.classList.add("tooltip");
     previous_selection.classList.remove("tooltip_selected");
   }); */
+  display_word.onclick = "";
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
 
@@ -1145,6 +1147,7 @@ const fetchMultiwordData = function () {
         let adjacent_toknos = json_response.adjacent_toknos;
         //console.log(adjacent_toknos);
 
+        display_word.classList.add("mw_current_select");
         for(let adjacent_tokno of adjacent_toknos) {
           let wrd = document.querySelector('[data-tokno="'+adjacent_tokno+'"]');
           //the adjacent_toknos could include words from the next page which will make the querySelector return null
