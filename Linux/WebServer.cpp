@@ -2153,14 +2153,12 @@ bool WebServer::retrieveMultiword(std::string _POST[3], int clientSocket) {
         sqlite3_int64 tokno = std::stol(_POST[1]);
         int word_engine_id = std::stoi(_POST[0]);
         int lang_id = std::stoi(_POST[2]);
-
-        //std::vector<sqlite3_int64> adjacent_toknos;
-        //adjacent_toknos.reserve(100);
+        
+        short int pos = 1;
 
         icu::UnicodeString regexp = "\\p{STerm}";
         icu::RegexMatcher matcher(regexp, 0, status);
         
-        //const char* text_word = "";
         icu::UnicodeString text_word = "";
         const unsigned char* text_word_rawsql;
         const char* sql_text = "SELECT text_word, tokno, word_engine_id FROM display_text WHERE tokno = ?";
@@ -2222,12 +2220,41 @@ bool WebServer::retrieveMultiword(std::string _POST[3], int clientSocket) {
             }
             sqlite3_reset(statement);
         }
-
-
         sqlite3_finalize(statement);
         int strm_pos = adjacent_toknos_array.tellp();
         if(strm_pos > 1) adjacent_toknos_array.seekp(strm_pos - 1);
         adjacent_toknos_array << "]";
+
+        sql_text = "SELECT multiword_id, multiword_meaning_no FROM display_text WHERE tokno = ?";
+        sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int64(statement, 1, tokno);
+        sqlite3_step(statement);
+
+        int multiword_id = 0;
+        short int multiword_meaning_no = 1;
+        multiword_id = sqlite3_column_int(statement, 0);
+
+        const char* mw_lemma_form = "";
+        const char* mw_lemma_meaning = "";
+        if(multiword_id) {
+            multiword_meaning_no = sqlite3_column_int(statement, 1);
+            sqlite3_finalize(statement);
+            
+            std::string sql_text_str = "SELECT multiword_lemma_form, pos, eng_trans"+std::to_string(multiword_meaning_no)+" FROM multiword_lemmas WHERE multiword_id = "+std::to_string(multiword_id);
+            sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+            sqlite3_step(statement);
+
+            const unsigned char* mw_lemma_form_rawsql = sqlite3_column_text(statement, 0);
+            if(mw_lemma_form_rawsql != nullptr) mw_lemma_form = (const char*)mw_lemma_form_rawsql;
+            
+            const unsigned char* mw_lemma_meaning_rawsql = sqlite3_column_text(statement, 2);
+            if(mw_lemma_meaning_rawsql != nullptr) mw_lemma_meaning = (const char*)mw_lemma_meaning_rawsql;
+            
+            pos = sqlite3_column_int(statement, 1);
+            if(!pos) pos = 1;
+        }
+        else sqlite3_finalize(statement);
+    
 
         std::ostringstream json;
         json << "{\"multiword_tag_content\":\"" << escapeQuotes("multiword test lemma") << "\",\"multiword_textarea_content\":\"" << escapeQuotes("multiword test textarea content. FUCK!") << "\",\"multiword_meaning_no\":\"" << 7 << "\",\"multiword_id\":\"" << 2 << "\",\"pos\":\"" << 5 << "\",\"adjacent_toknos\":" << adjacent_toknos_array.str() << "}";

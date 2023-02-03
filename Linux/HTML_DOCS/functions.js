@@ -1111,7 +1111,7 @@ const selectMultiword = (event) => {
     mw_candidate.classList.remove("mw_current_select");
     delete multiword_indices[mw_candidate.dataset.tokno];
   }
-  else {
+  else if(Object.keys(multiword_indices).length < 10) {
     mw_candidate.classList.add("mw_current_select");
     multiword_indices[mw_candidate.dataset.tokno] = mw_candidate.dataset.word_engine_id;
   }
@@ -1148,6 +1148,7 @@ const fetchMultiwordData = function () {
         //console.log(adjacent_toknos);
 
         display_word.classList.add("mw_current_select");
+        multiword_indices[display_word.dataset.tokno] = display_word.dataset.word_engine_id;
         for(let adjacent_tokno of adjacent_toknos) {
           let wrd = document.querySelector('[data-tokno="'+adjacent_tokno+'"]');
           //the adjacent_toknos could include words from the next page which will make the querySelector return null
