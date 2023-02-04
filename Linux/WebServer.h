@@ -48,6 +48,7 @@ class WebServer : public TcpListener {
 
         bool pullInLemma(std::string _POST[4], int clientSocket);
         bool retrieveMeanings(std::string _POST[2], int clientSocket);
+        bool pullInMultiword(std::string _POST[1], int clientSocket);
 
         std::string URIDecode(std::string &text);
         std::string htmlspecialchars(const std::string &innerHTML);
