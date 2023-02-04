@@ -2333,7 +2333,7 @@ bool WebServer::pullInMultiword(std::string _POST[1], int clientSocket) {
         short int pos = 1;
         if(multiword_id) {
             sql_text = "SELECT multiword_lemma_form, pos, eng_trans1 FROM multiword_lemmas WHERE multiword_id = ?";
-            sqlite3_prepare_v2(DB, sql_text, -1 &statement, NULL);
+            sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
             sqlite3_bind_int(statement, 1, multiword_id);
             sqlite3_step(statement);
             const unsigned char* mw_lemma_form_rawsql = sqlite3_column_text(statement, 0);
