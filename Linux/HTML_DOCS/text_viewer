@@ -100,6 +100,9 @@ window.onload = () => {
         tt_btns.forEach(tt_btn => {
           tt_btn.onclick = showAnnotate;
         });
+        document.querySelectorAll('.multiword').forEach(mw_btn => {
+            mw_btn.onclick = showMultiwordAnnotate;
+        });
       }
       else console.log("cookie text has been deleted by another client");   
     }

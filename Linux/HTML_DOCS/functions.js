@@ -90,7 +90,8 @@ function selectText() {
           if(tooltips_shown) {
             lemmaTooltip();
           }
-
+          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseover', underlineMultiwords);});
+          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseout', removeUnderlineMultiwords);});
           loadingbutton.remove();
           
 
@@ -105,8 +106,6 @@ function selectText() {
   httpRequest("POST", "retrieve_text.php");
 
 }
-
-const showMultiwordAnnotate = () => console.log("showMultiwordAnnotate triggered");
 
 function selectText_splitup(dt_start, dt_end, page_cur) {
 
@@ -163,6 +162,8 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
               pageno.classList.add("current_pageno");
             }
           });
+          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseover', underlineMultiwords);});
+          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseout', removeUnderlineMultiwords);});
 
         }
      
@@ -818,6 +819,7 @@ const lemmaTooltip = function () {
         json_lemma_transes = xhttp.response;
        // console.log(json_lemma_transes);
         if(json_lemma_transes == null) {
+         document.getElementById("tt_toggle").disabled = false;
          return;
         }
         let i = 0;
@@ -1049,6 +1051,10 @@ function showAnnotate(event) {
 
 };
 
+const showMultiwordAnnotate = (event) => {
+  console.log("showMultiwordAnnotate triggered");
+}
+
 const fetchLemmaData = function () {
   meanings = Object.create(null);
   const httpRequest = (method, url) => {
@@ -1105,6 +1111,22 @@ const fetchLemmaData = function () {
   httpRequest("POST", "retrieve_engword.php");
 };
 
+const recordMultiword = function () {
+
+};
+
+const deleteMultiword = function () {
+
+};
+
+const switchMultiwordMeanings = function() {
+
+};
+
+const pullInMultiword = function() {
+
+};
+
 const selectMultiword = (event) => {
   let mw_candidate = event.target;
   if(mw_candidate.matches('.mw_current_select')) {
@@ -1122,6 +1144,8 @@ const fetchMultiwordData = function () {
   meanings = Object.create(null);
   multiword_meanings = Object.create(null);
   multiword_indices = Object.create(null);
+
+  let current_mw_number = display_word.dataset.multiword;
  
   const httpRequest = (method, url) => {
 
@@ -1152,7 +1176,7 @@ const fetchMultiwordData = function () {
         for(let adjacent_tokno of adjacent_toknos) {
           let wrd = document.querySelector('[data-tokno="'+adjacent_tokno+'"]');
           //the adjacent_toknos could include words from the next page which will make the querySelector return null
-          if(wrd != null) {
+          if(wrd != null && (wrd.dataset.multiword == undefined || wrd.dataset.multiword == current_mw_number)) {
             wrd.classList.add("mw_selectable");
             wrd.onclick = selectMultiword; 
           }
@@ -1184,6 +1208,13 @@ const fetchMultiwordData = function () {
         if(multiword_id == 0) {
           document.getElementById('delete_lemma_button').style.display = "none";
         }
+
+        document.getElementById('delete_lemma_button').onclick = deleteMultiword;
+
+        document.getElementById('save_button').onclick = recordMultiword;
+        document.getElementById('meaning_leftarrow').onclick = switchMultiwordMeanings;
+        document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
+        document.getElementById('lemma_tag').onblur = pullInMultiword;
 
       }
     }

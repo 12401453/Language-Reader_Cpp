@@ -1089,15 +1089,29 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
         if(word_engine_id) {
             lemma_id = sqlite3_column_int(statement, 5);
-            lemma_meaning_no = sqlite3_column_int(statement, 4);
-
+            // lemma_meaning_no = sqlite3_column_int(statement, 4); //lemma_meaning_no is not used, probably should get rid
+            int multiword_id = sqlite3_column_int(statement, 6);
             
             sqlite3_bind_int(stmt, 1, word_engine_id);
             sqlite3_step(stmt);
             first_lemma_id = sqlite3_column_int(stmt, 0);
             sqlite3_reset(stmt);
 
+            html <<  "<span data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\" class=\"tooltip";
             if(lemma_id) {
+                html << " lemma_set_unexplicit lemma_set";
+            }
+            else if(first_lemma_id) {
+                html << " lemma_set_unexplicit";
+            }
+            if(multiword_id) {
+                int multiword_count  = sqlite3_column_int(statement, 8);
+                html << " multiword\" data-multiword=\"" << multiword_count;
+            }
+            html << "\">";
+            
+
+            /*  if(lemma_id) {
                 html << "<span class=\"tooltip lemma_set_unexplicit lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
             }
             else if(first_lemma_id) {
@@ -1105,7 +1119,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
             }
             else {
                 html << "<span class=\"tooltip\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
-            }
+            } */
         }
         else {
             if(!strcmp(text_word, "¬")) {
@@ -1256,15 +1270,29 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
 
             if(word_engine_id) {
                 lemma_id = sqlite3_column_int(statement, 5);
-                lemma_meaning_no = sqlite3_column_int(statement, 4);
-
+                // lemma_meaning_no = sqlite3_column_int(statement, 4); //lemma_meaning_no is not used, probably should get rid
+                int multiword_id = sqlite3_column_int(statement, 6);
                 
                 sqlite3_bind_int(stmt, 1, word_engine_id);
                 sqlite3_step(stmt);
                 first_lemma_id = sqlite3_column_int(stmt, 0);
                 sqlite3_reset(stmt);
 
+                html <<  "<span data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\" class=\"tooltip";
                 if(lemma_id) {
+                    html << " lemma_set_unexplicit lemma_set";
+                }
+                else if(first_lemma_id) {
+                    html << " lemma_set_unexplicit";
+                }
+                if(multiword_id) {
+                    int multiword_count  = sqlite3_column_int(statement, 8);
+                    html << " multiword\" data-multiword=\"" << multiword_count;
+                }
+                html << "\">";
+                
+
+              /*  if(lemma_id) {
                     html << "<span class=\"tooltip lemma_set_unexplicit lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
                 }
                 else if(first_lemma_id) {
@@ -1272,7 +1300,9 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
                 }
                 else {
                     html << "<span class=\"tooltip\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
-                }
+                } */
+
+
             }
             else {
                 if(!strcmp(text_word, "¬")) {
@@ -1442,15 +1472,29 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
 
             if(word_engine_id) {
                 lemma_id = sqlite3_column_int(statement, 5);
-                lemma_meaning_no = sqlite3_column_int(statement, 4);
-
+                // lemma_meaning_no = sqlite3_column_int(statement, 4); //lemma_meaning_no is not used, probably should get rid
+                int multiword_id = sqlite3_column_int(statement, 6);
                 
                 sqlite3_bind_int(stmt, 1, word_engine_id);
                 sqlite3_step(stmt);
                 first_lemma_id = sqlite3_column_int(stmt, 0);
                 sqlite3_reset(stmt);
 
+                html <<  "<span data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\" class=\"tooltip";
                 if(lemma_id) {
+                    html << " lemma_set_unexplicit lemma_set";
+                }
+                else if(first_lemma_id) {
+                    html << " lemma_set_unexplicit";
+                }
+                if(multiword_id) {
+                    int multiword_count  = sqlite3_column_int(statement, 8);
+                    html << " multiword\" data-multiword=\"" << multiword_count;
+                }
+                html << "\">";
+                
+
+              /*  if(lemma_id) {
                     html << "<span class=\"tooltip lemma_set_unexplicit lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
                 }
                 else if(first_lemma_id) {
@@ -1458,7 +1502,7 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
                 }
                 else {
                     html << "<span class=\"tooltip\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
-                }
+                } */
             }
             else {
                 if(!strcmp(text_word, "¬")) {
@@ -2090,7 +2134,7 @@ bool WebServer::clearTable(int clientSocket) {
         sqlite3_step(statement);
         sqlite3_finalize(statement);
 
-        const char* sql_text = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_meaning_no INTEGER, lemma_id INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER)";
+        const char* sql_text = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_meaning_no INTEGER, lemma_id INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER, multiword_count INTEGER)";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
         sql_text = "DROP TABLE IF EXISTS chunks;CREATE TABLE chunks (dt_start INTEGER, dt_end INTEGER)";
@@ -2105,7 +2149,7 @@ bool WebServer::clearTable(int clientSocket) {
         sql_text = "DROP TABLE IF EXISTS lemmas;CREATE TABLE lemmas (lemma_id INTEGER PRIMARY KEY, lemma TEXT, eng_trans1 TEXT, eng_trans2 TEXT, eng_trans3 TEXT, eng_trans4 TEXT, eng_trans5 TEXT, eng_trans6 TEXT, eng_trans7 TEXT, eng_trans8 TEXT, eng_trans9 TEXT, eng_trans10 TEXT, lang_id INTEGER, pos INTEGER, UNIQUE(lemma, lang_id, pos))";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
-        sql_text = "DROP TABLE IF EXISTS multiwords;CREATE TABLE multiwords (multiword_id INTEGER, word_eng_id1 INTEGER, word_eng_id2 INTEGER, word_eng_id3 INTEGER, word_eng_id4 INTEGER, word_eng_id5 INTEGER, word_eng_id6 INTEGER, word_eng_id7 INTEGER, word_eng_id8 INTEGER, word_eng_id9 INTEGER, word_eng_id10 INTEGER, lang_id INTEGER, UNIQUE(multiword_id, lang_id, word_eng_id1, word_eng_id2, word_eng_id3, word_eng_id4, word_eng_id5, word_eng_id6, word_eng_id7, word_eng_id8, word_eng_id9, word_eng_id10))";
+        sql_text = "DROP TABLE IF EXISTS multiwords;CREATE TABLE multiwords (multiword_id INTEGER, word_eng_id1 INTEGER DEFAULT 0 NOT NULL, word_eng_id2 INTEGER DEFAULT 0 NOT NULL, word_eng_id3 INTEGER DEFAULT 0 NOT NULL, word_eng_id4 INTEGER DEFAULT 0 NOT NULL, word_eng_id5 INTEGER DEFAULT 0 NOT NULL, word_eng_id6 INTEGER DEFAULT 0 NOT NULL, word_eng_id7 INTEGER DEFAULT 0 NOT NULL, word_eng_id8 INTEGER DEFAULT 0 NOT NULL, word_eng_id9 INTEGER DEFAULT 0 NOT NULL, word_eng_id10 INTEGER DEFAULT 0 NOT NULL, lang_id INTEGER, UNIQUE(multiword_id, lang_id, word_eng_id1, word_eng_id2, word_eng_id3, word_eng_id4, word_eng_id5, word_eng_id6, word_eng_id7, word_eng_id8, word_eng_id9, word_eng_id10))";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
         sql_text = "DROP TABLE IF EXISTS multiword_lemmas;CREATE TABLE multiword_lemmas (multiword_id INTEGER PRIMARY KEY, multiword_lemma_form TEXT, eng_trans1 TEXT, eng_trans2 TEXT, eng_trans3 TEXT, eng_trans4 TEXT, eng_trans5 TEXT, pos INTEGER, lang_id INTEGER, UNIQUE(multiword_lemma_form, pos, lang_id))";
@@ -2252,6 +2296,8 @@ bool WebServer::retrieveMultiword(std::string _POST[3], int clientSocket) {
             
             pos = sqlite3_column_int(statement, 1);
             if(!pos) pos = 1;
+
+            sqlite3_finalize(statement);
         }
         else sqlite3_finalize(statement);
     
@@ -2324,8 +2370,7 @@ bool WebServer::pullInMultiword(std::string _POST[1], int clientSocket) {
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_step(statement);
 
-        int multiword_id = 0;
-        multiword_id = sqlite3_column_int(statement, 0);
+        int multiword_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
         std::string mw_lemma_form = "";
