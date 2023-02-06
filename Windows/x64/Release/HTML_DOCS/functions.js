@@ -70,13 +70,17 @@ function selectText() {
         if(xhttp.readyState == 4) {
           para1.innerHTML = xhttp.responseText;
          
-          //experiment
+          
           let tt_btns = document.querySelectorAll('.tooltip');
 
           tt_btns.forEach(tt_btn => {
             tt_btn.onclick = showAnnotate;
           });
-           //experiment
+
+          document.querySelectorAll('.multiword').forEach(mw_btn => {
+            mw_btn.onclick = showMultiwordAnnotate;
+          });
+           
           let pagenos = document.querySelectorAll('.pageno');
           pagenos.forEach(pageno => {
             if(Number(pageno.innerHTML) == 1) {
@@ -86,7 +90,8 @@ function selectText() {
           if(tooltips_shown) {
             lemmaTooltip();
           }
-
+          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseover', underlineMultiwords);});
+          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseout', removeUnderlineMultiwords);});
           loadingbutton.remove();
           
 
@@ -132,13 +137,17 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
     
         if(xhttp.readyState == 4) {
           textbody.innerHTML = xhttp.responseText;
-          //experiment
+      
           let tt_btns = document.querySelectorAll('.tooltip');
 
           tt_btns.forEach(tt_btn => {
             tt_btn.onclick = showAnnotate;
           });
-           //experiment
+
+          document.querySelectorAll('.multiword').forEach(mw_btn => {
+            mw_btn.onclick = showMultiwordAnnotate;
+          });
+   
           if(tooltips_shown) {
             lemmaTooltip();
           }
@@ -153,6 +162,8 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
               pageno.classList.add("current_pageno");
             }
           });
+          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseover', underlineMultiwords);});
+          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseout', removeUnderlineMultiwords);});
 
         }
      
@@ -509,7 +520,7 @@ const pullInLemma = function (can_skip = true) {
   }
   document.getElementById('save_button').onclick = "";
   const httpRequest = (method, url) => {
-    let send_data = "lemma_form=" + encodeURIComponent(lemma_form.replaceAll("'", "''")) + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=";
+    let send_data = "lemma_form=" + encodeURIComponent(lemma_form.replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C")) + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=";
     if(pos == pos_initial) {
       send_data += "0&lang_id=" + lang_id;
     }
@@ -527,7 +538,7 @@ const pullInLemma = function (can_skip = true) {
         let json_response = xhttp.response;
         console.log(json_response);
         lemma_id = json_response.lemma_id;
-        meanings = {};
+        meanings = Object.create(null);
         if(lemma_id != null) {
           
           let new_lemma_textarea_content = json_response.lemma_textarea_content;
@@ -655,8 +666,8 @@ const lemmaRecord = function () {
     
     const httpRequest = (method, url) => {
 
-    let lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim().replaceAll("'", "''"));
-    lemma_meaning = encodeURIComponent(lemma_meaning.replaceAll("'", "''")); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them
+    let lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim().replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C"));
+    lemma_meaning = encodeURIComponent(lemma_meaning.replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C")); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them. Back-slash doubling is not done on the php version because it calls addslashes() on the backend
 
     let send_data = "word_engine_id=" + word_engine_id + "&lemma_form=" + lemma_form + "&lemma_meaning=" + lemma_meaning + "&lemma_meaning_no=" + lemma_meaning_no + "&lang_id=" + lang_id + "&tokno_current=" + tokno_current + "&pos=" + pos +"&clicked_lemma_meaning_no=" + clicked_lemma_meaning_no;
 
@@ -748,10 +759,19 @@ const delAnnotate = function () {
     previous_selection.classList.remove("tooltip_selected");
   }); */
   display_word.classList.add("tooltip");
-  display_word.classList.remove("tooltip_selected");
+  display_word.classList.remove("tooltip_selected", "mw_current_select");
+  display_word.onclick = showAnnotate;
   display_word = null;
-  meanings = {};
+  meanings = Object.create(null);
+  multiword_meanings = Object.create(null);
+  multiword_indices = Object.create(null);
+  document.querySelectorAll('.mw_selectable').forEach(mws => {
+    mws.classList.remove("mw_selectable", "mw_current_select");
+    mws.onclick = showAnnotate;
+  });
   box_no = 0;
+  pos = 1;
+  pos_initial = 1;
   annot_box.remove();
 };
 
@@ -799,6 +819,7 @@ const lemmaTooltip = function () {
         json_lemma_transes = xhttp.response;
        // console.log(json_lemma_transes);
         if(json_lemma_transes == null) {
+         document.getElementById("tt_toggle").disabled = false;
          return;
         }
         let i = 0;
@@ -880,11 +901,13 @@ let lemma_form_tag_initial = "";
 let lemma_textarea_content_initial = "";
 let lemma_meaning_no = 1;
 let lemma_id = 0;
-let meanings = {};
+let meanings = Object.create(null);
+let multiword_meanings = Object.create(null);
+let multiword_indices = Object.create(null);
 let tooltips_shown = false;
 let pos_initial = 1;
 
-let display_word;
+let display_word = null;
 let tokno_current = 0;
 let word_engine_id = 0;
 
@@ -892,25 +915,25 @@ let box_no = 0;
 ///////////////////////////////
 
 function showAnnotate(event) {
-  meanings = {};
-   
+  meanings = Object.create(null);
+  if(display_word != null) delAnnotate();
   display_word = event.target;
-  tokno_current = event.target.dataset.tokno;
+  tokno_current = display_word.dataset.tokno;
+  word_engine_id = display_word.dataset.word_engine_id;
+  console.log(word_engine_id);
 
-  let mw_page_index = event.target.dataset.multiword;
-  if(mw_page_index != undefined) { box_no = 2;}
-  else {box_no = 1;}
-    
+  //let mw_page_index = display_word.dataset.multiword;
+  //if(mw_page_index != undefined) { box_no = 2;}
+  //else {box_no = 1;}
+   /*  
   let previous_selections = document.querySelectorAll('.tooltip_selected');
   previous_selections.forEach(previous_selection => {
     previous_selection.classList.add("tooltip");
     previous_selection.classList.remove("tooltip_selected");
-  });
+  }); */
+  display_word.onclick = "";
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
-
-  word_engine_id = event.target.dataset.word_engine_id;
-  console.log(word_engine_id);
 
   const httpRequest = (method, url) => {
 
@@ -950,12 +973,13 @@ function showAnnotate(event) {
           annot_box.remove();
         }
 
-        let annot_box = document.createRange().createContextualFragment('<div id="annot_box" data-word_engine_id="' + word_engine_id +'"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number">'+lemma_meaning_no+'</span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
-
-        document.getElementById('spoofspan').after(annot_box);
+        displayAnnotBox();
+        document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
+        document.getElementById("number").innerHTML = lemma_meaning_no;     
         document.getElementById('lemma_tag').value = lemma_tag_content;
         document.getElementById('lemma_textarea').value = lemma_textarea_content; //might be able to get rid of _html versions on back and frontend doing it this way
 
+        document.getElementById('lemma_tag').focus();
 
         if(lemma_meaning_no == 1) {
           document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
@@ -977,27 +1001,10 @@ function showAnnotate(event) {
         document.getElementById('meaning_rightarrow').onclick = switchMeaning;
         document.getElementById('lemma_tag').onblur = pullInLemma;
 
-        //let current_box = document.getElementById('lemma_box');
-        switch(box_no) {
-          case 1:
-            document.getElementById("lemma_box").classList.add("current_box");
-            break;
-          case 2:
-            document.getElementById("multiword_box").classList.add("current_box");
-            break;
-          default:
-            document.getElementById("lemma_box").classList.add("current_box");  
-        }
+        document.getElementById("lemma_box").classList.add("current_box");
         let current_box = document.querySelector('.current_box');
 
         let left_column = document.getElementById('left_column');
-
-        left_column.onclick = function (event) {
-          let target = event.target;
-          if (target.className != 'box') return;
-
-          selectBox(target);
-        };
 
         function selectBox(box) {
           if (current_box) {
@@ -1007,37 +1014,237 @@ function showAnnotate(event) {
           current_box.classList.add("current_box");
 
           if(current_box.id == "lemma_box") {
-            box_no = 1;
+           // box_no = 1;
             document.getElementById("right_body").style.visibility = "visible";
             document.getElementById("right_footer").style.visibility = "visible";
             document.getElementById('lemma_textarea').focus();
           }
           else if(current_box.id == "multiword_box") {
-            box_no = 2;
+            //box_no = 2;
             document.getElementById("right_body").style.visibility = "visible";
             document.getElementById("right_footer").style.visibility = "visible";
             document.getElementById('lemma_textarea').focus();
           }
           else {
-            box_no = 0;
+            //box_no = 0;
             document.getElementById("right_body").style.visibility = "hidden";
             document.getElementById("right_footer").style.visibility = "hidden";
           }
         }
-              
-        document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
-        
+        left_column.onclick = function (event) {
+          let target = event.target;
+          if (target.className != 'box') return;
+
+          selectBox(target);
+        };
+                     
         document.getElementById('lemma_tag').oninput = setLemmaTagSize;
         setLemmaTagSize();
           
       }    
-   }
+    }
     xhttp.send(send_data);
   }
   
   httpRequest("POST", "retrieve_engword.php");
 
 };
+
+const showMultiwordAnnotate = (event) => {
+  display_word = event.target;
+  tokno_current = display_word.dataset.tokno;
+  word_engine_id = display_word.dataset.word_engine_id;
+  displayAnnotBox();
+  console.log("showMultiwordAnnotate triggered");
+}
+
+const fetchLemmaData = function () {
+  meanings = Object.create(null);
+  const httpRequest = (method, url) => {
+
+    let send_data = "word_engine_id="+word_engine_id+"&tokno_current="+tokno_current+"&lang_id="+lang_id;
+ 
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.responseType = 'json';
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.onload = () => {
+      console.log("sent");
+      if(xhttp.readyState == 4)  {
+        let json_response = xhttp.response;
+        let lemma_tag_content = json_response.lemma_tag_content;
+        lemma_form_tag_initial = lemma_tag_content;
+        let lemma_textarea_content = json_response.lemma_textarea_content;
+        lemma_textarea_content_initial = lemma_textarea_content;
+        //let lemma_textarea_content_html = json_response.lemma_textarea_content_html;
+        lemma_meaning_no = Number(json_response.lemma_meaning_no);
+        lemma_id = Number(json_response.lemma_id);
+        pos = Number(json_response.pos);
+        pos_initial = pos;
+
+        if(lemma_meaning_no != 0) {
+          meanings[lemma_meaning_no] = lemma_textarea_content;
+        }
+        else {
+          lemma_meaning_no = 1;
+        }
+        document.getElementById("number").innerHTML = lemma_meaning_no;     
+        document.getElementById('lemma_tag').value = lemma_tag_content;
+        document.getElementById('lemma_textarea').value = lemma_textarea_content; //might be able to get rid of _html versions on back and frontend doing it this way
+
+        document.getElementById('lemma_textarea').focus();
+
+        if(lemma_meaning_no == 1) {
+          document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
+          document.getElementById("meaning_leftarrow").classList.remove("nav_arrow");
+        }
+        else if (lemma_meaning_no == 10) {
+          document.getElementById("meaning_rightarrow").classList.add("nav_arrow_deactiv");
+          document.getElementById("meaning_rightarrow").classList.remove("nav_arrow");
+        }
+
+        if(lemma_id == 0) {
+          document.getElementById('delete_lemma_button').style.display = "none";
+        }
+
+      }
+    }
+    xhttp.send(send_data);
+  }
+  httpRequest("POST", "retrieve_engword.php");
+};
+
+const recordMultiword = function () {
+
+};
+
+const deleteMultiword = function () {
+
+};
+
+const switchMultiwordMeanings = function() {
+
+};
+
+const pullInMultiword = function() {
+
+};
+
+const selectMultiword = (event) => {
+  let mw_candidate = event.target;
+  if(mw_candidate.matches('.mw_current_select')) {
+    mw_candidate.classList.remove("mw_current_select");
+    delete multiword_indices[mw_candidate.dataset.tokno];
+  }
+  else if(Object.keys(multiword_indices).length < 10) {
+    mw_candidate.classList.add("mw_current_select");
+    multiword_indices[mw_candidate.dataset.tokno] = mw_candidate.dataset.word_engine_id;
+  }
+  
+
+};
+const fetchMultiwordData = function () {
+  meanings = Object.create(null);
+  multiword_meanings = Object.create(null);
+  multiword_indices = Object.create(null);
+
+  let current_mw_number = display_word.dataset.multiword;
+ 
+  const httpRequest = (method, url) => {
+
+    let send_data = "word_engine_id="+word_engine_id+"&tokno_current="+tokno_current+"&lang_id="+lang_id;
+ 
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.responseType = 'json';
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.onload = () => {
+      console.log("sent");
+      if(xhttp.readyState == 4)  {
+        let json_response = xhttp.response;
+        let multiword_tag_content = json_response.multiword_tag_content;
+        //multiword_form_tag_initial = multiword_tag_content;
+        let multiword_textarea_content = json_response.multiword_textarea_content;
+        //multiword_textarea_content_initial = multiword_textarea_content;
+        
+        let multiword_meaning_no = Number(json_response.multiword_meaning_no);
+        let multiword_id = Number(json_response.multiword_id);
+        pos = Number(json_response.pos);
+        //pos_initial = pos;
+        let adjacent_toknos = json_response.adjacent_toknos;
+        //console.log(adjacent_toknos);
+
+        if(current_mw_number != undefined) {
+          document.querySelectorAll('[data-multiword="'+current_mw_number+'"]').forEach(current_mw => {
+            multiword_indices[current_mw.dataset.tokno] = current_mw.dataset.word_engine_id;
+            current_mw.classList.add("mw_current_select");
+            current_mw.style.borderBottom = "";
+            current_mw.removeEventListener('mouseover', underlineMultiwords);
+            current_mw.removeEventListener('mouseout', removeUnderlineMultiwords);
+          });
+        }
+        else {
+          display_word.classList.add("mw_current_select");
+          multiword_indices[display_word.dataset.tokno] = display_word.dataset.word_engine_id;
+        }
+
+        for(let adjacent_tokno of adjacent_toknos) {
+          let wrd = document.querySelector('[data-tokno="'+adjacent_tokno+'"]');
+          //the adjacent_toknos could include words from the next page which will make the querySelector return null
+          if(wrd != null && (wrd.dataset.multiword == undefined || wrd.dataset.multiword == current_mw_number)) {
+            wrd.classList.add("mw_selectable");
+            wrd.onclick = selectMultiword; 
+          }
+        }
+
+        document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
+        if(multiword_meaning_no != 0) {
+          multiword_meanings[multiword_meaning_no] = multiword_textarea_content;
+        }
+        else {
+          multiword_meaning_no = 1;
+        }
+        document.getElementById("number").innerHTML = multiword_meaning_no;     
+        document.getElementById('lemma_tag').value = multiword_tag_content;
+        setLemmaTagSize();
+        document.getElementById('lemma_textarea').value = multiword_textarea_content;
+
+        document.getElementById('lemma_textarea').focus();
+
+        if(multiword_meaning_no == 1) {
+          document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
+          document.getElementById("meaning_leftarrow").classList.remove("nav_arrow");
+        }
+        else if (multiword_meaning_no == 10) {
+          document.getElementById("meaning_rightarrow").classList.add("nav_arrow_deactiv");
+          document.getElementById("meaning_rightarrow").classList.remove("nav_arrow");
+        }
+
+        if(multiword_id == 0) {
+          document.getElementById('delete_lemma_button').style.display = "none";
+        }
+
+        document.getElementById('delete_lemma_button').onclick = deleteMultiword;
+
+        document.getElementById('save_button').onclick = recordMultiword;
+        document.getElementById('meaning_leftarrow').onclick = switchMultiwordMeanings;
+        document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
+        document.getElementById('lemma_tag').onblur = pullInMultiword;
+
+      }
+    }
+    xhttp.send(send_data);
+  }
+  
+  httpRequest("POST", "retrieve_multiword.php");
+   
+};
+
+const displayAnnotBox = function () {
+  let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
+  
+  document.getElementById('spoofspan').after(annot_box);
+}
 
 //this is copied
 const makeDraggable = function () {
