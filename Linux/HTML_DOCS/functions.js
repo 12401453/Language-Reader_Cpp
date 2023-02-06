@@ -919,6 +919,8 @@ function showAnnotate(event) {
   if(display_word != null) delAnnotate();
   display_word = event.target;
   tokno_current = display_word.dataset.tokno;
+  word_engine_id = display_word.dataset.word_engine_id;
+  console.log(word_engine_id);
 
   //let mw_page_index = display_word.dataset.multiword;
   //if(mw_page_index != undefined) { box_no = 2;}
@@ -932,9 +934,6 @@ function showAnnotate(event) {
   display_word.onclick = "";
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
-
-  word_engine_id = display_word.dataset.word_engine_id;
-  console.log(word_engine_id);
 
   const httpRequest = (method, url) => {
 
@@ -1052,6 +1051,10 @@ function showAnnotate(event) {
 };
 
 const showMultiwordAnnotate = (event) => {
+  display_word = event.target;
+  tokno_current = display_word.dataset.tokno;
+  word_engine_id = display_word.dataset.word_engine_id;
+  displayAnnotBox();
   console.log("showMultiwordAnnotate triggered");
 }
 
@@ -1171,8 +1174,20 @@ const fetchMultiwordData = function () {
         let adjacent_toknos = json_response.adjacent_toknos;
         //console.log(adjacent_toknos);
 
-        display_word.classList.add("mw_current_select");
-        multiword_indices[display_word.dataset.tokno] = display_word.dataset.word_engine_id;
+        if(current_mw_number != undefined) {
+          document.querySelectorAll('[data-multiword="'+current_mw_number+'"]').forEach(current_mw => {
+            multiword_indices[current_mw.dataset.tokno] = current_mw.dataset.word_engine_id;
+            current_mw.classList.add("mw_current_select");
+            current_mw.style.borderBottom = "";
+            current_mw.removeEventListener('mouseover', underlineMultiwords);
+            current_mw.removeEventListener('mouseout', removeUnderlineMultiwords);
+          });
+        }
+        else {
+          display_word.classList.add("mw_current_select");
+          multiword_indices[display_word.dataset.tokno] = display_word.dataset.word_engine_id;
+        }
+
         for(let adjacent_tokno of adjacent_toknos) {
           let wrd = document.querySelector('[data-tokno="'+adjacent_tokno+'"]');
           //the adjacent_toknos could include words from the next page which will make the querySelector return null
