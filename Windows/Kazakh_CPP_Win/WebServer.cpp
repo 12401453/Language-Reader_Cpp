@@ -288,14 +288,17 @@ void WebServer::insertTextSelect(std::ostringstream& html) {
 
         int text_id = 0;
         const char* text_title;
-        std::string text_title_str;
+        std::string text_title_str = "";
 
         while (sqlite3_step(statement) == SQLITE_ROW) {
             text_id = sqlite3_column_int(statement, 0);
             text_title = (const char*)sqlite3_column_text(statement, 1);
 
-            icu::UnicodeString unicode_text_title = text_title;
-            unicode_text_title.findAndReplace("¬", "\'");
+            icu::UnicodeString unicode_text_title;
+            icu::UnicodeString weird_dash;
+            weird_dash = weird_dash.fromUTF8("¬");
+            unicode_text_title = unicode_text_title.fromUTF8(text_title);
+            unicode_text_title.findAndReplace(weird_dash, "\'");
             unicode_text_title.toUTF8String(text_title_str);
 
             html << "<option value=\"" << text_id << "\">" << text_title_str << "</option>\n";
@@ -664,13 +667,20 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
         run_code = sqlite3_step(statement);
         sqlite3_finalize(statement);
 
+        icu::UnicodeString weird_dash;
+        weird_dash = weird_dash.fromUTF8("¬");
+        icu::UnicodeString weird_comma;
+        weird_comma = weird_comma.fromUTF8("’");
 
 
         for (std::string token; std::getline(iss, token, ' '); ) {
-            icu::UnicodeString token_unicode = token.c_str();
+            icu::UnicodeString token_unicode;
+            token_unicode = token_unicode.fromUTF8(token);
 
-            token_unicode.findAndReplace("'", "¬");
-            token_unicode.findAndReplace("’", "¬");
+           
+
+            token_unicode.findAndReplace("'", weird_dash);
+            token_unicode.findAndReplace(weird_comma, weird_dash);
 
             bi->setText(token_unicode);
 
@@ -754,10 +764,11 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
         delete bi;
         delete matcher;
 
-        icu::UnicodeString unicode_text_title = URIDecode(_POST[1]).c_str();
+        icu::UnicodeString unicode_text_title;
+        unicode_text_title = unicode_text_title.fromUTF8(URIDecode(_POST[1]));
         std::string text_title;
-        unicode_text_title.findAndReplace("'", "¬");
-        unicode_text_title.findAndReplace("’", "¬");
+        unicode_text_title.findAndReplace("'", weird_dash);
+        unicode_text_title.findAndReplace(weird_comma, weird_dash);
         unicode_text_title.toUTF8String(text_title);
         const char* text_title_c_str = text_title.c_str();
 
@@ -1054,8 +1065,11 @@ bool WebServer::retrieveText(std::string text_id[1], SOCKET clientSocket) {
 
 
         const char* text_title = (const char*)sqlite3_column_text(statement, 2);
-        icu::UnicodeString text_title_utf8 = text_title;
-        text_title_utf8.findAndReplace("¬", "\'");
+        icu::UnicodeString text_title_utf8;
+        text_title_utf8 = text_title_utf8.fromUTF8(text_title);
+        icu::UnicodeString weird_dash;
+        weird_dash = weird_dash.fromUTF8("¬");
+        text_title_utf8.findAndReplace(weird_dash, "\'");
         std::string text_title_str;
         text_title_utf8.toUTF8String(text_title_str);
         html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">&emsp;";
@@ -1439,8 +1453,11 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream& html) {
 
 
         const char* text_title = (const char*)sqlite3_column_text(statement, 2);
-        icu::UnicodeString text_title_utf8 = text_title;
-        text_title_utf8.findAndReplace("¬", "\'");
+        icu::UnicodeString text_title_utf8;
+        text_title_utf8 = text_title_utf8.fromUTF8(text_title);
+        icu::UnicodeString weird_dash;
+        weird_dash = weird_dash.fromUTF8("¬");
+        text_title_utf8.findAndReplace(weird_dash, "\'");
         std::string text_title_str;
         text_title_utf8.toUTF8String(text_title_str);
         html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">&emsp;";

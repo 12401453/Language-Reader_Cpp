@@ -1,0 +1,11 @@
+By default Microsoft's C++ programs will try to decode all text using the Latin-1 encoding (ISO-8859-1) on Windows, even if you use setlocale(LC_ALL, ".UTF-8"), unless the user has checked the "Beta: use Unicode UTF-8 for worldwide language support" under the locale settings under "Region" in Control Panel. 
+
+What seems to happen is: the program receives utf8 bytes over the network, e.g. from the browser, or out of the database,  but when you do e.g. a std::string str = <these utf8 bytes>, the program will interpret these bytes as Latin-1 encoded text, so it will read the bytes corresponding to 
+русский язык (0xd1 0x80 0xd1 0x83 0xd1 0x81 0xd1 0x81 0xd0 0xba 0xd0 0xb8 0xd0 0xb9 0x20 0xd1 0x8f 0xd0 0xb7 0xd1 0x8b 0xd0 0xba)
+decode them to the Latin-1 representation ÑÑÑÑÐºÐ¸Ð¹ ÑÐ·ÑÐº, and then pass the bytes corresponding to utf8 ÑÑÑÑÐºÐ¸Ð¹ ÑÐ·ÑÐº (0xc3 0x91 0xc2 0x80 0xc3 0x91 0xc2 0x83 0xc3 0x91 0xc2 0x81 0xc3 0x91 0xc2 0x81 0xc3 0x90 0xc2 0xba 0xc3 0x90 0xc2 0xb8 0xc3 0x90 0xc2 0xb9 0x20 0xc3 0x91 0xc2 0x8f 0xc3 0x90 0xc2 0xb7 0xc3 0x91 0xc2 0x8b 0xc3 0x90 0xc2 0xba) to the icu::UnicodeString constructor when you do 
+icu::UnicodeString unicode_str = "русский язык";
+
+The way around it is to always use icu::UnicodeString::fromUTF8() method to construct Unicode Strings from regular strings or const char*, e.g.
+icu::UnicodeString unicode_str;
+unicode_str = unicode_str.fromUTF8("русский язык");
+One also has to watch out that any functions that implicitly convert arguments to icu::UnicodeStrings also have their arguments constructed in such a way, e.g. icu::UnicodeString::findAndReplace("str1", "str2") will only work correctlyt if str1 and str2 are pure ASCII, otherwise we need to explicitly construct them as icu::UnicodeStrings using the fromUTF8() method.
