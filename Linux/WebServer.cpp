@@ -2137,9 +2137,6 @@ bool WebServer::clearTable(int clientSocket) {
         const char* sql_text = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_meaning_no INTEGER, lemma_id INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER, multiword_count INTEGER)";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
-        sql_text = "DROP TABLE IF EXISTS chunks;CREATE TABLE chunks (dt_start INTEGER, dt_end INTEGER)";
-        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
-
         sql_text = "DROP TABLE IF EXISTS word_engine;CREATE TABLE word_engine (word_engine_id INTEGER PRIMARY KEY, word TEXT, lang_id INTEGER, first_lemma_id INTEGER, UNIQUE(word, lang_id))";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
@@ -2329,6 +2326,8 @@ bool WebServer::pullInMultiword(std::string _POST[1], int clientSocket) {
     sqlite3* DB;
 
     if(!sqlite3_open(m_DB_path, &DB)) {
+        
+        sqlite3_stmt* statement;
 
         //there can be at most 10 words in a multiword-phrase so I can use int[10] instead of std::vector;
         int word_eng_ids[10] {0,0,0,0,0,0,0,0,0,0};
@@ -2364,12 +2363,8 @@ bool WebServer::pullInMultiword(std::string _POST[1], int clientSocket) {
         }
 
         const char* sql_text = sql_text_oss.str().c_str();
-
-        sqlite3_stmt* statement;
-
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_step(statement);
-
         int multiword_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
@@ -2389,8 +2384,17 @@ bool WebServer::pullInMultiword(std::string _POST[1], int clientSocket) {
 
             sqlite3_finalize(statement);
         }
-
         sqlite3_close(DB);
+
+        std::ostringstream json;
+        json << "{\"multiword_tag_content\":\"" << escapeQuotes(mw_lemma_form) << "\",\"multiword_textarea_content\":\"" << escapeQuotes(mw_lemma_meaning) << "\",\"multiword_meaning_no\":\"" << 1 << "\",\"pos\":\"" << pos << "\"}";
+        
+        int content_length = json.str().size();
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        int length = post_response.str().size() + 1;
+
+        sendToClient(clientSocket, post_response.str().c_str(), length);
         return true;
     }
     else {

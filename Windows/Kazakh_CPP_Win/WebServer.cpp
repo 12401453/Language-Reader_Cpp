@@ -2161,9 +2161,6 @@ bool WebServer::clearTable(SOCKET clientSocket) {
         const char* sql_text = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_meaning_no INTEGER, lemma_id INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER, multiword_count INTEGER)";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
-        sql_text = "DROP TABLE IF EXISTS chunks;CREATE TABLE chunks (dt_start INTEGER, dt_end INTEGER)";
-        sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
-
         sql_text = "DROP TABLE IF EXISTS word_engine;CREATE TABLE word_engine (word_engine_id INTEGER PRIMARY KEY, word TEXT, lang_id INTEGER, first_lemma_id INTEGER, UNIQUE(word, lang_id))";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
