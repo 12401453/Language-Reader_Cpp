@@ -77,8 +77,10 @@ function selectText() {
             tt_btn.onclick = showAnnotate;
           });
 
-          document.querySelectorAll('.multiword').forEach(mw_btn => {
-            mw_btn.onclick = showMultiwordAnnotate;
+          document.querySelectorAll('.multiword').forEach(mw => {
+            mw.onclick = showMultiwordAnnotate;
+            mw.addEventListener('mouseover', underlineMultiwords);
+            mw.addEventListener('mouseout', removeUnderlineMultiwords);
           });
            
           let pagenos = document.querySelectorAll('.pageno');
@@ -90,8 +92,6 @@ function selectText() {
           if(tooltips_shown) {
             lemmaTooltip();
           }
-          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseover', underlineMultiwords);});
-          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseout', removeUnderlineMultiwords);});
           loadingbutton.remove();
           
 
@@ -144,8 +144,10 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
             tt_btn.onclick = showAnnotate;
           });
 
-          document.querySelectorAll('.multiword').forEach(mw_btn => {
-            mw_btn.onclick = showMultiwordAnnotate;
+          document.querySelectorAll('.multiword').forEach(mw => {
+            mw.onclick = showMultiwordAnnotate;
+            mw.addEventListener('mouseover', underlineMultiwords);
+            mw.addEventListener('mouseout', removeUnderlineMultiwords);
           });
    
           if(tooltips_shown) {
@@ -162,9 +164,6 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
               pageno.classList.add("current_pageno");
             }
           });
-          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseover', underlineMultiwords);});
-          document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseout', removeUnderlineMultiwords);});
-
         }
      
       }
@@ -418,46 +417,57 @@ const deadFunc = function () {
 };
 
 const changePoS = function () {
+  let pullInFunc = () => {};
+  switch(annotation_mode){
+    case 1:
+      pullInFunc = pullInLemma;
+      break;
+    case 2:
+      pullInFunc = pullInMultiword;
+      break;
+    default:
+      pullInFunc = pullInLemma;
+  }
   switch (this.id) {
     case "noun_pos":
       document.getElementById('pos_tag_box').innerHTML = noun_pos;
       pos = 1;
-      pullInLemma(false);
+      pullInFunc(false);
       break;
     case "verb_pos":
       document.getElementById('pos_tag_box').innerHTML = verb_pos;
       pos = 2;
-      pullInLemma(false);
+      pullInFunc(false);
       break;
     case "adj_pos":
       document.getElementById('pos_tag_box').innerHTML = adj_pos;
       pos = 3;
-      pullInLemma(false);
+      pullInFunc(false);
       break;  
     case "adverb_pos":
       document.getElementById('pos_tag_box').innerHTML = adverb_pos;
       pos = 4;
-      pullInLemma(false);
+      pullInFunc(false);
       break;
     case "prep_pos":
       document.getElementById('pos_tag_box').innerHTML = prep_pos;
       pos = 5;
-      pullInLemma(false);
+      pullInFunc(false);
       break;
     case "conj_pos":
       document.getElementById('pos_tag_box').innerHTML = conj_pos;
       pos = 6;
-      pullInLemma(false);
+      pullInFunc(false);
       break;  
     case "part_pos":
       document.getElementById('pos_tag_box').innerHTML = part_pos;
       pos = 7;
-      pullInLemma(false);
+      pullInFunc(false);
       break;
     case "ques_pos":
       document.getElementById('pos_tag_box').innerHTML = ques_pos;
       pos = 8;
-      pullInLemma(false);
+      pullInFunc(false);
       break;
   }
 };
@@ -750,30 +760,6 @@ const lemmaDelete = function () {
   //meanings = {};
 };
 
-const delAnnotate = function () {
-  let annot_box = document.getElementById('annot_box');
-
- /* let previous_selections = document.querySelectorAll('.tooltip_selected');
-  previous_selections.forEach(previous_selection => {
-    previous_selection.classList.add("tooltip");
-    previous_selection.classList.remove("tooltip_selected");
-  }); */
-  display_word.classList.add("tooltip");
-  display_word.classList.remove("tooltip_selected", "mw_current_select");
-  display_word.onclick = showAnnotate;
-  display_word = null;
-  meanings = Object.create(null);
-  multiword_meanings = Object.create(null);
-  multiword_indices = Object.create(null);
-  document.querySelectorAll('.mw_selectable').forEach(mws => {
-    mws.classList.remove("mw_selectable", "mw_current_select");
-    mws.onclick = showAnnotate;
-  });
-  box_no = 0;
-  pos = 1;
-  pos_initial = 1;
-  annot_box.remove();
-};
 
 const setLemmaTagSize = function () {
   let lemma_tag = document.getElementById('lemma_tag');
@@ -911,10 +897,10 @@ let display_word = null;
 let tokno_current = 0;
 let word_engine_id = 0;
 
-let box_no = 0;
+let annotation_mode = 0;
 ///////////////////////////////
 
-function showAnnotate(event) {
+function showAnnotate(event) { /*
   meanings = Object.create(null);
   if(display_word != null) delAnnotate();
   display_word = event.target;
@@ -922,15 +908,6 @@ function showAnnotate(event) {
   word_engine_id = display_word.dataset.word_engine_id;
   console.log(word_engine_id);
 
-  //let mw_page_index = display_word.dataset.multiword;
-  //if(mw_page_index != undefined) { box_no = 2;}
-  //else {box_no = 1;}
-   /*  
-  let previous_selections = document.querySelectorAll('.tooltip_selected');
-  previous_selections.forEach(previous_selection => {
-    previous_selection.classList.add("tooltip");
-    previous_selection.classList.remove("tooltip_selected");
-  }); */
   display_word.onclick = "";
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
@@ -1014,19 +991,16 @@ function showAnnotate(event) {
           current_box.classList.add("current_box");
 
           if(current_box.id == "lemma_box") {
-           // box_no = 1;
             document.getElementById("right_body").style.visibility = "visible";
             document.getElementById("right_footer").style.visibility = "visible";
             document.getElementById('lemma_textarea').focus();
           }
           else if(current_box.id == "multiword_box") {
-            //box_no = 2;
             document.getElementById("right_body").style.visibility = "visible";
             document.getElementById("right_footer").style.visibility = "visible";
             document.getElementById('lemma_textarea').focus();
           }
           else {
-            //box_no = 0;
             document.getElementById("right_body").style.visibility = "hidden";
             document.getElementById("right_footer").style.visibility = "hidden";
           }
@@ -1036,7 +1010,7 @@ function showAnnotate(event) {
           if (target.className != 'box') return;
 
           selectBox(target);
-        };
+        }; 
                      
         document.getElementById('lemma_tag').oninput = setLemmaTagSize;
         setLemmaTagSize();
@@ -1046,15 +1020,24 @@ function showAnnotate(event) {
     xhttp.send(send_data);
   }
   
-  httpRequest("POST", "retrieve_engword.php");
-
+  httpRequest("POST", "retrieve_engword.php"); */
+  if(display_word != null) delAnnotate();
+  display_word = event.target;
+  display_word.onclick = "";
+  display_word.classList.add("tooltip_selected");
+  display_word.classList.remove("tooltip");
+  tokno_current = display_word.dataset.tokno;
+  word_engine_id = display_word.dataset.word_engine_id;
+  //boxFunction(1);
+  fetchLemmaData(false);
 };
 
 
-const fetchLemmaData = function () {
+const fetchLemmaData = function (box_present = true) {
+  delAnnotate(false);
+  annotation_mode = 1;
   meanings = Object.create(null);
   const httpRequest = (method, url) => {
-
     let send_data = "word_engine_id="+word_engine_id+"&tokno_current="+tokno_current+"&lang_id="+lang_id;
  
     const xhttp = new XMLHttpRequest();
@@ -1063,7 +1046,10 @@ const fetchLemmaData = function () {
     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhttp.onload = () => {
       console.log("sent");
+      //setTimeout(() => {
       if(xhttp.readyState == 4)  {
+       
+        if(!box_present) boxFunction(annotation_mode);
         let json_response = xhttp.response;
         let lemma_tag_content = json_response.lemma_tag_content;
         lemma_form_tag_initial = lemma_tag_content;
@@ -1081,11 +1067,13 @@ const fetchLemmaData = function () {
         else {
           lemma_meaning_no = 1;
         }
+        document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
         document.getElementById("number").innerHTML = lemma_meaning_no;     
         document.getElementById('lemma_tag').value = lemma_tag_content;
+        setLemmaTagSize();
         document.getElementById('lemma_textarea').value = lemma_textarea_content; //might be able to get rid of _html versions on back and frontend doing it this way
 
-        document.getElementById('lemma_textarea').focus();
+        document.getElementById('lemma_tag').focus();
 
         if(lemma_meaning_no == 1) {
           document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
@@ -1099,8 +1087,14 @@ const fetchLemmaData = function () {
         if(lemma_id == 0) {
           document.getElementById('delete_lemma_button').style.display = "none";
         }
+        document.getElementById('delete_lemma_button').onclick = lemmaDelete;
+        document.getElementById('disregard_button').onclick = disRegard;
+        document.getElementById('save_button').onclick = lemmaRecord;
+        document.getElementById('meaning_leftarrow').onclick = switchMeaning;
+        document.getElementById('meaning_rightarrow').onclick = switchMeaning;
+        document.getElementById('lemma_tag').onblur = pullInLemma;
 
-      }
+      } //}, 1300);
     }
     xhttp.send(send_data);
   }
@@ -1119,8 +1113,8 @@ const switchMultiwordMeanings = function() {
 
 };
 
-const pullInMultiword = function() {
-
+const pullInMultiword = function(can_skip = true) {
+  console.log("pullInMultiword");
 };
 
 const selectMultiword = (event) => {
@@ -1136,14 +1130,83 @@ const selectMultiword = (event) => {
 };
 
 const showMultiwordAnnotate = (event) => {
+  if(display_word != null) delAnnotate();
   display_word = event.target;
+  display_word.onclick = "";
+  display_word.classList.add("tooltip_selected");
+  display_word.classList.remove("tooltip");
   tokno_current = display_word.dataset.tokno;
   word_engine_id = display_word.dataset.word_engine_id;
-  displayAnnotBox();
-  console.log("showMultiwordAnnotate triggered");
+  //boxFunction(2);
+  fetchMultiwordData(false);
 };
 
-const fetchMultiwordData = function () {
+const boxFunction = function (annotation_mode = 1) {
+ /* if(document.getElementById('annot_box') != null) {
+    let annot_box = document.getElementById('annot_box');
+    annot_box.remove();
+  } 
+
+  if(document.getElementById("annot_box") == null) {
+    console.log("annot_box == null");
+    displayAnnotBox();
+  }*/
+  displayAnnotBox();
+  switch(annotation_mode) {
+    case(1):
+      document.getElementById("lemma_box").classList.add("current_box");
+      break;
+    case(2):
+      document.getElementById("multiword_box").classList.add("current_box");
+      break;
+    case(3):
+      document.getElementById("context_box").classList.add("current_box");
+      break;
+    case(4):
+      document.getElementById("morph_box").classList.add("current_box");
+      break;
+    case(5):
+      document.getElementById("accent_box").classList.add("current_box");
+      break;
+  }   
+  let current_box = document.querySelector('.current_box');
+  let left_column = document.getElementById('left_column');
+
+  function selectBox(box) {
+    if(current_box) {
+      current_box.classList.remove("current_box");
+    }
+    current_box = box;
+    current_box.classList.add("current_box");
+    if(current_box.id == "lemma_box") {
+      document.getElementById("right_body").style.visibility = "visible";
+      document.getElementById("right_footer").style.visibility = "visible";
+      document.getElementById('lemma_textarea').focus();
+      fetchLemmaData();
+    }
+    else if(current_box.id == "multiword_box") {
+      document.getElementById("right_body").style.visibility = "visible";
+      document.getElementById("right_footer").style.visibility = "visible";
+      document.getElementById('lemma_textarea').focus();
+      fetchMultiwordData();
+    }
+    else {
+      document.getElementById("right_body").style.visibility = "hidden";
+      document.getElementById("right_footer").style.visibility = "hidden";
+    }
+  }
+  left_column.onclick = function (event) {
+    let target = event.target;
+    if (target.className != 'box') return;
+    selectBox(target);
+  };
+  document.getElementById('lemma_tag').oninput = setLemmaTagSize;
+  setLemmaTagSize();
+};
+
+const fetchMultiwordData = function (box_present = true) {
+  delAnnotate(false);
+  annotation_mode = 2;
   meanings = Object.create(null);
   multiword_meanings = Object.create(null);
   multiword_indices = Object.create(null);
@@ -1161,6 +1224,8 @@ const fetchMultiwordData = function () {
     xhttp.onload = () => {
       console.log("sent");
       if(xhttp.readyState == 4)  {
+        if(!box_present) boxFunction(annotation_mode);
+
         let json_response = xhttp.response;
         let multiword_tag_content = json_response.multiword_tag_content;
         //multiword_form_tag_initial = multiword_tag_content;
@@ -1209,13 +1274,13 @@ const fetchMultiwordData = function () {
         setLemmaTagSize();
         document.getElementById('lemma_textarea').value = multiword_textarea_content;
 
-        document.getElementById('lemma_textarea').focus();
+        document.getElementById('lemma_tag').focus();
 
         if(multiword_meaning_no == 1) {
           document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
           document.getElementById("meaning_leftarrow").classList.remove("nav_arrow");
         }
-        else if (multiword_meaning_no == 10) {
+        else if (multiword_meaning_no == 5) {
           document.getElementById("meaning_rightarrow").classList.add("nav_arrow_deactiv");
           document.getElementById("meaning_rightarrow").classList.remove("nav_arrow");
         }
@@ -1242,9 +1307,38 @@ const fetchMultiwordData = function () {
 
 const displayAnnotBox = function () {
   let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
-  
   document.getElementById('spoofspan').after(annot_box);
-}
+};
+
+const delAnnotate = function (total = true) {
+  display_word.classList.remove("mw_current_select");
+  if(total){
+    let annot_box = document.getElementById('annot_box');
+    display_word.classList.add("tooltip");
+    display_word.classList.remove("tooltip_selected");
+    display_word.onclick = showAnnotate;
+    display_word = null;
+    annot_box.remove();
+  }
+
+  meanings = Object.create(null);
+  multiword_meanings = Object.create(null);
+  multiword_indices = Object.create(null);
+
+  document.querySelectorAll('.mw_selectable').forEach(mws => {
+    mws.classList.remove("mw_selectable", "mw_current_select");
+    mws.onclick = showAnnotate;
+  });
+  document.querySelectorAll('.multiword').forEach(mw => {
+    mw.onclick = showMultiwordAnnotate;
+    mw.addEventListener('mouseover', underlineMultiwords);
+    mw.addEventListener('mouseout', removeUnderlineMultiwords);
+  });
+  annotation_mode = 0;
+  pos = 1;
+  pos_initial = 1;
+
+};
 
 //this is copied
 const makeDraggable = function () {
@@ -1330,5 +1424,8 @@ const differentiateAnnotations = function () {
 
   const removeUnderlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px dotted rgb(0, 255, 186, 0.5)";})); };
 
-  document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseover', underlineMultiwords);});
-  document.querySelectorAll('.multiword').forEach(multiword => {multiword.addEventListener('mouseout', removeUnderlineMultiwords);});
+  document.querySelectorAll('.multiword').forEach(multiword => {
+    multiword.onclick = showMultiwordAnnotate;
+    multiword.addEventListener('mouseover', underlineMultiwords);
+    multiword.addEventListener('mouseout', removeUnderlineMultiwords);
+  });
