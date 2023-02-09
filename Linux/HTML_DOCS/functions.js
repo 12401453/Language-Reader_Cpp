@@ -1087,6 +1087,10 @@ const fetchLemmaData = function (box_present = true) {
         if(lemma_id == 0) {
           document.getElementById('delete_lemma_button').style.display = "none";
         }
+        else {
+          document.getElementById('delete_lemma_button').style.display = "";
+        }
+        
         document.getElementById('delete_lemma_button').onclick = lemmaDelete;
         document.getElementById('disregard_button').onclick = disRegard;
         document.getElementById('save_button').onclick = lemmaRecord;
@@ -1137,7 +1141,6 @@ const showMultiwordAnnotate = (event) => {
   display_word.classList.remove("tooltip");
   tokno_current = display_word.dataset.tokno;
   word_engine_id = display_word.dataset.word_engine_id;
-  //boxFunction(2);
   fetchMultiwordData(false);
 };
 
@@ -1205,7 +1208,7 @@ const boxFunction = function (annotation_mode = 1) {
 };
 
 const fetchMultiwordData = function (box_present = true) {
-  delAnnotate(false);
+  if(document.getElementById('annot_box') != null) delAnnotate(false);
   annotation_mode = 2;
   meanings = Object.create(null);
   multiword_meanings = Object.create(null);
@@ -1287,6 +1290,9 @@ const fetchMultiwordData = function (box_present = true) {
 
         if(multiword_id == 0) {
           document.getElementById('delete_lemma_button').style.display = "none";
+        }
+        else {
+          document.getElementById('delete_lemma_button').style.display = "";
         }
 
         document.getElementById('delete_lemma_button').onclick = deleteMultiword;
