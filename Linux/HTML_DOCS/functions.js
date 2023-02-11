@@ -1121,15 +1121,50 @@ const pullInMultiword = function(can_skip = true) {
   console.log("pullInMultiword");
 };
 
+
 const selectMultiword = (event) => {
   let mw_candidate = event.target;
+  let mw_tokno = mw_candidate.dataset.tokno;
+  let mw_tag_content = document.getElementById("lemma_tag").value.trim();
+  let left_right = display_word.dataset.tokno < mw_tokno ? true : false;
+
+  let mw_candidate_text = mw_candidate.firstChild.textContent.trim();
+
   if(mw_candidate.matches('.mw_current_select')) {
     mw_candidate.classList.remove("mw_current_select");
-    delete multiword_indices[mw_candidate.dataset.tokno];
+    delete multiword_indices[mw_tokno];
   }
   else if(Object.keys(multiword_indices).length < 10) {
     mw_candidate.classList.add("mw_current_select");
-    multiword_indices[mw_candidate.dataset.tokno] = mw_candidate.dataset.word_engine_id;
+    /*
+    if(left_right == false) {
+      document.getElementById("lemma_tag").value = event.target.firstChild.textContent.trim() + " " + mw_tag_content.trim();
+      console.log(event.target.firstChild.textContent.trim() + " " + mw_tag_content.trim());
+      setLemmaTagSize();
+    }
+    else{
+      document.getElementById("lemma_tag").value = mw_tag_content.trim() + " " + event.target.firstChild.textContent.trim();
+      console.log(mw_tag_content.trim() + " " + event.target.firstChild.textContent.trim());
+      setLemmaTagSize();
+    } */
+    let insert_after_index = -1;
+    for(let key of Object.keys(multiword_indices)) {
+      if(mw_tokno < Number(key)) break;
+      console.log(`mw_tokno: ${mw_tokno}; Number(key): ${Number(key)}`);
+      insert_after_index++;
+    }
+    let str_insert_index = 0;
+    for(let i = 0; i <= insert_after_index; i++) {
+      str_insert_index = str_insert_index + mw_candidate_lengths[i] + 1;
+    }
+    let extra_space = str_insert_index > mw_tag_content.length ? " " : "";
+    console.log(`prev length: ${mw_tag_content.length}`);
+    console.log(`insert_after_index: ${insert_after_index}; str_insert_index: ${str_insert_index}`);
+    document.getElementById("lemma_tag").value = mw_tag_content.slice(0, str_insert_index) + extra_space + mw_candidate_text + " " + mw_tag_content.slice(str_insert_index);
+    setLemmaTagSize();
+    mw_candidate_lengths.splice(insert_after_index + 1, 0, mw_candidate_text.length);
+
+    multiword_indices[mw_tokno] = mw_candidate.dataset.word_engine_id;
   }
 };
 
@@ -1207,7 +1242,9 @@ const boxFunction = function (annotation_mode = 1) {
   setLemmaTagSize();
 };
 
+let mw_candidate_lengths = new Array();
 const fetchMultiwordData = function (box_present = true) {
+  mw_candidate_lengths = new Array();
   if(document.getElementById('annot_box') != null) delAnnotate(false);
   annotation_mode = 2;
   meanings = Object.create(null);
@@ -1231,6 +1268,8 @@ const fetchMultiwordData = function (box_present = true) {
 
         let json_response = xhttp.response;
         let multiword_tag_content = json_response.multiword_tag_content;
+        if(multiword_tag_content == "") multiword_tag_content = display_word.firstChild.textContent.trim();
+        mw_candidate_lengths.push(multiword_tag_content.length);
         //multiword_form_tag_initial = multiword_tag_content;
         let multiword_textarea_content = json_response.multiword_textarea_content;
         //multiword_textarea_content_initial = multiword_textarea_content;
@@ -1300,7 +1339,7 @@ const fetchMultiwordData = function (box_present = true) {
         document.getElementById('save_button').onclick = recordMultiword;
         document.getElementById('meaning_leftarrow').onclick = switchMultiwordMeanings;
         document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
-        document.getElementById('lemma_tag').onblur = pullInMultiword;
+        document.getElementById('lemma_tag').onblur = "";
 
       }
     }

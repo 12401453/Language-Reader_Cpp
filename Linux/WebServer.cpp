@@ -2401,6 +2401,70 @@ bool WebServer::pullInMultiword(std::string _POST[1], int clientSocket) {
         std::cout << "Database connection failed on pullInMultiword()" << std::endl;
         return false;
     }
+}
+
+bool WebServer::recordMultiword(std::string _POST[7], int clientSocket) {
+    sqlite3* DB;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        sqlite3_stmt* statement;
+
+        int word_eng_ids[10] {0,0,0,0,0,0,0,0,0,0};
+        std::string word_engine_id_str = "";
+        short int word_count = 0;
+        for(auto i = _POST[0].begin(), nd=_POST[0].end(); i < nd && word_count < 10; i++) {
+            char c = (*i);
+            if(c == ',') {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_eng_ids[word_count] = word_engine_id;
+                word_count++;
+                word_engine_id_str = "";
+                continue;
+            }
+            word_engine_id_str += c;
+            if(nd - 1 == i) {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_eng_ids[word_count] = word_engine_id;
+                word_count++;
+            }
+        }
+        sqlite3_int64 toknos[10] {0,0,0,0,0,0,0,0,0,0};
+        std::string tokno_str = "";
+        for(auto i = _POST[1].begin(), nd=_POST[1].end(); i < nd && word_count < 10; i++) {
+            char c = (*i);
+            if(c == ',') {
+                sqlite3_int64 tokno = std::stol(tokno_str);
+                toknos[word_count] = tokno;
+                word_count++;
+                tokno_str = "";
+                continue;
+            }
+            tokno_str += c;
+            if(nd - 1 == i) {
+                sqlite3_int64 tokno = std::stol(tokno_str);
+                toknos[word_count] = tokno;
+                word_count++;
+            }
+        }
+
+        const char* multiword_lemma_form = URIDecode(_POST[2]).c_str();
+        const char* multiword_lemma_meaning = URIDecode(_POST[3]).c_str();
+        short int multiword_meaning_no = std::stoi(_POST[4]);
+        short int pos = std::stoi(_POST[5]);
+        int lang_id = std::stoi(_POST[6]);
+
+        //std::string sql_text_str = "INSERT OR IGNORE INTO multiword_lemmas (multiword_lemma_form, eng_trans"+_POST[4]+", pos, lang_id) VALUES (?, ?, ?, ?)";
+        const char* sql_text = "INSERT OR IGNORE INTO multiword_lemmas (multiword_lemma_form, eng_trans?, pos, lang_id) VALUES (?, ?, ?, ?)";
+        sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        
+        sqlite3_bind_int(statement, 1, multiword_meaning_no);
+        sqlite3_bind_text(statement, 2, multiword_lemma_form, -1, SQLITE_STATIC);
+        sqlite3_bind_text(statement, 3, multiword_lemma_meaning, -1, SQLITE_STATIC);
+        sqlite3_bind_int(statement, 4, pos);
+        sqlite3_bind_int(statement, 5, lang_id);
+
+        sql_text = "SELECT MAX(multiword_count) FROM display_text";
+    }
 
 
 }
