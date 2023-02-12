@@ -582,7 +582,7 @@ function switchMeaningAJAX() {
     xhttp.onload = () => {
       if (xhttp.readyState == 4) {
         //let json_response = xhttp.response;
-        let response_meaning = xhttp.response;
+        let response_meaning = xhttp.response.trim();
         console.log(response_meaning);
         //console.log(json_response);
         if(response_meaning != "") {
@@ -629,9 +629,9 @@ const switchMeaning = function (event) {
   if (lemma_id != 0 && meanings[lemma_meaning_no] === undefined) {
     switchMeaningAJAX();
   }
- /* else if (lemma_id != 0) {  */
+
   document.getElementById("lemma_textarea").value = meanings[lemma_meaning_no] == undefined ? "" : meanings[lemma_meaning_no];
-  // }
+  document.getElementById("lemma_textarea").focus();
   
 };
 //this is just placeholder
