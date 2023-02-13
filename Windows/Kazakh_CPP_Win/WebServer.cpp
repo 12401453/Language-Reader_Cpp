@@ -1796,7 +1796,6 @@ bool WebServer::retrieveEngword(std::string _POST[3], SOCKET clientSocket) {
     }
 }
 
-//this is about 1.8x slower than the PHP/MySQL version (~48ms on RaspberryPi 2) which I don't understand, possibly SQLite's per-transaction speed is slower and this is unavoidably 2 transactions
 bool WebServer::recordLemma(std::string _POST[8], SOCKET clientSocket) {
 
     sqlite3* DB;
@@ -1816,6 +1815,10 @@ bool WebServer::recordLemma(std::string _POST[8], SOCKET clientSocket) {
         const char* sql_BEGIN = "BEGIN IMMEDIATE";
         const char* sql_COMMIT = "COMMIT";
 
+        sqlite3_prepare_v2(DB, sql_BEGIN, -1, &statement, NULL);
+        sqlite3_step(statement);
+        sqlite3_finalize(statement);
+
         //this will get skipped if we are assigning an existing lemma to a new form
         std::string sql_text_str = "INSERT OR IGNORE INTO lemmas (lemma, lang_id, pos) VALUES (\'" + lemma_form + "\', " + _POST[4] + ", " + _POST[6] + ")";
         const char* sql_text = sql_text_str.c_str();
@@ -1824,10 +1827,6 @@ bool WebServer::recordLemma(std::string _POST[8], SOCKET clientSocket) {
         //sqlite3_bind_int(statement, 2, lang_id);
         //sqlite3_bind_int(statement, 3, pos);
         int run_code = sqlite3_step(statement);
-        sqlite3_finalize(statement);
-
-        sqlite3_prepare_v2(DB, sql_BEGIN, -1, &statement, NULL);
-        sqlite3_step(statement);
         sqlite3_finalize(statement);
 
         sql_text_str = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = " + _POST[0];

@@ -41,7 +41,7 @@ class WebServer : public TcpListener {
         bool retrieveEngword(std::string _POST[3], int clientSocket);
         bool recordLemma(std::string _POST[8], int clientSocket);
         bool deleteLemma(std::string _POST[3], int clientSocket);
-        bool recordMultiword(std::string _POST[7], int clientSocket);
+        bool recordMultiword(std::string _POST[9], int clientSocket);
         bool deleteText(std::string _POST[1], int clientSocket);
         bool getLangId(std::string text_id[1], int clientSocket);
         bool retrieveMultiword(std::string _POST[3], int clientSocket);
@@ -50,6 +50,7 @@ class WebServer : public TcpListener {
         bool pullInLemma(std::string _POST[4], int clientSocket);
         bool retrieveMeanings(std::string _POST[2], int clientSocket);
         bool pullInMultiword(std::string _POST[1], int clientSocket);
+        bool retrieveMultiwordMeanings(std::string _POST[2], int clientSocket);
 
         std::string URIDecode(std::string &text);
         std::string htmlspecialchars(const std::string &innerHTML);

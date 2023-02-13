@@ -597,6 +597,7 @@ function switchMeaningAJAX() {
 }
 
 const switchMeaning = function (event) {
+  if(event.target.matches('.nav_arrow_deactiv')) return;
   let grey_arrows = document.querySelectorAll('.nav_arrow_deactiv');
   grey_arrows.forEach(grey_arrow => {
     grey_arrow.classList.add("nav_arrow");
@@ -888,8 +889,12 @@ let lemma_textarea_content_initial = "";
 let lemma_meaning_no = 1;
 let lemma_id = 0;
 let meanings = Object.create(null);
+
 let multiword_meanings = Object.create(null);
 let multiword_indices = Object.create(null);
+let multiword_id = 0;
+let multiword_meaning_no = 1;
+
 let tooltips_shown = false;
 let pos_initial = 1;
 
@@ -1107,15 +1112,128 @@ const fetchLemmaData = function (box_present = true) {
 };
 
 const recordMultiword = function () {
-  console.log("recordMultiword dummy");
+  if(document.getElementById("lemma_textarea").value.trim() != "" || multiword_meanings[multiword_meaning_no] != undefined) {
+    multiword_meanings[multiword_meaning_no] = document.getElementById("lemma_textarea").value.trim();
+  }
+  
+  let clicked_meaning_no = multiword_meaning_no;
+  let mw_meanings_length = Object.keys(multiword_meanings).length;
+  let count = 1;
+  for (let mw_meaning_no in multiword_meanings) {
+    let mw_meaning = multiword_meanings[mw_meaning_no];
+    
+    const httpRequest = (method, url) => {
+
+    let multiword_lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim().replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C"));
+    mw_meaning = encodeURIComponent(mw_meaning.replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C")); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them. Back-slash doubling is not done on the php version because it calls addslashes() on the backend
+    let word_eng_ids = Object.values(multiword_indices).toString();
+    let toknos = Object.keys(multiword_indices).toString();
+
+    let send_data = "word_eng_ids="+word_eng_ids +"&toknos="+toknos+ "&multiword_lemma_form=" + multiword_lemma_form + "&multiword_lemma_meaning=" + mw_meaning + "&multiword_meaning_no=" + mw_meaning_no + "&pos="+pos + "&lang_id="+lang_id + "&anchor_tokno=" + tokno_current +"&clicked_meaning_no=" + clicked_meaning_no;
+
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.responseType = 'text';
+    xhttp.onload = () => {
+      console.log("sent");
+      // console.log(xhttp.responseText);
+      if (xhttp.readyState == 4) {
+        console.log("Multiword updated");      
+        let new_mw_count = xhttp.response.trim();
+        let dataselectorstring = '[data-multiword="' + display_word.dataset.multiword + '"]';
+        document.querySelectorAll(dataselectorstring).forEach(prev_mw => {
+          prev_mw.removeAttribute('data-multiword');
+          prev_mw.classList.remove("multiword");
+        });
+        document.querySelectorAll('.mw_current_select').forEach(mwc => {  
+          mwc.classList.add("multiword");
+        });
+        console.log("mw_meanings_lengths: ", mw_meanings_length); //remove
+        console.log("count: ", count); //remove
+        if(tooltips_shown == true && count == mw_meanings_length) {
+          //lemmaRecordTooltipUpdate(current_words);
+        }
+        count++;
+        delAnnotate();
+      }
+    }
+    xhttp.send(send_data);
+  }
+
+  httpRequest("POST", "record_multiword.php");
+  }
+
 };
 
 const deleteMultiword = function () {
 
 };
 
-const switchMultiwordMeanings = function() {
+const switchMultiwordMeanings = function(event) {
+  if(event.target.matches('.nav_arrow_deactiv')) return;
+  let grey_arrows = document.querySelectorAll('.nav_arrow_deactiv');
+  grey_arrows.forEach(grey_arrow => {
+    grey_arrow.classList.add("nav_arrow");
+    grey_arrow.classList.remove("nav_arrow_deactiv");
+  });
 
+  let bool_uparrow = event.target.id == "meaning_rightarrow" ? true : false;
+  if (bool_uparrow && multiword_meaning_no < 5) {
+    if(document.getElementById("lemma_textarea").value.trim() != "" || multiword_meanings[multiword_meaning_no] != undefined) {
+      multiword_meanings[multiword_meaning_no] = document.getElementById("lemma_textarea").value;
+    }
+    multiword_meaning_no++;
+  }
+  else if (bool_uparrow == false && multiword_meaning_no > 1) {
+    if(document.getElementById("lemma_textarea").value.trim() != "" || multiword_meanings[multiword_meaning_no] != undefined) {
+      multiword_meanings[multiword_meaning_no] = document.getElementById("lemma_textarea").value;
+    }
+    multiword_meaning_no--;
+  }
+  document.getElementById("number").innerHTML = multiword_meaning_no;
+  
+  if (multiword_meaning_no == 5) {
+    document.getElementById("meaning_rightarrow").classList.add("nav_arrow_deactiv");
+    document.getElementById("meaning_rightarrow").classList.remove("nav_arrow");
+  }
+  if (multiword_meaning_no == 1) {
+    document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
+    document.getElementById("meaning_leftarrow").classList.remove("nav_arrow");
+  }
+  if (multiword_id != 0 && multiword_meanings[multiword_meaning_no] === undefined) {
+    switchMultiwordMeaningAJAX();
+  }
+
+  document.getElementById("lemma_textarea").value = multiword_meanings[multiword_meaning_no] == undefined ? "" : multiword_meanings[multiword_meaning_no];
+  document.getElementById("lemma_textarea").focus();
+};
+
+const switchMultiwordMeaningAJAX = function() {
+  const httpRequest = (method, url) => {
+    let send_data = "multiword_id=" + multiword_id + "&multiword_meaning_no=" + multiword_meaning_no;
+
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.responseType = 'text';
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+    xhttp.onload = () => {
+      if (xhttp.readyState == 4) {
+        //let json_response = xhttp.response;
+        let response_meaning = xhttp.response.trim();
+        console.log(response_meaning);
+        //console.log(json_response);
+        if(response_meaning != "") {
+          multiword_meanings[multiword_meaning_no] = response_meaning;
+        }
+        document.getElementById("lemma_textarea").value = multiword_meanings[multiword_meaning_no] == undefined ? "" : multiword_meanings[multiword_meaning_no];
+      }
+    }
+    xhttp.send(send_data);
+  }
+  httpRequest("POST", "retrieve_MW_meanings.php");
 };
 
 const pullInMultiword = function(can_skip = true) {
@@ -1272,8 +1390,8 @@ const fetchMultiwordData = function (box_present = true) {
         let multiword_textarea_content = json_response.multiword_textarea_content;
         //multiword_textarea_content_initial = multiword_textarea_content;
         
-        let multiword_meaning_no = Number(json_response.multiword_meaning_no);
-        let multiword_id = Number(json_response.multiword_id);
+        multiword_meaning_no = Number(json_response.multiword_meaning_no);
+        multiword_id = Number(json_response.multiword_id);
         pos = Number(json_response.pos);
         //pos_initial = pos;
         let adjacent_toknos = json_response.adjacent_toknos;
@@ -1364,6 +1482,11 @@ const delAnnotate = function (total = true) {
     display_word = null;
     annot_box.remove();
   }
+
+  lemma_id = 0;
+  lemma_meaning_no = 1;
+  multiword_id = 0;
+  multiword_meaning_no = 1;
 
   meanings = Object.create(null);
   multiword_meanings = Object.create(null);
