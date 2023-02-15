@@ -406,6 +406,21 @@ std::string WebServer::htmlspecialchars(const std::string &innerHTML) {
             case '&':
                 escaped += "&amp;";
                 break;
+            case '\x5c':
+                escaped += "\x5c\x5c";
+                break;
+            case '\n':
+                escaped += "\x5c\x6e"; //we need a literal 'n' for the JSON otherwise it is just a slash plus a newline character
+                break;
+            case '\t':
+                escaped += "\x5c\x74";
+                break;
+            case '\r':
+                escaped += "\x5c\x72";
+                break;
+            case '\f':
+                escaped += "\x5c\x66";
+                break;
             default:
                 escaped += c;
         }
@@ -421,6 +436,21 @@ std::string WebServer::escapeQuotes(const std::string &quoteystring) {
         switch(c) {
             case '\x22':
                 escaped += "\\\"";
+                break;
+            case '\x5c':
+                escaped += "\x5c\x5c";
+                break;
+            case '\n':
+                escaped += "\x5c\x6e";
+                break;
+            case '\r':
+                escaped += "\x5c\x72";
+                break;
+            case '\t':
+                escaped += "\x5c\x74";
+                break;
+            case '\f':
+                escaped += "\x5c\x66";
                 break;
             default:
                 escaped += c;
@@ -550,6 +580,9 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     else if(!strcmp(m_url, "/record_multiword.php")) {
         bool php_func_success = recordMultiword(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/update_MW_translations.php")) {
+        bool php_func_success = updateMultiwordTranslations(post_values, clientSocket);
+    }
 
     std::cout << "m_url: " << m_url << std::endl;
     
@@ -584,7 +617,8 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/delete_text.php")) return 1;
     else if(!strcmp(url, "/retrieve_multiword.php")) return 3;
     else if(!strcmp(url, "/retrieve_MW_meanings.php")) return 2;
-    else if(!strcmp(url, "/record_multiword.php")) return 9;
+    else if(!strcmp(url, "/record_multiword.php")) return 8;
+    else if(!strcmp(url, "/update_MW_translations.php")) return 3;
     else if(!strcmp(url, "/clear_table.php")) return 0;
     else return 10;
 }
@@ -1705,8 +1739,11 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
             lemma_tag_content = word_eng_word_str;
 
             //could return more than one row but we just take the first as the default
-            std::string sql_text_str = "SELECT eng_trans1, pos FROM lemmas WHERE lemma = \'"+word_eng_word_str+"\' AND lang_id = "+_POST[2];
-            prep_code = sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+            sql_text = "SELECT eng_trans1, pos FROM lemmas WHERE lemma = ? AND lang_id = ?";
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_text(statement, 1, word_eng_word_str.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_int(statement, 2, lang_id);
+
             run_code = sqlite3_step(statement);
             const unsigned char* lemma_textarea_content_rawsql = sqlite3_column_text(statement, 0);
             if(lemma_textarea_content_rawsql != nullptr) lemma_textarea_content = (const char*)lemma_textarea_content_rawsql;
@@ -2448,7 +2485,8 @@ bool WebServer::pullInMultiword(std::string _POST[1], int clientSocket) {
     }
 }
 
-bool WebServer::recordMultiword(std::string _POST[9], int clientSocket) {
+
+bool WebServer::recordMultiword(std::string _POST[8], SOCKET clientSocket) {
     sqlite3* DB;
 
     if(!sqlite3_open(m_DB_path, &DB)) {
@@ -2493,15 +2531,14 @@ bool WebServer::recordMultiword(std::string _POST[9], int clientSocket) {
             }
         }
 
-        const char* multiword_lemma_form = URIDecode(_POST[2]).c_str();
+        std::string multiword_lemma_form = URIDecode(_POST[2]);
         std::cout << "MW lemma form: "<< multiword_lemma_form << std::endl;
-        const char* multiword_lemma_meaning = URIDecode(_POST[3]).c_str();
+        std::string multiword_lemma_meaning = URIDecode(_POST[3]);
         std::cout << "MW lemma meaning: " << multiword_lemma_meaning << std::endl;
         short int multiword_meaning_no = std::stoi(_POST[4]);
         short int pos = std::stoi(_POST[5]);
         int lang_id = std::stoi(_POST[6]);
         sqlite3_int64 anchor_tokno = std::stol(_POST[7]);
-        short int clicked_meaning_no = std::stoi(_POST[8]);
 
         const char *sql_BEGIN = "BEGIN IMMEDIATE";
         const char *sql_COMMIT = "COMMIT";
@@ -2513,7 +2550,7 @@ bool WebServer::recordMultiword(std::string _POST[9], int clientSocket) {
         //std::string sql_text_str = "INSERT OR IGNORE INTO multiword_lemmas (multiword_lemma_form, eng_trans"+_POST[4]+", pos, lang_id) VALUES (?, ?, ?, ?)";
         const char* sql_text = "INSERT OR IGNORE INTO multiword_lemmas (multiword_lemma_form, pos, lang_id) VALUES (?, ?, ?)";
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        sqlite3_bind_text(statement, 1, multiword_lemma_form, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(statement, 1, multiword_lemma_form.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int(statement, 2, pos);
         sqlite3_bind_int(statement, 3, lang_id);
         sqlite3_step(statement);
@@ -2521,11 +2558,12 @@ bool WebServer::recordMultiword(std::string _POST[9], int clientSocket) {
 
         sql_text = "SELECT multiword_id FROM multiword_lemmas WHERE multiword_lemma_form = ? AND pos = ? AND lang_id = ?";
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        sqlite3_bind_text(statement, 1, multiword_lemma_form, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(statement, 1, multiword_lemma_form.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int(statement, 2, pos);
         sqlite3_bind_int(statement, 3, lang_id);
         sqlite3_step(statement);
         int multiword_id = sqlite3_column_int(statement, 0); //returns 0 if row is NULL anyway, which it won't be because I just INSERTED it
+        sqlite3_finalize(statement);
 
         sql_text = "SELECT multiword_count FROM display_text WHERE tokno = ?";
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
@@ -2589,28 +2627,27 @@ bool WebServer::recordMultiword(std::string _POST[9], int clientSocket) {
         std::cout << sql_text_str << std::endl;
         sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
         std::cout << "MW lemma meaning: " << multiword_lemma_meaning << std::endl;
-        std::cout << "bind text code: " << sqlite3_bind_text(statement, 1, multiword_lemma_meaning, -1, SQLITE_TRANSIENT) << std::endl;
+        std::cout << "bind text code: " << sqlite3_bind_text(statement, 1, multiword_lemma_meaning.c_str(), -1, SQLITE_TRANSIENT) << std::endl;
      
         sqlite3_bind_int(statement, 2, multiword_id);
         std::cout << "update meaning run code: " << sqlite3_step(statement) << std::endl;
         sqlite3_finalize(statement);
-
-        if(multiword_meaning_no == clicked_meaning_no) {
-            sql_text = "UPDATE display_text SET multiword_meaning_no = ? WHERE multiword_count = ?";
-            sqlite3_prepare(DB, sql_text, -1, &statement, NULL);
-            sqlite3_bind_int(statement, 1, multiword_meaning_no);
-            sqlite3_bind_int(statement, 2, multiword_count);
-            sqlite3_step(statement);
-            sqlite3_finalize(statement);
-        }
-
+    
+        sql_text = "UPDATE display_text SET multiword_meaning_no = ? WHERE multiword_count = ?";
+        sqlite3_prepare(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, multiword_meaning_no);
+        sqlite3_bind_int(statement, 2, multiword_count);
+        sqlite3_step(statement);
+        sqlite3_finalize(statement);
+        
         sqlite3_exec(DB, sql_COMMIT, nullptr, nullptr, nullptr);
         sqlite3_close(DB);
 
-        int content_length = std::to_string(multiword_count).size(); //should be done with maths not strings obviously
+        std::string responseText = std::to_string(multiword_count) + "," + std::to_string(multiword_id);
+        int content_length = responseText.size(); //should be done with maths not strings obviously
 
         std::ostringstream post_response;
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << multiword_count;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << responseText;
 
         int length = post_response.str().size() + 1;
 
@@ -2621,6 +2658,36 @@ bool WebServer::recordMultiword(std::string _POST[9], int clientSocket) {
     }
     else {
         std::cout << "Database connection failed on recordMultiword()" << std::endl; 
+        return false;
+    }
+}
+
+bool WebServer::updateMultiwordTranslations(std::string _POST[3], SOCKET clientSocket) {
+
+    sqlite3* DB;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        sqlite3_stmt* statement;
+        int multiword_id = std::stoi(_POST[0]);
+        std::string eng_trans = URIDecode(_POST[2]);
+        std::string sql_text_str = "UPDATE multiword_lemmas SET eng_trans"+_POST[1]+" = ? WHERE multiword_id = ?";
+        sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+        if(eng_trans == "") sqlite3_bind_null(statement, 1);
+        else sqlite3_bind_text(statement, 1, eng_trans.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(statement, 2, multiword_id);
+
+        sqlite3_step(statement);
+        sqlite3_finalize(statement);
+        sqlite3_close(DB);
+
+        std::string post_response_str = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
+        int length =  post_response_str.size() + 1;
+        sendToClient(clientSocket, post_response_str.c_str(), length);
+
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on updateMultiwordTranslations()\n";
         return false;
     }
 }

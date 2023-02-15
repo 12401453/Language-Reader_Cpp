@@ -37,8 +37,12 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
   color: rgb(255 115 205);
   cursor: pointer;
   }
-
-
+.mw_selectable:hover {
+  border-bottom: 2px solid rgb(0 255 186);
+}
+.mw_current_select {
+  border-bottom: 2px solid rgb(0 255 186);
+}
 
 
 
@@ -103,6 +107,8 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
     align-items: stretch;
     flex-grow: 0;
     cursor: default;
+
+    word-break: break-word;
   
   }
 

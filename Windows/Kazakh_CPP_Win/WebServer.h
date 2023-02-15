@@ -42,12 +42,17 @@ private:
     bool retrieveEngword(std::string _POST[3], SOCKET clientSocket);
     bool recordLemma(std::string _POST[8], SOCKET clientSocket);
     bool deleteLemma(std::string _POST[3], SOCKET clientSocket);
+    bool recordMultiword(std::string _POST[8], SOCKET clientSocket);
+    bool updateMultiwordTranslations(std::string _POST[3], SOCKET clientSocket);
     bool deleteText(std::string _POST[1], SOCKET clientSocket);
     bool getLangId(std::string text_id[1], SOCKET clientSocket);
+    bool retrieveMultiword(std::string _POST[3], SOCKET clientSocket);
     bool clearTable(SOCKET clientSocket);
 
     bool pullInLemma(std::string _POST[4], SOCKET clientSocket);
     bool retrieveMeanings(std::string _POST[2], SOCKET clientSocket);
+    bool pullInMultiword(std::string _POST[1], SOCKET clientSocket);
+    bool retrieveMultiwordMeanings(std::string _POST[2], SOCKET clientSocket);
 
     std::string URIDecode(std::string& text);
     std::string htmlspecialchars(const std::string& innerHTML);

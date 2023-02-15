@@ -41,7 +41,8 @@ class WebServer : public TcpListener {
         bool retrieveEngword(std::string _POST[3], int clientSocket);
         bool recordLemma(std::string _POST[8], int clientSocket);
         bool deleteLemma(std::string _POST[3], int clientSocket);
-        bool recordMultiword(std::string _POST[9], int clientSocket);
+        bool recordMultiword(std::string _POST[8], int clientSocket);
+        bool updateMultiwordTranslations(std::string _POST[3], int clientSocket);
         bool deleteText(std::string _POST[1], int clientSocket);
         bool getLangId(std::string text_id[1], int clientSocket);
         bool retrieveMultiword(std::string _POST[3], int clientSocket);

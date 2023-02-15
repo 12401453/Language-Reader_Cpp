@@ -530,7 +530,7 @@ const pullInLemma = function (can_skip = true) {
   }
   document.getElementById('save_button').onclick = "";
   const httpRequest = (method, url) => {
-    let send_data = "lemma_form=" + encodeURIComponent(lemma_form.replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C")) + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=";
+    let send_data = "lemma_form=" + encodeURIComponent(lemma_form) + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=";
     if(pos == pos_initial) {
       send_data += "0&lang_id=" + lang_id;
     }
@@ -673,12 +673,12 @@ const lemmaRecord = function () {
   let meanings_length = Object.keys(meanings).length;
   let count = 1;
   for (let lemma_meaning_no in meanings) {
-    lemma_meaning = meanings[lemma_meaning_no];
+    let lemma_meaning = meanings[lemma_meaning_no];
     
     const httpRequest = (method, url) => {
 
-    let lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim().replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C"));
-    lemma_meaning = encodeURIComponent(lemma_meaning.replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C")); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them. Back-slash doubling is not done on the php version because it calls addslashes() on the backend
+    let lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim());
+    lemma_meaning = encodeURIComponent(lemma_meaning);
 
     let send_data = "word_engine_id=" + word_engine_id + "&lemma_form=" + lemma_form + "&lemma_meaning=" + lemma_meaning + "&lemma_meaning_no=" + lemma_meaning_no + "&lang_id=" + lang_id + "&tokno_current=" + tokno_current + "&pos=" + pos +"&clicked_lemma_meaning_no=" + clicked_lemma_meaning_no;
 
@@ -1080,14 +1080,7 @@ const fetchLemmaData = function (box_present = true) {
 
         document.getElementById('lemma_tag').focus();
 
-        if(lemma_meaning_no == 1) {
-          document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
-          document.getElementById("meaning_leftarrow").classList.remove("nav_arrow");
-        }
-        else if (lemma_meaning_no == 10) {
-          document.getElementById("meaning_rightarrow").classList.add("nav_arrow_deactiv");
-          document.getElementById("meaning_rightarrow").classList.remove("nav_arrow");
-        }
+        reactivateArrows(lemma_meaning_no, 10);
 
         if(lemma_id == 0) {
           document.getElementById('delete_lemma_button').style.display = "none";
@@ -1116,46 +1109,63 @@ const recordMultiword = function () {
     multiword_meanings[multiword_meaning_no] = document.getElementById("lemma_textarea").value.trim();
   }
   
-  let clicked_meaning_no = multiword_meaning_no;
+  //let clicked_meaning_no = multiword_meaning_no;
   let mw_meanings_length = Object.keys(multiword_meanings).length;
+  let prev_mw_count = display_word.dataset.multiword;
   let count = 1;
-  for (let mw_meaning_no in multiword_meanings) {
-    let mw_meaning = multiword_meanings[mw_meaning_no];
-    
-    const httpRequest = (method, url) => {
+ 
+  let mw_meaning = multiword_meanings[multiword_meaning_no];
+  
+  const httpRequest = (method, url) => {
 
-    let multiword_lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim().replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C"));
-    mw_meaning = encodeURIComponent(mw_meaning.replaceAll("'", "''").replaceAll("\u005C", "\u005C\u005C")); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them. Back-slash doubling is not done on the php version because it calls addslashes() on the backend
+    let multiword_lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim());
+    mw_meaning = encodeURIComponent(mw_meaning); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them. Back-slash doubling is not done on the php version because it calls addslashes() on the backend
     let word_eng_ids = Object.values(multiword_indices).toString();
     let toknos = Object.keys(multiword_indices).toString();
 
-    let send_data = "word_eng_ids="+word_eng_ids +"&toknos="+toknos+ "&multiword_lemma_form=" + multiword_lemma_form + "&multiword_lemma_meaning=" + mw_meaning + "&multiword_meaning_no=" + mw_meaning_no + "&pos="+pos + "&lang_id="+lang_id + "&anchor_tokno=" + tokno_current +"&clicked_meaning_no=" + clicked_meaning_no;
+    let send_data = "word_eng_ids="+word_eng_ids +"&toknos="+toknos+ "&multiword_lemma_form=" + multiword_lemma_form + "&multiword_lemma_meaning=" + mw_meaning + "&multiword_meaning_no=" + multiword_meaning_no + "&pos="+pos + "&lang_id="+lang_id + "&anchor_tokno=" + tokno_current;
 
     const xhttp = new XMLHttpRequest();
     xhttp.open(method, url, true);
 
     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhttp.responseType = 'text';
-    xhttp.onload = () => {
+    xhttp.onload = () => {  
       console.log("sent");
       // console.log(xhttp.responseText);
       if (xhttp.readyState == 4) {
-        console.log("Multiword updated");      
-        let new_mw_count = xhttp.response.trim();
-        let dataselectorstring = '[data-multiword="' + display_word.dataset.multiword + '"]';
+        console.log("Multiword updated");
+        let response_numbers = xhttp.response.trim().split(",");
+        console.log(response_numbers);
+        let new_mw_count = response_numbers[0];
+        let new_mw_id = response_numbers[1];
+
+        for (let mw_meaning_no in multiword_meanings) {
+          if(mw_meaning_no == multiword_meaning_no) continue;
+          let eng_trans = multiword_meanings[mw_meaning_no];
+          updateMultiwordTranslations(new_mw_id, mw_meaning_no, eng_trans);
+          console.log(mw_meaning_no, ": ", eng_trans);
+        }
+
+        let dataselectorstring = '[data-multiword="' + prev_mw_count + '"]';
         document.querySelectorAll(dataselectorstring).forEach(prev_mw => {
           prev_mw.removeAttribute('data-multiword');
           prev_mw.classList.remove("multiword");
         });
+
         document.querySelectorAll('.mw_current_select').forEach(mwc => {  
           mwc.classList.add("multiword");
+          mwc.setAttribute("data-multiword", new_mw_count);
         });
         console.log("mw_meanings_lengths: ", mw_meanings_length); //remove
         console.log("count: ", count); //remove
-        if(tooltips_shown == true && count == mw_meanings_length) {
+        document.querySelectorAll('.multiword').forEach(multiword => {
+          multiword.addEventListener('mouseover', underlineMultiwords);
+          multiword.addEventListener('mouseout', removeUnderlineMultiwords);
+        });
+        if(tooltips_shown == true) {
           //lemmaRecordTooltipUpdate(current_words);
         }
-        count++;
         delAnnotate();
       }
     }
@@ -1163,8 +1173,25 @@ const recordMultiword = function () {
   }
 
   httpRequest("POST", "record_multiword.php");
-  }
 
+
+};
+
+const updateMultiwordTranslations = (new_mw_id, mw_meaning_no, eng_trans) => {
+  const httpRequest = (method, url) => {
+    let send_data = "multiword_id="+new_mw_id + "&multiword_meaning_no="+mw_meaning_no + "&mw_meaning="+eng_trans;
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+    xhttp.onload = () => {
+      if (xhttp.readyState == 4) {
+        console.log(`updated mw_trans${mw_meaning_no}`);
+      }
+    }
+    xhttp.send(send_data);
+  }
+  httpRequest("POST", "update_MW_translations.php");
 };
 
 const deleteMultiword = function () {
@@ -1435,14 +1462,7 @@ const fetchMultiwordData = function (box_present = true) {
 
         document.getElementById('lemma_tag').focus();
 
-        if(multiword_meaning_no == 1) {
-          document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
-          document.getElementById("meaning_leftarrow").classList.remove("nav_arrow");
-        }
-        else if (multiword_meaning_no == 5) {
-          document.getElementById("meaning_rightarrow").classList.add("nav_arrow_deactiv");
-          document.getElementById("meaning_rightarrow").classList.remove("nav_arrow");
-        }
+        reactivateArrows(multiword_meaning_no, 5);
 
         if(multiword_id == 0) {
           document.getElementById('delete_lemma_button').style.display = "none";
@@ -1465,6 +1485,23 @@ const fetchMultiwordData = function (box_present = true) {
   
   httpRequest("POST", "retrieve_multiword.php");
    
+};
+
+const reactivateArrows = (meaning_no, max_meaning_no) => {
+  let leftarrow = document.getElementById("meaning_leftarrow");
+  let rightarrow = document.getElementById("meaning_rightarrow");
+  leftarrow.classList.add("nav_arrow");
+  rightarrow.classList.add("nav_arrow");
+  leftarrow.classList.remove("nav_arrow_deactiv");
+  rightarrow.classList.remove("nav_arrow_deactiv");
+  if(meaning_no == 1) {
+    document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
+    document.getElementById("meaning_leftarrow").classList.remove("nav_arrow");
+  }
+  else if (meaning_no == max_meaning_no) {
+    document.getElementById("meaning_rightarrow").classList.add("nav_arrow_deactiv");
+    document.getElementById("meaning_rightarrow").classList.remove("nav_arrow");
+  }
 };
 
 const displayAnnotBox = function () {
