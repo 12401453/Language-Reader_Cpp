@@ -1821,131 +1821,126 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
     sqlite3* DB;
     sqlite3_stmt* statement;
 
-    if(!sqlite3_open(m_DB_path, &DB)) {
-        //int word_engine_id = std::stoi(_POST[0]);
-                
+    if (!sqlite3_open(m_DB_path, &DB)) {
+        int word_engine_id = std::stoi(_POST[0]);
+
         std::string lemma_form = URIDecode(_POST[1]);
-        std::string lemma_meaning = URIDecode(_POST[2]);               
+        std::string lemma_meaning = URIDecode(_POST[2]);
         short int lemma_meaning_no = std::stoi(_POST[3]);
-        //short int lang_id = std::stoi(_POST[4]);
-        //sqlite3_int64 tokno = std::stoi(_POST[5]);
-        //short int pos = std::stoi(_POST[6]);
+        short int lang_id = std::stoi(_POST[4]);
+        sqlite3_int64 tokno = std::stoi(_POST[5]);
+        short int pos = std::stoi(_POST[6]);
         short int submitted_lemma_meaning_no = std::stoi(_POST[7]);
 
-        const char *sql_BEGIN = "BEGIN IMMEDIATE";
-        const char *sql_COMMIT = "COMMIT";   
+        const char* sql_BEGIN = "BEGIN IMMEDIATE";
+        const char* sql_COMMIT = "COMMIT";
 
         sqlite3_prepare_v2(DB, sql_BEGIN, -1, &statement, NULL);
         sqlite3_step(statement);
-        sqlite3_finalize(statement);   
+        sqlite3_finalize(statement);
 
         //this will get skipped if we are assigning an existing lemma to a new form
-        std::string sql_text_str = "INSERT OR IGNORE INTO lemmas (lemma, lang_id, pos) VALUES (\'"+lemma_form+"\', "+_POST[4]+", "+_POST[6]+")";
-        const char* sql_text = sql_text_str.c_str();
+        const char* sql_text = "INSERT OR IGNORE INTO lemmas (lemma, lang_id, pos) VALUES (?, ?, ?)";
         int prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        //sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
-        //sqlite3_bind_int(statement, 2, lang_id);
-        //sqlite3_bind_int(statement, 3, pos);
+        sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(statement, 2, lang_id);
+        sqlite3_bind_int(statement, 3, pos);
         int run_code = sqlite3_step(statement);
         sqlite3_finalize(statement);
 
-        sql_text_str = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = "+_POST[0];
-        //const char* sql_text = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
-        sql_text = sql_text_str.c_str();
+        sql_text = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        //sqlite3_bind_int(statement, 1, word_engine_id);
+        sqlite3_bind_int(statement, 1, word_engine_id);
         run_code = sqlite3_step(statement);
-        //std::cout << "Run code: " << run_code << std::endl;
-
         int first_lemma_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
-        sql_text_str = "SELECT lemma_id FROM display_text WHERE tokno = "+_POST[5];
-        sql_text = sql_text_str.c_str();
+        sql_text = "SELECT lemma_id FROM display_text WHERE tokno = ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        //sqlite3_bind_int64(statement, 1, tokno);
+        sqlite3_bind_int64(statement, 1, tokno);
         run_code = sqlite3_step(statement);
         int lemma_id_current = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
         //get lemma_id of the lemma we just (tried to) insert (it may already have been in the table so we have to get it by its set of unique columns)
-        sql_text_str = "SELECT lemma_id FROM lemmas WHERE lemma = \'"+lemma_form+"\' AND lang_id = "+_POST[4]+" AND pos = "+_POST[6];
-        sql_text = sql_text_str.c_str();
+        sql_text = "SELECT lemma_id FROM lemmas WHERE lemma = ? AND lang_id = ? AND pos = ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        //sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
-        //sqlite3_bind_int(statement, 2, lang_id);
-        //sqlite3_bind_int(statement, 3, pos);
+        sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(statement, 2, lang_id);
+        sqlite3_bind_int(statement, 3, pos);
         run_code = sqlite3_step(statement);
         int target_lemma_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
-        if(lemma_meaning == "") sql_text_str = "UPDATE lemmas SET eng_trans"+_POST[3]+" = NULL WHERE lemma_id = ?";
-        else sql_text_str = "UPDATE lemmas SET eng_trans"+_POST[3]+" = \'"+lemma_meaning+"\' WHERE lemma_id = ?";
-        sql_text = sql_text_str.c_str();
+        std::string sql_text_str = "";
+        if (lemma_meaning == "") {
+            sql_text_str = "UPDATE lemmas SET eng_trans" + _POST[3] + " = NULL WHERE lemma_id = ?";
+            sql_text = sql_text_str.c_str();
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_int(statement, 1, target_lemma_id);
+        }
+        else {
+            sql_text_str = "UPDATE lemmas SET eng_trans" + _POST[3] + " = ? WHERE lemma_id = ?";
+            sql_text = sql_text_str.c_str();
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_text(statement, 1, lemma_meaning.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_int(statement, 2, target_lemma_id);
+        }
         std::cout << sql_text_str << std::endl;
         std::cout << "target_lemma_id: " << target_lemma_id << std::endl;
-        sql_text = sql_text_str.c_str();
-        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        //sqlite3_bind_text(statement, 1, lemma_meaning.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_int(statement, 1, target_lemma_id);
+        
         run_code = sqlite3_step(statement);
         sqlite3_finalize(statement);
 
-        if(!lemma_id_current) {
+        if (!lemma_id_current) {
 
-            if(lemma_meaning_no == submitted_lemma_meaning_no) {
-                sql_text_str = "UPDATE display_text SET lemma_id = ?, lemma_meaning_no = "+_POST[7]+" WHERE tokno = "+_POST[5];
-                sql_text = sql_text_str.c_str();
+            if (lemma_meaning_no == submitted_lemma_meaning_no) {
+                sql_text = "UPDATE display_text SET lemma_id = ?, lemma_meaning_no = ? WHERE tokno = ?";
                 prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
                 sqlite3_bind_int(statement, 1, target_lemma_id);
-                //sqlite3_bind_int(statement, 2, submitted_lemma_meaning_no);
-                //sqlite3_bind_int64(statement, 3, tokno);
+                sqlite3_bind_int(statement, 2, submitted_lemma_meaning_no);
+                sqlite3_bind_int64(statement, 3, tokno);
                 run_code = sqlite3_step(statement);
                 sqlite3_finalize(statement);
             }
         }
         else {
-            if(lemma_id_current != target_lemma_id) {
-                if(lemma_meaning_no == submitted_lemma_meaning_no) {
-                    sql_text_str = "UPDATE display_text SET lemma_id = ?, lemma_meaning_no = "+_POST[7]+" WHERE tokno = "+_POST[5];
-                    sql_text = sql_text_str.c_str();
+            if (lemma_id_current != target_lemma_id) {
+                if (lemma_meaning_no == submitted_lemma_meaning_no) {
+                    sql_text = "UPDATE display_text SET lemma_id = ?, lemma_meaning_no = ? WHERE tokno = ?";
                     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
                     sqlite3_bind_int(statement, 1, target_lemma_id);
-                    //sqlite3_bind_int(statement, 2, submitted_lemma_meaning_no);
-                    //sqlite3_bind_int64(statement, 3, tokno);
+                    sqlite3_bind_int(statement, 2, submitted_lemma_meaning_no);
+                    sqlite3_bind_int64(statement, 3, tokno);
                     run_code = sqlite3_step(statement);
                     sqlite3_finalize(statement);
-                }       
+                }
             }
             //if the lemma we are submitting is the same as that already bound to this display_word then we leave the lemma_id unchanged as just re-set the lemma_meaning_no
             else {
-                if(lemma_meaning_no == submitted_lemma_meaning_no) {
-                    sql_text_str = "UPDATE display_text SET lemma_meaning_no = "+_POST[7]+" WHERE tokno = "+_POST[5];
-                    sql_text = sql_text_str.c_str();
+                if (lemma_meaning_no == submitted_lemma_meaning_no) {
+                    sql_text = "UPDATE display_text SET lemma_meaning_no = ? WHERE tokno = ?";
                     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-                    //sqlite3_bind_int(statement, 1, submitted_lemma_meaning_no);
-                    //sqlite3_bind_int64(statement, 2, tokno);
+                    sqlite3_bind_int(statement, 1, submitted_lemma_meaning_no);
+                    sqlite3_bind_int64(statement, 2, tokno);
                     run_code = sqlite3_step(statement);
                 }
             }
         }
 
-        if(!first_lemma_id) {
-            sql_text_str = "UPDATE word_engine SET first_lemma_id = ? WHERE word_engine_id = "+_POST[0];
-            sql_text = sql_text_str.c_str();
+        if (!first_lemma_id) {
+            sql_text = "UPDATE word_engine SET first_lemma_id = ? WHERE word_engine_id = ?";
             prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
             sqlite3_bind_int(statement, 1, target_lemma_id);
-            //sqlite3_bind_int(statement, 2, word_engine_id);
+            sqlite3_bind_int(statement, 2, word_engine_id);
             run_code = sqlite3_step(statement);
-            sqlite3_finalize(statement); 
+            sqlite3_finalize(statement);
         }
 
 
         sqlite3_prepare_v2(DB, sql_COMMIT, -1, &statement, NULL);
         sqlite3_step(statement);
         sqlite3_finalize(statement);
-
-
 
         sqlite3_close(DB);
 
@@ -1959,46 +1954,52 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
         std::cout << "Database connection failed on recordLemma\n";
         return false;
     }
-
 }
 
 bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
-    
     sqlite3* DB;
     sqlite3_stmt* statement;
 
-    if(!sqlite3_open(m_DB_path, &DB)) {
+    if (!sqlite3_open(m_DB_path, &DB)) {
 
         std::string sql_text_str = "";
+        std::string lemma_form = URIDecode(_POST[0]);
         short int pos = std::stoi(_POST[2]);
-        if(pos == 0) {
-            sql_text_str = "SELECT eng_trans"+_POST[1]+", lemma_id, pos FROM lemmas WHERE lemma = \'"+URIDecode(_POST[0])+"\' AND lang_id = "+_POST[3];
+        int lang_id = std::stoi(_POST[3]);
+
+        if (pos == 0) {
+            sql_text_str = "SELECT eng_trans" + _POST[1] + ", lemma_id, pos FROM lemmas WHERE lemma = ? AND lang_id = ?";
+            sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+            sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_int(statement, 2, lang_id);
         }
         else {
-            sql_text_str = "SELECT eng_trans"+_POST[1]+", lemma_id FROM lemmas WHERE lemma = \'"+URIDecode(_POST[0])+"\' AND pos = "+_POST[2]+" AND lang_id = "+_POST[3];
+            sql_text_str = "SELECT eng_trans" + _POST[1] + ", lemma_id FROM lemmas WHERE lemma = ? AND pos = ? AND lang_id = ?";
+            sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+            sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_int(statement, 2, pos);
+            sqlite3_bind_int(statement, 3, lang_id);
         }
-        
-        std::cout << sql_text_str << std::endl;
 
-        sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
-        //sqlite3_bind_text(statement, 1, URIDecode(_POST[0]).c_str(), -1, SQLITE_STATIC);
+        std::cout << sql_text_str << std::endl;
+                
         sqlite3_step(statement);
         int lemma_id = sqlite3_column_int(statement, 1);
         std::string lemma_textarea_content;
-        if(lemma_id) {
+        if (lemma_id) {
             lemma_textarea_content = sqlite3_column_text(statement, 0) == nullptr ? "" : (const char*)sqlite3_column_text(statement, 0);
         }
-        if(pos == 0) {
+        if (pos == 0) {
             pos = sqlite3_column_int(statement, 2);
         }
-        
+
         sqlite3_finalize(statement);
 
         sqlite3_close(DB);
 
         std::ostringstream json;
 
-        if(!lemma_id) {
+        if (!lemma_id) {
             json << "{\"lemma_textarea_content\":null,\"lemma_id\":null,\"pos\":null}";
         }
         else {
@@ -2012,8 +2013,6 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
 
         sendToClient(clientSocket, post_response.str().c_str(), length);
 
-       
-        
         return true;
     }
     else {
