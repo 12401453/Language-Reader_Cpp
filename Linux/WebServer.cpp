@@ -2486,7 +2486,7 @@ bool WebServer::pullInMultiword(std::string _POST[1], int clientSocket) {
 }
 
 
-bool WebServer::recordMultiword(std::string _POST[8], SOCKET clientSocket) {
+bool WebServer::recordMultiword(std::string _POST[8], int clientSocket) {
     sqlite3* DB;
 
     if(!sqlite3_open(m_DB_path, &DB)) {
@@ -2662,7 +2662,7 @@ bool WebServer::recordMultiword(std::string _POST[8], SOCKET clientSocket) {
     }
 }
 
-bool WebServer::updateMultiwordTranslations(std::string _POST[3], SOCKET clientSocket) {
+bool WebServer::updateMultiwordTranslations(std::string _POST[3], int clientSocket) {
 
     sqlite3* DB;
 
