@@ -583,7 +583,7 @@ function switchMeaningAJAX() {
       if (xhttp.readyState == 4) {
         //let json_response = xhttp.response;
         let response_meaning = xhttp.response.trim();
-        console.log(response_meaning);
+        //console.log(response_meaning);
         //console.log(json_response);
         if(response_meaning != "") {
           meanings[lemma_meaning_no] = response_meaning;
@@ -1128,7 +1128,7 @@ const switchMultiwordMeaningAJAX = function() {
       if (xhttp.readyState == 4) {
         //let json_response = xhttp.response;
         let response_meaning = xhttp.response.trim();
-        console.log(response_meaning);
+        //console.log(response_meaning);
         //console.log(json_response);
         if(response_meaning != "") {
           multiword_meanings[multiword_meaning_no] = response_meaning;
@@ -1161,9 +1161,6 @@ const toggleSave = (on, recordFunc) => {
 const selectMultiword = (event) => {
   let mw_candidate = event.target;
   let mw_tokno = mw_candidate.dataset.tokno;
-  let mw_tag_content = document.getElementById("lemma_tag").value.trim();
-  let left_right = display_word.dataset.tokno < mw_tokno ? true : false;
-
   let no_of_mwc = Object.keys(multiword_indices).length;
 
   if(mw_candidate.matches('.mw_current_select')) {
@@ -1204,15 +1201,6 @@ const showMultiwordAnnotate = (event) => {
 };
 
 const boxFunction = function (annotation_mode = 1) {
- /* if(document.getElementById('annot_box') != null) {
-    let annot_box = document.getElementById('annot_box');
-    annot_box.remove();
-  } 
-
-  if(document.getElementById("annot_box") == null) {
-    console.log("annot_box == null");
-    displayAnnotBox();
-  }*/
   displayAnnotBox();
   switch(annotation_mode) {
     case(1):
@@ -1291,14 +1279,11 @@ const fetchMultiwordData = function (box_present = true) {
         let json_response = xhttp.response;
         let multiword_tag_content = json_response.multiword_tag_content;
         if(multiword_tag_content == "") multiword_tag_content = display_word.firstChild.textContent.trim();
-        //multiword_form_tag_initial = multiword_tag_content;
         let multiword_textarea_content = json_response.multiword_textarea_content;
-        //multiword_textarea_content_initial = multiword_textarea_content;
         
         multiword_meaning_no = Number(json_response.multiword_meaning_no);
         multiword_id = Number(json_response.multiword_id);
         pos = Number(json_response.pos);
-        //pos_initial = pos;
         let adjacent_toknos = json_response.adjacent_toknos;
         //console.log(adjacent_toknos);
 
@@ -1422,7 +1407,7 @@ const delAnnotate = function (total = true) {
 
 };
 
-//this is copied
+//this is stolen
 const makeDraggable = function () {
   dragAnnotBox(document.getElementById("annot_box"));
 
