@@ -995,7 +995,10 @@ const recordMultiword = function () {
   let count = 1;
  
   let mw_meaning = multiword_meanings[multiword_meaning_no];
-  
+  if(mw_meaning == undefined) {
+    mw_meaning = "";
+  }
+
   const httpRequest = (method, url) => {
 
     let multiword_lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim());
