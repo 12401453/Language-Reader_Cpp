@@ -877,9 +877,6 @@ const lemmaRecordTooltipUpdate = function (current_words) {
     xhttp.send(send_data);
   };
   httpRequest("POST", "lemma_tooltip.php");
-
-
-
 };
 
 
@@ -894,6 +891,7 @@ let multiword_meanings = Object.create(null);
 let multiword_indices = Object.create(null);
 let multiword_id = 0;
 let multiword_meaning_no = 1;
+let multiword_tag_initial = "";
 
 let tooltips_shown = false;
 let pos_initial = 1;
@@ -1283,6 +1281,8 @@ const fetchMultiwordData = function (box_present = true) {
         let multiword_tag_content = json_response.multiword_tag_content;
         if(multiword_tag_content == "") multiword_tag_content = display_word.firstChild.textContent.trim();
         let multiword_textarea_content = json_response.multiword_textarea_content;
+
+        multiword_tag_initial = multiword_tag_content;
         
         multiword_meaning_no = Number(json_response.multiword_meaning_no);
         multiword_id = Number(json_response.multiword_id);
@@ -1342,7 +1342,7 @@ const fetchMultiwordData = function (box_present = true) {
         document.getElementById('save_button').onclick = recordMultiword;
         document.getElementById('meaning_leftarrow').onclick = switchMultiwordMeanings;
         document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
-        document.getElementById('lemma_tag').onblur = "";
+        document.getElementById('lemma_tag').onblur = pullInMultiword;
 
       }
     }
