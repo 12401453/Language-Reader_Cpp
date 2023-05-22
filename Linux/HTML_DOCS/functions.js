@@ -891,7 +891,7 @@ let multiword_meanings = Object.create(null);
 let multiword_indices = Object.create(null);
 let multiword_id = 0;
 let multiword_meaning_no = 1;
-let multiword_tag_initial = "";
+//let multiword_tag_initial = "";
 
 let tooltips_shown = false;
 let pos_initial = 1;
@@ -1142,7 +1142,7 @@ const switchMultiwordMeaningAJAX = function() {
   httpRequest("POST", "retrieve_MW_meanings.php");
 };
 
-const pullInMultiword = function(can_skip = true) {
+const pullInMultiword = function(can_skip = true, word_eng_ids) {
   console.log("pullInMultiword");
 };
 
@@ -1175,6 +1175,9 @@ const selectMultiword = (event) => {
     document.getElementById("lemma_tag").focus();
     if(no_of_mwc == 2) toggleSave(false, recordMultiword);    
     delete multiword_indices[mw_tokno];
+
+    let word_eng_ids = Object.values(multiword_indices);
+    pullInMultiword(false, word_eng_ids);
   }
   else if(no_of_mwc < 10) {
     mw_candidate.classList.add("mw_current_select");
@@ -1187,6 +1190,9 @@ const selectMultiword = (event) => {
     document.getElementById("lemma_tag").focus();
     if(no_of_mwc == 1) toggleSave(true, recordMultiword);
     multiword_indices[mw_tokno] = mw_candidate.dataset.word_engine_id;
+
+    let word_eng_ids = Object.values(multiword_indices);
+    pullInMultiword(false, word_eng_ids);
   }
 };
 
@@ -1282,7 +1288,7 @@ const fetchMultiwordData = function (box_present = true) {
         if(multiword_tag_content == "") multiword_tag_content = display_word.firstChild.textContent.trim();
         let multiword_textarea_content = json_response.multiword_textarea_content;
 
-        multiword_tag_initial = multiword_tag_content;
+        //multiword_tag_initial = multiword_tag_content;
         
         multiword_meaning_no = Number(json_response.multiword_meaning_no);
         multiword_id = Number(json_response.multiword_id);
@@ -1342,7 +1348,7 @@ const fetchMultiwordData = function (box_present = true) {
         document.getElementById('save_button').onclick = recordMultiword;
         document.getElementById('meaning_leftarrow').onclick = switchMultiwordMeanings;
         document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
-        document.getElementById('lemma_tag').onblur = pullInMultiword;
+        document.getElementById('lemma_tag').onblur = "";
 
       }
     }
