@@ -599,6 +599,9 @@ void WebServer::handlePOSTedData(const char* post_data, SOCKET clientSocket) {
     else if(!strcmp(m_url, "/record_multiword.php")) {
         bool php_func_success = recordMultiword(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/pull_multiword.php")) {
+        bool php_func_success = pullInMultiword(post_values, clientSocket);
+    }
     else if(!strcmp(m_url, "/update_MW_translations.php")) {
         bool php_func_success = updateMultiwordTranslations(post_values, clientSocket);
     }
@@ -641,6 +644,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/retrieve_MW_meanings.php")) return 2;
     else if(!strcmp(url, "/record_multiword.php")) return 8;
     else if(!strcmp(url, "/update_MW_translations.php")) return 3;
+    else if(!strcmp(url, "/pull_multiword.php")) return 2;
     else if(!strcmp(url, "/clear_table.php")) return 0;
     else return 10;
 }
@@ -2437,7 +2441,7 @@ bool WebServer::retrieveMultiword(std::string _POST[3], SOCKET clientSocket) {
 
 }
 
-bool WebServer::pullInMultiword(std::string _POST[1], SOCKET clientSocket) {
+bool WebServer::pullInMultiword(std::string _POST[2], SOCKET clientSocket) {
 
     sqlite3* DB;
 
@@ -2472,10 +2476,9 @@ bool WebServer::pullInMultiword(std::string _POST[1], SOCKET clientSocket) {
         sql_text_oss << "SELECT multiword_id FROM multiwords WHERE ";
         for(short int i = 0; i < word_eng_count; i++) {
             sql_text_oss << "word_eng_id" << (i + 1) << " = " << word_eng_ids[i];
-            if(i < word_eng_count - 1) {
-                sql_text_oss << " AND ";
-            }
+            sql_text_oss << " AND ";
         }
+        sql_text_oss << "lang_id = " << _POST[1];
 
         const char* sql_text = sql_text_oss.str().c_str();
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
@@ -2502,7 +2505,7 @@ bool WebServer::pullInMultiword(std::string _POST[1], SOCKET clientSocket) {
         sqlite3_close(DB);
 
         std::ostringstream json;
-        json << "{\"multiword_tag_content\":\"" << escapeQuotes(mw_lemma_form) << "\",\"multiword_textarea_content\":\"" << escapeQuotes(mw_lemma_meaning) << "\",\"multiword_meaning_no\":\"" << 1 << "\",\"pos\":\"" << pos << "\"}";
+        json << "{\"multiword_tag_content\":\"" << escapeQuotes(mw_lemma_form) << "\",\"multiword_textarea_content\":\"" << escapeQuotes(mw_lemma_meaning) << "\",\"multiword_id\":\"" << multiword_id << "\",\"pos\":\"" << pos << "\"}";
         
         int content_length = json.str().size();
         std::ostringstream post_response;
