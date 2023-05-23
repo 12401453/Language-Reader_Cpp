@@ -2472,11 +2472,16 @@ bool WebServer::pullInMultiword(std::string _POST[2], SOCKET clientSocket) {
             }
         }
 
+        short int null_count = 1;
         std::ostringstream sql_text_oss;
         sql_text_oss << "SELECT multiword_id FROM multiwords WHERE ";
         for(short int i = 0; i < word_eng_count; i++) {
             sql_text_oss << "word_eng_id" << (i + 1) << " = " << word_eng_ids[i];
             sql_text_oss << " AND ";
+            null_count++;
+        }
+        for(; null_count < 11; null_count++) {
+            sql_text_oss << "word_eng_id" << null_count << " = 0 AND ";
         }
         sql_text_oss << "lang_id = " << _POST[1];
 
