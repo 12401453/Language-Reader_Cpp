@@ -423,7 +423,7 @@ const changePoS = function () {
       pullInFunc = pullInLemma;
       break;
     case 2:
-      pullInFunc = pullInMultiword;
+      pullInFunc = (boolean) => {};
       break;
     default:
       pullInFunc = pullInLemma;
@@ -583,7 +583,7 @@ function switchMeaningAJAX() {
       if (xhttp.readyState == 4) {
         //let json_response = xhttp.response;
         let response_meaning = xhttp.response.trim();
-        console.log(response_meaning);
+        //console.log(response_meaning);
         //console.log(json_response);
         if(response_meaning != "") {
           meanings[lemma_meaning_no] = response_meaning;
@@ -877,9 +877,6 @@ const lemmaRecordTooltipUpdate = function (current_words) {
     xhttp.send(send_data);
   };
   httpRequest("POST", "lemma_tooltip.php");
-
-
-
 };
 
 
@@ -894,6 +891,7 @@ let multiword_meanings = Object.create(null);
 let multiword_indices = Object.create(null);
 let multiword_id = 0;
 let multiword_meaning_no = 1;
+//let multiword_tag_initial = "";
 
 let tooltips_shown = false;
 let pos_initial = 1;
@@ -905,135 +903,15 @@ let word_engine_id = 0;
 let annotation_mode = 0;
 ///////////////////////////////
 
-function showAnnotate(event) { /*
-  meanings = Object.create(null);
+function showAnnotate(event) { 
   if(display_word != null) delAnnotate();
   display_word = event.target;
-  tokno_current = display_word.dataset.tokno;
-  word_engine_id = display_word.dataset.word_engine_id;
-  console.log(word_engine_id);
-
   display_word.onclick = "";
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
-
-  const httpRequest = (method, url) => {
-
-    let send_data = "word_engine_id="+word_engine_id+"&tokno_current="+tokno_current+"&lang_id="+lang_id;
- 
-    const xhttp = new XMLHttpRequest();
-    xhttp.open(method, url, true);
-    xhttp.responseType = 'json';
-    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
- 
-    xhttp.onload = () => {
-      console.log("sent");
-    // console.log(xhttp.responseText);
-      if(xhttp.readyState == 4)  {
-
-        let json_response = xhttp.response;
-        let lemma_tag_content = json_response.lemma_tag_content;
-        lemma_form_tag_initial = lemma_tag_content;
-        let lemma_textarea_content = json_response.lemma_textarea_content;
-        lemma_textarea_content_initial = lemma_textarea_content;
-        //let lemma_textarea_content_html = json_response.lemma_textarea_content_html;
-        lemma_meaning_no = Number(json_response.lemma_meaning_no);
-        lemma_id = Number(json_response.lemma_id);
-        pos = Number(json_response.pos);
-        pos_initial = pos;
-
-        if(lemma_meaning_no != 0) {
-          meanings[lemma_meaning_no] = lemma_textarea_content;
-        }
-        else {
-          lemma_meaning_no = 1;
-        }
-        
-
-        if(document.getElementById('annot_box') != null) {
-          let annot_box = document.getElementById('annot_box');
-          annot_box.remove();
-        }
-
-        displayAnnotBox();
-        document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
-        document.getElementById("number").innerHTML = lemma_meaning_no;     
-        document.getElementById('lemma_tag').value = lemma_tag_content;
-        document.getElementById('lemma_textarea').value = lemma_textarea_content; //might be able to get rid of _html versions on back and frontend doing it this way
-
-        document.getElementById('lemma_tag').focus();
-
-        if(lemma_meaning_no == 1) {
-          document.getElementById("meaning_leftarrow").classList.add("nav_arrow_deactiv");
-          document.getElementById("meaning_leftarrow").classList.remove("nav_arrow");
-        }
-        else if (lemma_meaning_no == 10) {
-          document.getElementById("meaning_rightarrow").classList.add("nav_arrow_deactiv");
-          document.getElementById("meaning_rightarrow").classList.remove("nav_arrow");
-        }
-
-        if(lemma_id == 0) {
-          document.getElementById('delete_lemma_button').style.display = "none";
-        }
-        document.getElementById('delete_lemma_button').onclick = lemmaDelete;
-
-        document.getElementById('disregard_button').onclick = disRegard;
-        document.getElementById('save_button').onclick = lemmaRecord;
-        document.getElementById('meaning_leftarrow').onclick = switchMeaning;
-        document.getElementById('meaning_rightarrow').onclick = switchMeaning;
-        document.getElementById('lemma_tag').onblur = pullInLemma;
-
-        document.getElementById("lemma_box").classList.add("current_box");
-        let current_box = document.querySelector('.current_box');
-
-        let left_column = document.getElementById('left_column');
-
-        function selectBox(box) {
-          if (current_box) {
-            current_box.classList.remove("current_box");
-          }
-          current_box = box;
-          current_box.classList.add("current_box");
-
-          if(current_box.id == "lemma_box") {
-            document.getElementById("right_body").style.visibility = "visible";
-            document.getElementById("right_footer").style.visibility = "visible";
-            document.getElementById('lemma_textarea').focus();
-          }
-          else if(current_box.id == "multiword_box") {
-            document.getElementById("right_body").style.visibility = "visible";
-            document.getElementById("right_footer").style.visibility = "visible";
-            document.getElementById('lemma_textarea').focus();
-          }
-          else {
-            document.getElementById("right_body").style.visibility = "hidden";
-            document.getElementById("right_footer").style.visibility = "hidden";
-          }
-        }
-        left_column.onclick = function (event) {
-          let target = event.target;
-          if (target.className != 'box') return;
-
-          selectBox(target);
-        }; 
-                     
-        document.getElementById('lemma_tag').oninput = setLemmaTagSize;
-        setLemmaTagSize();
-          
-      }    
-    }
-    xhttp.send(send_data);
-  }
+  tokno_current = display_word.dataset.tokno;
+  word_engine_id = display_word.dataset.word_engine_id;
   
-  httpRequest("POST", "retrieve_engword.php"); */
-  if(display_word != null) delAnnotate();
-  display_word = event.target;
-  display_word.onclick = "";
-  display_word.classList.add("tooltip_selected");
-  display_word.classList.remove("tooltip");
-  tokno_current = display_word.dataset.tokno;
-  word_engine_id = display_word.dataset.word_engine_id;
-  //boxFunction(1);
   fetchLemmaData(false);
 };
 
@@ -1115,11 +993,14 @@ const recordMultiword = function () {
   let count = 1;
  
   let mw_meaning = multiword_meanings[multiword_meaning_no];
-  
+  if(mw_meaning == undefined) {
+    mw_meaning = "";
+  }
+
   const httpRequest = (method, url) => {
 
     let multiword_lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim());
-    mw_meaning = encodeURIComponent(mw_meaning); //the .replaceAll() here is specific to the C++ version because SQLite escapes single-quotes by doubling them. Back-slash doubling is not done on the php version because it calls addslashes() on the backend
+    mw_meaning = encodeURIComponent(mw_meaning);
     let word_eng_ids = Object.values(multiword_indices).toString();
     let toknos = Object.keys(multiword_indices).toString();
 
@@ -1170,11 +1051,9 @@ const recordMultiword = function () {
       }
     }
     xhttp.send(send_data);
-  }
+  };
 
   httpRequest("POST", "record_multiword.php");
-
-
 };
 
 const updateMultiwordTranslations = (new_mw_id, mw_meaning_no, eng_trans) => {
@@ -1250,7 +1129,7 @@ const switchMultiwordMeaningAJAX = function() {
       if (xhttp.readyState == 4) {
         //let json_response = xhttp.response;
         let response_meaning = xhttp.response.trim();
-        console.log(response_meaning);
+        //console.log(response_meaning);
         //console.log(json_response);
         if(response_meaning != "") {
           multiword_meanings[multiword_meaning_no] = response_meaning;
@@ -1263,9 +1142,49 @@ const switchMultiwordMeaningAJAX = function() {
   httpRequest("POST", "retrieve_MW_meanings.php");
 };
 
-const pullInMultiword = function(can_skip = true) {
-  console.log("pullInMultiword");
-};
+const pullInMultiword = function(can_skip = true, word_eng_ids) {
+  
+  /* let multiword_lemma_form = document.getElementById('lemma_tag').value.trim();
+   if(multiword_lemma_form == multiword_tag_initial && can_skip) {
+     return;
+   } */
+ 
+ 
+   const httpRequest = (method, url) => {
+     let send_data = "word_eng_ids="+word_eng_ids+"&lang_id="+lang_id;
+     const xhttp = new XMLHttpRequest();
+     xhttp.open(method, url, true);
+     xhttp.responseType = 'json';
+     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+     xhttp.onload = () => {
+       if(xhttp.readyState == 4) {
+         let json_response = xhttp.response;
+ 
+         multiword_id = Number(json_response.multiword_id);
+         if(multiword_id == 0) return;
+         let multiword_tag_content = json_response.multiword_tag_content;
+         let multiword_textarea_content = json_response.multiword_textarea_content;
+         pos = Number(json_response.pos);
+         multiword_meaning_no = 1;
+         
+         multiword_meanings = Object.create(null);
+         multiword_meanings[multiword_meaning_no] = multiword_textarea_content;
+ 
+         document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
+         document.getElementById("number").innerHTML = multiword_meaning_no;
+         reactivateArrows(multiword_meaning_no, 5);
+         document.getElementById('lemma_tag').value = multiword_tag_content;
+         setLemmaTagSize();
+         document.getElementById('lemma_textarea').value = multiword_textarea_content;
+ 
+       }
+     }
+     xhttp.send(send_data);
+   }
+ 
+   httpRequest("POST", "pull_multiword.php");
+ 
+ };
 
 const toggleSave = (on, recordFunc) => {
   if(on == false) {
@@ -1283,9 +1202,6 @@ const toggleSave = (on, recordFunc) => {
 const selectMultiword = (event) => {
   let mw_candidate = event.target;
   let mw_tokno = mw_candidate.dataset.tokno;
-  let mw_tag_content = document.getElementById("lemma_tag").value.trim();
-  let left_right = display_word.dataset.tokno < mw_tokno ? true : false;
-
   let no_of_mwc = Object.keys(multiword_indices).length;
 
   if(mw_candidate.matches('.mw_current_select')) {
@@ -1299,6 +1215,9 @@ const selectMultiword = (event) => {
     document.getElementById("lemma_tag").focus();
     if(no_of_mwc == 2) toggleSave(false, recordMultiword);    
     delete multiword_indices[mw_tokno];
+
+    let word_eng_ids = Object.values(multiword_indices);
+    pullInMultiword(false, word_eng_ids);
   }
   else if(no_of_mwc < 10) {
     mw_candidate.classList.add("mw_current_select");
@@ -1311,6 +1230,9 @@ const selectMultiword = (event) => {
     document.getElementById("lemma_tag").focus();
     if(no_of_mwc == 1) toggleSave(true, recordMultiword);
     multiword_indices[mw_tokno] = mw_candidate.dataset.word_engine_id;
+
+    let word_eng_ids = Object.values(multiword_indices);
+    pullInMultiword(false, word_eng_ids);
   }
 };
 
@@ -1326,15 +1248,6 @@ const showMultiwordAnnotate = (event) => {
 };
 
 const boxFunction = function (annotation_mode = 1) {
- /* if(document.getElementById('annot_box') != null) {
-    let annot_box = document.getElementById('annot_box');
-    annot_box.remove();
-  } 
-
-  if(document.getElementById("annot_box") == null) {
-    console.log("annot_box == null");
-    displayAnnotBox();
-  }*/
   displayAnnotBox();
   switch(annotation_mode) {
     case(1):
@@ -1413,14 +1326,13 @@ const fetchMultiwordData = function (box_present = true) {
         let json_response = xhttp.response;
         let multiword_tag_content = json_response.multiword_tag_content;
         if(multiword_tag_content == "") multiword_tag_content = display_word.firstChild.textContent.trim();
-        //multiword_form_tag_initial = multiword_tag_content;
         let multiword_textarea_content = json_response.multiword_textarea_content;
-        //multiword_textarea_content_initial = multiword_textarea_content;
+
+        //multiword_tag_initial = multiword_tag_content;
         
         multiword_meaning_no = Number(json_response.multiword_meaning_no);
         multiword_id = Number(json_response.multiword_id);
         pos = Number(json_response.pos);
-        //pos_initial = pos;
         let adjacent_toknos = json_response.adjacent_toknos;
         //console.log(adjacent_toknos);
 
@@ -1544,7 +1456,7 @@ const delAnnotate = function (total = true) {
 
 };
 
-//this is copied
+//this is stolen
 const makeDraggable = function () {
   dragAnnotBox(document.getElementById("annot_box"));
 
