@@ -1536,6 +1536,29 @@ const differentiateAnnotations = function () {
     }
   }); */
 
+const keyboard_tt = (event) => {
+  if(display_word != null) return;
+  if(event.key == "T") {
+    if(document.getElementById("tt_toggle").checked == false) document.getElementById("tt_toggle").checked = true;
+    else document.getElementById("tt_toggle").checked = false;
+    tt_type();
+    //console.log("shit and T down");
+  }
+
+};
+window.addEventListener("keydown", event1 => {
+  if(event1.key == "Shift") {
+    window.addEventListener("keydown", keyboard_tt);
+    //console.log("shift down");
+  }
+});
+window.addEventListener("keyup", event1 => {
+  if(event1.key == "Shift") {
+    window.removeEventListener("keydown", keyboard_tt);
+    //console.log("shift up");
+  }
+});
+
   const underlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px solid rgb(0, 255, 186)";})); };
 
   const removeUnderlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px dotted rgb(0, 255, 186, 0.5)";})); };
