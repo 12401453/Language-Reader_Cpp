@@ -2485,17 +2485,18 @@ bool WebServer::pullInMultiword(std::string _POST[2], SOCKET clientSocket) {
         }
         sql_text_oss << "lang_id = " << _POST[1];
 
-        const char* sql_text = sql_text_oss.str().c_str();
-        sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_prepare_v2(DB, sql_text_oss.str().c_str(), -1, &statement, NULL);
         sqlite3_step(statement);
         int multiword_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
+
+        std::cout << "multiword_id: " << multiword_id << std::endl; //debug
 
         std::string mw_lemma_form = "";
         std::string mw_lemma_meaning = "";
         short int pos = 1;
         if(multiword_id) {
-            sql_text = "SELECT multiword_lemma_form, pos, eng_trans1 FROM multiword_lemmas WHERE multiword_id = ?";
+            const char* sql_text = "SELECT multiword_lemma_form, pos, eng_trans1 FROM multiword_lemmas WHERE multiword_id = ?";
             sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
             sqlite3_bind_int(statement, 1, multiword_id);
             sqlite3_step(statement);
