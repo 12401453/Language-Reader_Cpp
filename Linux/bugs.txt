@@ -1,1 +1,1 @@
-1.) Updating a lemma-meaning does not change the tooltip for other different-formed versions of that lemma in the same text (need to change updateLemmaTooltip() to look for same lemma_ids)
+1.) Updating a lemma-meaning does not change the tooltip for other different-formed versions of that lemma in the same text (need to change updateLemmaTooltip() to look for same lemma_ids, which is not really possible without more database lookups because I purposefully do not store lemma_id's as data-attributes in the HTML)
