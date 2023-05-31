@@ -2728,7 +2728,7 @@ bool WebServer::updateMultiwordTranslations(std::string _POST[3], SOCKET clientS
         return true;
     }
     else {
-        std::cout << "Database connection failed on updateMultiwordTranslations()\n";
+        std::cout << "Database connection failed on updateMultiwordTranslations()\n" << std::endl;
         return false;
     }
 }

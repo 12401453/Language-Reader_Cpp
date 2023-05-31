@@ -580,6 +580,9 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     else if(!strcmp(m_url, "/record_multiword.php")) {
         bool php_func_success = recordMultiword(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/delete_multiword.php")) {
+        bool php_func_success = deleteMultiword(post_values, clientSocket);
+    }
     else if(!strcmp(m_url, "/pull_multiword.php")) {
         bool php_func_success = pullInMultiword(post_values, clientSocket);
     }
@@ -621,6 +624,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/retrieve_multiword.php")) return 3;
     else if(!strcmp(url, "/retrieve_MW_meanings.php")) return 2;
     else if(!strcmp(url, "/record_multiword.php")) return 8;
+    else if(!strcmp(url, "/delete_multiword.php")) return 4;
     else if(!strcmp(url, "/update_MW_translations.php")) return 3;
     else if(!strcmp(url, "/pull_multiword.php")) return 2;
     else if(!strcmp(url, "/clear_table.php")) return 0;
@@ -2700,7 +2704,146 @@ bool WebServer::updateMultiwordTranslations(std::string _POST[3], int clientSock
         return true;
     }
     else {
-        std::cout << "Database connection failed on updateMultiwordTranslations()\n";
+        std::cout << "Database connection failed on updateMultiwordTranslations()\n" << std::endl;
+        return false;
+    }
+}
+
+bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
+    sqlite3* DB;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        sqlite3_stmt* statement1;
+        sqlite3_stmt* statement2;
+
+        int multiword_id = std::stoi(_POST[0]);
+
+        int word_eng_ids[10] {0,0,0,0,0,0,0,0,0,0};
+        sqlite3_int64 toknos[10] {0,0,0,0,0,0,0,0,0,0};
+        
+        int lang_id = std::stoi(_POST[3]);
+
+        short int word_count = 0;
+        std::string word_engine_id_str = "";
+        for(auto i = _POST[1].begin(), nd = _POST[1].end(); i < nd && word_count < 10; i++) {
+           char c = (*i);
+            if(c == ',') {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_eng_ids[word_count] = word_engine_id;
+                word_count++;
+                word_engine_id_str = "";
+                continue;
+            }
+            word_engine_id_str += c;
+            if(nd - 1 == i) {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_eng_ids[word_count] = word_engine_id;
+                word_count++;
+            }
+        }
+        word_count = 0;
+
+        std::string tokno_str = "";
+        for(auto i = _POST[2].begin(), nd = _POST[2].end(); i < nd && word_count < 10; i++) {
+            char c = (*i);
+            if(c == ','){
+                sqlite3_int64 tokno = std::stol(tokno_str);
+                toknos[word_count] = tokno;
+                word_count++;
+                tokno_str = "";
+                continue;
+            }
+            tokno_str += c;
+            if(nd - 1 == i) {
+                sqlite3_int64 tokno = std::stol(tokno_str);
+                toknos[word_count] = tokno;
+                word_count++;
+            }
+        }
+
+        std::ostringstream sql_oss1;
+        std::ostringstream sql_oss2;
+        sql_oss1 << "UPDATE display_text SET multiword_id = NULL, multiword_meaning_no = NULL, multiword_count = NULL WHERE ";
+        sql_oss2 << "SELECT multiword_count FROM display_text WHERE multiword_id = ? AND (";
+
+        for(int i = 0; i < word_count; i++) {
+            sql_oss1 << "tokno = ? ";
+            sql_oss2 << "word_engine_id = ?";
+
+            if(i + 1 < word_count) {
+                sql_oss1 << " OR ";
+                sql_oss2 << " OR ";
+            }
+        }
+        sql_oss2 << ")";
+
+        sqlite3_prepare_v2(DB, sql_oss1.str().c_str(), -1, &statement1, NULL);
+        sqlite3_prepare_v2(DB, sql_oss2.str().c_str(), -1, &statement2, NULL);
+
+        sqlite3_bind_int(statement2, 1, multiword_id);
+        
+        for(int i = 0; i < word_count; i++) {
+            sqlite3_bind_int64(statement1, i + 1, toknos[i]);
+            sqlite3_bind_int(statement2, i + 2, word_eng_ids[i]);
+        }
+
+        sqlite3_step(statement1);
+        sqlite3_finalize(statement1);
+
+        //std::vector<int> multiword_counts;
+        //multiword_counts.reserve(100);
+
+        //this checks whether there are any remaining instances of the just-deleted multiword_lemma left on the display_text with the same forms (word_eng_id) as the one we just deleted
+        bool mw_leftover = false;
+        int prev_mw_count = 0;
+        int mw_count = 0;
+        int x = 1;
+        while(sqlite3_step(statement2) == SQLITE_ROW) {
+           mw_count = sqlite3_column_int(statement2, 0);
+           if(prev_mw_count == mw_count) x++; //x is counting the number of constituent words in each multiword-phrase
+           if(x == word_count) { //if we find a multiword-phrase of the same length and consisting of the same forms as the one we just deleted, then we mustn't delete this particular form of the multiword_id from the multiwords table
+               mw_leftover = true;
+               break;
+           }
+        }
+        sqlite3_finalize(statement2);
+
+        if(mw_leftover == false) {
+            std::ostringstream sql_oss3;
+            const char* sql_text = "DELETE FROM multiwords WHERE multiword_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND lang_id = ?";
+
+            sqlite3_prepare_v2(DB, sql_text, -1, &statement1, NULL);
+            sqlite3_bind_int(statement1, 1, multiword_id);
+
+            for(int i = 0; i < 10; i++) {
+                sqlite3_bind_int(statement1, i + 2, word_eng_ids[i]);
+            }
+            sqlite3_step(statement1);
+            sqlite3_finalize(statement1);
+
+            sql_text = "SELECT multiword_id FROM multiwords WHERE multiword_id = ?";
+            sqlite3_prepare_v2(DB, sql_text, -1, &statement1, NULL);
+            sqlite3_bind_int(statement1, 1, multiword_id);
+            
+            if(sqlite3_step(statement1) != SQLITE_ROW) {
+                sql_text = "DELETE FROM multiword_lemmas WHERE multiword_id = ?";
+                sqlite3_prepare_v2(DB, sql_text, -1, &statement2, NULL);
+                sqlite3_bind_int(statement2, 1, multiword_id);
+                sqlite3_step(statement2);
+                sqlite3_finalize(statement2);
+            }
+            sqlite3_finalize(statement1);
+
+            
+            const char* POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
+            sendToClient(clientSocket, POST_response, 64); //size manually counted, could've messed up
+
+        }
+
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on deleteMultiword()\n" << std::endl;
         return false;
     }
 }
