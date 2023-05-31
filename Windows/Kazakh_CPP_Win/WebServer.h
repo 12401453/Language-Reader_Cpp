@@ -43,7 +43,7 @@ private:
     bool recordLemma(std::string _POST[8], SOCKET clientSocket);
     bool deleteLemma(std::string _POST[3], SOCKET clientSocket);
     bool recordMultiword(std::string _POST[8], SOCKET clientSocket);
-    bool deleteMultiword(std::string _POST[4], int clientSocket);
+    bool deleteMultiword(std::string _POST[4], SOCKET clientSocket);
     bool updateMultiwordTranslations(std::string _POST[3], SOCKET clientSocket);
     bool deleteText(std::string _POST[1], SOCKET clientSocket);
     bool getLangId(std::string text_id[1], SOCKET clientSocket);
