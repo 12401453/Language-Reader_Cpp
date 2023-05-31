@@ -2761,6 +2761,11 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
             }
         }
 
+        const char *sql_BEGIN = "BEGIN";
+        const char *sql_COMMIT = "COMMIT";
+
+        sqlite3_exec(DB, sql_BEGIN, nullptr, nullptr, nullptr);
+
         std::ostringstream sql_oss1;
         std::ostringstream sql_oss2;
         sql_oss1 << "UPDATE display_text SET multiword_id = NULL, multiword_meaning_no = NULL, multiword_count = NULL WHERE ";
@@ -2805,12 +2810,13 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
                mw_leftover = true;
                break;
            }
+           prev_mw_count = mw_count;
         }
         sqlite3_finalize(statement2);
 
         if(mw_leftover == false) {
             std::ostringstream sql_oss3;
-            const char* sql_text = "DELETE FROM multiwords WHERE multiword_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND word_eng_id = ? AND lang_id = ?";
+            const char* sql_text = "DELETE FROM multiwords WHERE multiword_id = ? AND word_eng_id1 = ? AND word_eng_id2 = ? AND word_eng_id3 = ? AND word_eng_id4 = ? AND word_eng_id5 = ? AND word_eng_id6 = ? AND word_eng_id7 = ? AND word_eng_id8 = ? AND word_eng_id9 = ? AND word_eng_id10 = ? AND lang_id = ?";
 
             sqlite3_prepare_v2(DB, sql_text, -1, &statement1, NULL);
             sqlite3_bind_int(statement1, 1, multiword_id);
@@ -2818,6 +2824,8 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
             for(int i = 0; i < 10; i++) {
                 sqlite3_bind_int(statement1, i + 2, word_eng_ids[i]);
             }
+            sqlite3_bind_int(statement1, 12, lang_id);
+
             sqlite3_step(statement1);
             sqlite3_finalize(statement1);
 
@@ -2834,11 +2842,13 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
             }
             sqlite3_finalize(statement1);
 
-            
-            const char* POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
-            sendToClient(clientSocket, POST_response, 64); //size manually counted, could've messed up
-
         }
+        sqlite3_exec(DB, sql_COMMIT, nullptr, nullptr, nullptr);
+
+        const char* POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
+        sendToClient(clientSocket, POST_response, 64); //size manually counted, could've messed up
+
+        sqlite3_close(DB);
 
         return true;
     }

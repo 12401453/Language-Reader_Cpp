@@ -1074,7 +1074,31 @@ const updateMultiwordTranslations = (new_mw_id, mw_meaning_no, eng_trans) => {
 };
 
 const deleteMultiword = function () {
+  const httpRequest = (method, url) => {
+    let prev_mw_count = display_word.dataset.multiword;
 
+    let send_data = "multiword_id="+multiword_id+"&word_eng_ids="+Object.values(multiword_indices).toString()+"&toknos="+Object.keys(multiword_indices).toString()+"&lang_id="+lang_id;
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+    xhttp.onload = () => {
+      if(xhttp.readyState == 4) {
+
+        delAnnotate();
+
+        let dataselectorstring = '[data-multiword="' + prev_mw_count + '"]';
+        document.querySelectorAll(dataselectorstring).forEach(prev_mw => {
+          prev_mw.removeAttribute('data-multiword');
+          prev_mw.classList.remove("multiword");
+          prev_mw.onclick = showAnnotate;
+        });
+
+      }
+    }
+    xhttp.send(send_data);
+  };
+  httpRequest("POST", "delete_multiword.php");
 };
 
 const switchMultiwordMeanings = function(event) {
