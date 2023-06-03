@@ -251,6 +251,8 @@ int WebServer::checkHeaderEnd(const char* msg) {
             else if(page_type == 1 && cookies_present && line.find("<?js") != -1) ss_text << "let cookie_textselect = " + m_cookie[1] + ";\n";
             else if(page_type == 1 && line.find("<?js") != -1) ss_text << "let cookie_textselect = 0;\n";
 
+            else if(page_type == 2 && line.find("<?lng") != -1) insertLangSelect(ss_text);
+
             else ss_text << line << '\n';
         }
 
@@ -291,6 +293,33 @@ void WebServer::insertTextSelect(std::ostringstream &html) {
 
             html << "<option value=\"" << text_id << "\">" << text_title_str << "</option>\n";
             text_title_str = "";
+        }
+
+        sqlite3_finalize(statement);
+    
+        sqlite3_close(DB); 
+    }
+}
+
+void WebServer::insertLangSelect(std::ostringstream &html) {
+    sqlite3* DB;
+    sqlite3_stmt* statement;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        int prep_code, run_code;
+        const char *sql_text;
+
+        sql_text = "SELECT lang_id, lang_name FROM languages ORDER BY lang_name";
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+
+        int lang_id = 0;
+        const char* lang_name;
+
+        while(sqlite3_step(statement) == SQLITE_ROW) {
+            lang_id = sqlite3_column_int(statement, 0);
+            lang_name = (const char*)sqlite3_column_text(statement, 1);
+
+            html << "<option value=\"" << lang_id << "\">" << lang_name << "</option>\n";
         }
 
         sqlite3_finalize(statement);
@@ -2248,7 +2277,7 @@ bool WebServer::clearTable(int clientSocket) {
         sql_text = "DROP TABLE IF EXISTS context_trans;CREATE TABLE context_trans (dt_start INTEGER, dt_end INTEGER, eng_trans TEXT, UNIQUE(dt_start, dt_end))";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
-        sql_text = "INSERT INTO languages (lang_id, lang_name) VALUES (8, 'Danish'), (7, 'Turkish'), (1, 'Russian'), (2, 'Kazakh'), (3, 'Polish'), (4, 'Bulgarian')";
+        sql_text = "INSERT INTO languages (lang_id, lang_name) VALUES (8, 'Danish'), (7, 'Turkish'), (1, 'Russian'), (2, 'Kazakh'), (3, 'Polish'), (4, 'Bulgarian'), (6, 'Swedish')";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
         sqlite3_prepare_v2(DB, sql_COMMIT, -1, &statement, NULL);
