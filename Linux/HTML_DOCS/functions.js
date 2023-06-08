@@ -1596,7 +1596,7 @@ window.addEventListener("keyup", event1 => {
   
 function dictLookupDanish(word) {
   const pars = new DOMParser();
-  let send_data = encodeURIComponent("url=https://ordnet.dk/ddo/ordbog?query="+word+".php");
+  let send_data = "url=https://ordnet.dk/ddo/ordbog?query="+encodeURIComponent(word);
   const httpRequest = (method, url) => {
   
       const xhttp = new XMLHttpRequest();
@@ -1607,7 +1607,7 @@ function dictLookupDanish(word) {
   
         if (xhttp.readyState == 4) {
           let response_page = pars.parseFromString(xhttp.responseText, "text/html");
-          response_page.getElementById("content-betydninger").querySelectorAll(".definition").forEach(def => {console.log(def);});
+          response_page.getElementById("content-betydninger").querySelectorAll(".definition").forEach(def => {console.log(def.textContent.trim());});
         }
   
       }
