@@ -1592,3 +1592,56 @@ window.addEventListener("keyup", event1 => {
     multiword.addEventListener('mouseover', underlineMultiwords);
     multiword.addEventListener('mouseout', removeUnderlineMultiwords);
   });
+
+  
+function dictLookupDanish(word) {
+  const pars = new DOMParser();
+  let send_data = encodeURIComponent("url=https://ordnet.dk/ddo/ordbog?query="+word+".php");
+  const httpRequest = (method, url) => {
+  
+      const xhttp = new XMLHttpRequest();
+      xhttp.open(method, url, true);
+      xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      xhttp.responseType = 'text';
+      xhttp.onreadystatechange = () => {
+  
+        if (xhttp.readyState == 4) {
+          let response_page = pars.parseFromString(xhttp.responseText, "text/html");
+          response_page.getElementById("content-betydninger").querySelectorAll(".definition").forEach(def => {console.log(def);});
+        }
+  
+      }
+  
+      xhttp.send(send_data);
+  };
+  
+  httpRequest("POST", "curl_lookup.php");
+  
+}
+  
+function dictLookupPolish(word) {
+  const pars = new DOMParser();
+  let send_data = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-englisch/"+encodeURIComponent(word);
+  const httpRequest = (method, url) => {
+  
+      const xhttp = new XMLHttpRequest();
+      xhttp.open(method, url, true);
+      xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      xhttp.responseType = 'text';
+      xhttp.onreadystatechange = () => {
+  
+        if (xhttp.readyState == 4) {
+          let response_page = pars.parseFromString(xhttp.responseText, "text/html");
+  
+          response_page.querySelectorAll(".dd-inner").forEach(def => {console.log(def.textContent.trim());});
+        }
+  
+      }
+  
+      xhttp.send(send_data);
+  };
+  
+  httpRequest("POST", "curl_lookup.php");
+  
+}
+    

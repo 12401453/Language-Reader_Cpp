@@ -3,6 +3,7 @@
 #include <unicode/unistr.h>
 #include <unicode/regex.h>
 #include <unicode/brkiter.h>
+#include "CurlFetcher.cpp"
 
 class WebServer : public TcpListener {
     public:
@@ -54,6 +55,8 @@ class WebServer : public TcpListener {
         bool retrieveMeanings(std::string _POST[2], int clientSocket);
         bool pullInMultiword(std::string _POST[2], int clientSocket);
         bool retrieveMultiwordMeanings(std::string _POST[2], int clientSocket);
+
+        bool curlLookup(std::string _POST[1], int clientSocket);
 
         std::string URIDecode(std::string &text);
         std::string htmlspecialchars(const std::string &innerHTML);

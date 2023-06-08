@@ -618,6 +618,9 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     else if(!strcmp(m_url, "/update_MW_translations.php")) {
         bool php_func_success = updateMultiwordTranslations(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/curl_lookup.php")) {
+        bool php_func_success = curlLookup(post_values, clientSocket);
+    }
 
     std::cout << "m_url: " << m_url << std::endl;
     
@@ -657,6 +660,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/update_MW_translations.php")) return 3;
     else if(!strcmp(url, "/pull_multiword.php")) return 2;
     else if(!strcmp(url, "/clear_table.php")) return 0;
+    else if(!strcmp(url, "/curl_lookup.php")) return 1;
     else return 10;
 }
 
@@ -2885,4 +2889,18 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
         std::cout << "Database connection failed on deleteMultiword()\n" << std::endl;
         return false;
     }
+}
+
+bool WebServer::curlLookup(std::string _POST[1], int clientSocket) {
+    CurlFetcher query(_POST[0].c_str());
+    query.fetch();
+    
+    std::ostringstream post_response;
+    int content_length = query.m_get_html.size();
+    post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << query.m_get_html;
+
+    int length = post_response.str().size() + 1;
+
+    sendToClient(clientSocket, post_response.str().c_str(), length);
+    return true;
 }
