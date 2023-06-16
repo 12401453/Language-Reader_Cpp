@@ -4,6 +4,7 @@
 <head>
 <link rel="stylesheet" type="text/css" href="tooltip_prevs.css" id="tt_styles">
 <link rel="stylesheet" type="text/css" href="flexbox.css" id="flexbox_styles">
+<link href="dict.css" rel="stylesheet" type="text/css">
 
   <link href="style.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
 <link href="style_small_screen.css" rel="stylesheet" media="all and (max-width: 768px)" type="text/css">

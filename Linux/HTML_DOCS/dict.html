@@ -1,0 +1,46 @@
+<!DOCTYPE html> 
+<html>
+
+<head>
+  <link href="dict.css" rel="stylesheet" type="text/css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script>
+    let changed = false;
+    const switchIcon = () => {
+        if(changed) {
+            document.getElementById('dict_logo').src = 'enwiktionary_grey.png';
+            document.getElementById('dict_logo').title = 'Wiktionary';
+            changed = false;
+        }
+        else {
+            document.getElementById('dict_logo').src = 'PONS.ico';
+            document.getElementById('dict_logo').title = 'PONS.com';
+            changed = true;
+        }
+    }
+  </script>
+</head>
+
+<body style="background-color: #172136;">
+
+<div id="dict_outline">
+ <div id="dict_topbar"></div>
+ <div id="dict_body">
+  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
+  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
+  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
+  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
+  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
+  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
+  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
+ </div>
+ <div id="dict_bottombar">
+    <textarea id="dict_searchbox"></textarea>
+    <img id="dict_logo" src="enwiktionary_grey.png" title="Wiktionary" onclick="switchIcon()"></img>
+ </div>
+ </div>
+
+</body>
+</html>

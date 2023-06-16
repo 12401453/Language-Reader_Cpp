@@ -1644,4 +1644,32 @@ function dictLookupPolish(word) {
   httpRequest("POST", "curl_lookup.php");
   
 }
-    
+
+
+//sozdik will require login after about 15 translations, but I've found copying the HTTP headers used when logged in (by right-clicking the relevant request in the 'Network' tab of DevTools and selecting "Copy as cURL") allows curl to get data and it seems to fetch it straight from the API when you do that rather than load the whole HTML, so there probably will need to be a way of logging in manually via the browser once and then sending the HTTP headers with the authentication codes to the server so it can use them in its CURL requests; a tedious and laborious undertaking to be sure but one that needs to be done for serious Kazakh work
+function dictLookupKazakh(word) {
+  const pars = new DOMParser();
+  let send_data = "url=https://sozdik.kz/ru/dictionary/translate/kk/ru/"+encodeURIComponent(word)+"/";
+  const httpRequest = (method, url) => {
+
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.responseType = 'text';
+    xhttp.onreadystatechange = () => {
+
+      if (xhttp.readyState == 4) {
+        let response_page = pars.parseFromString(xhttp.responseText, "text/html");
+
+        response_page.getElementById("dictionary_translate_article_translation").querySelectorAll("details").forEach(detail => {console.log(detail.querySelector("summary").textContent.trim());});
+
+      }
+
+    }
+
+    xhttp.send(send_data);
+  };
+
+  httpRequest("POST", "curl_lookup.php");
+
+}
