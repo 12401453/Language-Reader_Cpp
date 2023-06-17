@@ -1666,7 +1666,7 @@ const scrapePONS = (PONS_html) => {
   const extractText = (node_list) => {
     let text = "";
     node_list.forEach(node => {
-      if(node.nodeType == 1 && node.matches(".case, .info, .rhetoric, .genus, .style")) {
+      if(node.nodeType == 1 && node.matches(".case, .info, .rhetoric, .genus, .style, .topic")) {
         text += "[" + node.textContent + "]";
       }
       else if(node.nodeType == 1 && node.matches(".collocator")) {
@@ -1690,7 +1690,7 @@ const scrapePONS = (PONS_html) => {
       let blocks = meaning_sections[i].querySelectorAll(".translations"); //.opened"); this second .opened class seems to not appear when cURL-ing the page
       let block_lngth = blocks.length;
       for(let j = 0; j < block_lngth; j++) {
-        if(isNaN(Number(blocks[j].querySelector("h3").textContent.trim().substring(0,1)))) {
+        if(blocks[j].querySelector("h3").textContent.trim() == "Wendungen:") {
           dict_result_PONS[i].wendungen = {};
           let entries_pl = blocks[j].querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
           let entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
