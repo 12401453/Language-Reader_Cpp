@@ -60,7 +60,7 @@
     overflow: hidden;
     resize: none;
     border-radius: 5px;
-    border: 1px solid #040a16;
+    border: 2px solid #040a16;
     box-sizing: border-box;
 
     color: #cbd9f4;
@@ -69,7 +69,7 @@
     background-color:#071022;
 }
 #dict_searchbox:focus {
-    border: 1px solid black;
+    border: 2px solid black;
 }
 
 #dict_body {
@@ -114,7 +114,7 @@
 
 .dict_cell {
     
-    height: fit-content;
+    /*height: inherit; */
     width: 100%;
     border-bottom: 1px solid black;
     padding: 5px;

@@ -1618,33 +1618,6 @@ function dictLookupDanish(word) {
   httpRequest("POST", "curl_lookup.php");
   
 }
-  
-function dictLookupPolish(word) {
-  const pars = new DOMParser();
-  let send_data = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-englisch/"+encodeURIComponent(word);
-  const httpRequest = (method, url) => {
-  
-      const xhttp = new XMLHttpRequest();
-      xhttp.open(method, url, true);
-      xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-      xhttp.responseType = 'text';
-      xhttp.onreadystatechange = () => {
-  
-        if (xhttp.readyState == 4) {
-          let response_page = pars.parseFromString(xhttp.responseText, "text/html");
-  
-          response_page.querySelectorAll(".dd-inner").forEach(def => {console.log(def.textContent.trim());});
-        }
-  
-      }
-  
-      xhttp.send(send_data);
-  };
-  
-  httpRequest("POST", "curl_lookup.php");
-  
-}
-
 
 //sozdik will require login after about 15 translations, but I've found copying the HTTP headers used when logged in (by right-clicking the relevant request in the 'Network' tab of DevTools and selecting "Copy as cURL") allows curl to get data and it seems to fetch it straight from the API when you do that rather than load the whole HTML, so there probably will need to be a way of logging in manually via the browser once and then sending the HTTP headers with the authentication codes to the server so it can use them in its CURL requests; a tedious and laborious undertaking to be sure but one that needs to be done for serious Kazakh work
 function dictLookupKazakh(word) {
@@ -1673,3 +1646,127 @@ function dictLookupKazakh(word) {
   httpRequest("POST", "curl_lookup.php");
 
 }
+
+
+let dict_result_PONS = Object.create(null);
+//test word "krowa"; the first boxes aren't being got, needs fixing
+const scrapePONS = (PONS_html) => {
+  dict_result_PONS = {
+    beispielsaetze: {
+    },
+  };
+  const parser = new DOMParser();
+  const PONS_page = parser.parseFromString(PONS_html, "text/html");
+
+  if(PONS_page.getElementsByClassName("fuzzysearch").length > 0) {
+    console.log("exact word not found");
+    return;
+  }
+
+  const extractText = (node_list) => {
+    let text = "";
+    node_list.forEach(node => {
+      if(node.nodeType == 1 && node.matches(".case, .info, .rhetoric, .genus, .style")) {
+        text += "[" + node.textContent + "]";
+      }
+      else if(node.nodeType == 1 && node.matches(".collocator")) {
+        text += "(" + node.textContent + ")";
+      }
+      else if(/^\s+$/.test(node.textContent)) {        
+        text += " ";
+      }
+      else {
+        text += node.textContent;
+      }
+    });
+    return text.trim();
+  };
+
+  let meaning_sections = PONS_page.querySelectorAll(".rom");
+  let rom_lngth = meaning_sections.length;
+  for(let i = 0; i < rom_lngth; i++) {
+    if(meaning_sections[i].querySelector(".signature-od") == null) {
+      dict_result_PONS[i] = {};
+      let blocks = meaning_sections[i].querySelectorAll(".translations"); //.opened"); this second .opened class seems to not appear when cURL-ing the page
+      let block_lngth = blocks.length;
+      for(let j = 0; j < block_lngth; j++) {
+        if(isNaN(Number(blocks[j].querySelector("h3").textContent.trim().substring(0,1)))) {
+          dict_result_PONS[i].wendungen = {};
+          let entries_pl = blocks[j].querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
+          let entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
+          let entries_lngth = entries_pl.length;
+          for(let k = 0; k < entries_lngth; k++) {                      
+              let pl_entry = extractText(entries_pl[k].childNodes);
+              let eng_entry = extractText(entries_eng[k].childNodes);
+              dict_result_PONS[i].wendungen[k] = [pl_entry, eng_entry];
+          }
+        }
+        else {
+          dict_result_PONS[i][j] = {};
+          let entries_pl = blocks[j].querySelectorAll(".dt-inner > .source");
+          let entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
+          let entries_lngth = entries_pl.length;
+          for(let k = 0; k < entries_lngth; k++) {   
+              let pl_entry = extractText(entries_pl[k].childNodes);
+              let eng_entry = extractText(entries_eng[k].childNodes);
+              dict_result_PONS[i][j][k] = [pl_entry, eng_entry];
+          }
+        }
+      }
+    }
+  }
+  let beispielsatz_block = PONS_page.querySelector(".results-dict-examples");
+  if(beispielsatz_block != null) {
+    let beispiele_pl = beispielsatz_block.querySelectorAll(".dt-inner > .source");
+    let beispiele_eng = beispielsatz_block.querySelectorAll(".dd-inner > .target");
+    let beispiele_lngth = beispiele_pl.length;
+    for(let i = 0; i < beispiele_lngth; i++) {
+      dict_result_PONS.beispielsaetze[i] = [extractText(beispiele_pl[i].childNodes), extractText(beispiele_eng[i].childNodes)];
+    }
+  }
+};
+
+  
+function dictLookupPolish(word, german=false) {
+  let send_data = "";
+  if(german) send_data = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-deutsch/"+encodeURIComponent(word);
+  else send_data = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-englisch/"+encodeURIComponent(word);
+  const httpRequest = (method, url) => {
+  
+      const xhttp = new XMLHttpRequest();
+      xhttp.open(method, url, true);
+      xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      xhttp.responseType = 'text';
+      xhttp.onreadystatechange = () => {
+  
+        if (xhttp.readyState == 4) {
+          scrapePONS(xhttp.responseText);
+          console.log("curl complete");
+          unpackDictResult(dict_result_PONS);
+        }
+  
+      }
+  
+      xhttp.send(send_data);
+  };
+  
+  httpRequest("POST", "curl_lookup.php");
+  
+}
+
+const unpackDictResult = (dict_result) => {
+  for(let i in dict_result) {
+    if(i == "beispielsaetze") {
+      for(let x in dict_result.beispielsaetze) {
+        console.log(dict_result.beispielsaetze[x][0] + " => " + dict_result.beispielsaetze[x][1]);
+      }
+    }
+    else {
+      for(let j in dict_result[i]) {
+        for(let k in dict_result[i][j]) {
+          console.log(dict_result[i][j][k][0] + " => " + dict_result[i][j][k][1]);
+        }
+      }
+    }
+  }
+};
