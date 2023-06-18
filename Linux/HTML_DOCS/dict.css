@@ -15,18 +15,19 @@
     right: 1px;
     z-index: 2;
     
-
-    transition: height 1s, transform 1s;
 }
 
 #dict_topbar {
+    display: flex;
+    flex-flow: row-reverse nowrap;
     box-sizing: border-box;
-    height: 20px;
+    height: 30px;
+    min-height: 30px;
     width: 100%;
     border-left: 2px solid black;
     border-right: 2px solid black;
     border-top: 2px solid black;
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid black;
     border-top-left-radius: 6px;
     border-top-right-radius: 6px;
     background-color: #040a16;
@@ -107,19 +108,24 @@
     font-family: IBM_Plex_Sans;
     font-size: 13px;
     background-color: #071022;
+    border-bottom: 1px solid black;
 }
 .dict_row:nth-child(even) {
     background-color: #040a16;
 }
+.dict_row:first-child {
+    border-top: 1px solid black;
+}
+
 
 .dict_cell {
     
     /*height: inherit; */
     width: 100%;
-    border-bottom: 1px solid black;
     padding: 5px;
     box-sizing: border-box;
 }
+
 
 
 .dict_cell.left {
@@ -135,4 +141,74 @@
     height: 80%;
     border-radius: 5px;
     user-select: none;
+
+    opacity: 70%;
+}
+#dict_logo:hover {
+    opacity: 100%;
+}
+
+#dict_close {
+    height: 76%;
+    width: 11%;
+    background-color: inherit;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 2px;
+    border-left: 1px solid black;
+    border-bottom: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#dict_close:hover {
+    background-color: #172136;
+}
+#dict_close:hover #minimise{
+    background-color: #cbd9f4;
+}
+
+#minimise {
+    background-color: rgb(141 147 157);
+    height: 16%;
+    width: 46%;
+}
+
+#dict_select {
+    display: flex;
+    flex-flow: column-reverse nowrap;
+    background-color: #040a16;
+    overflow-y: auto;
+    max-height: 200px;
+    height: fit-content;
+    width: 94px;
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    border-right: 2px solid black;
+    border-left: 1px solid black;
+    border-top-left-radius: 5px;
+}
+#dict_select::-webkit-scrollbar {
+    width: 0px;
+}
+
+.dict_name {
+    border-top: 1px solid black;
+    color: #cbd9f4;
+    padding: 4px;
+    font-size: 14px;
+    font-family: Calibri;
+    text-align: center;
+    user-select: none;
+    cursor: default;
+}
+.dict_name:hover {
+    background-color: #172136;
+    color: white;
+}
+.dict_name:first-child {
+    border-bottom: 1px solid black;
+}
+.dict_name:last-child {
+    border-top-left-radius: 5px;
 }

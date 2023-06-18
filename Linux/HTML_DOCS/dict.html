@@ -7,38 +7,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <script>
-    let changed = false;
-    const switchIcon = () => {
-        if(changed) {
-            document.getElementById('dict_logo').src = 'enwiktionary_grey.png';
-            document.getElementById('dict_logo').title = 'Wiktionary';
-            changed = false;
-        }
-        else {
-            document.getElementById('dict_logo').src = 'PONS.ico';
-            document.getElementById('dict_logo').title = 'PONS.com';
-            changed = true;
-        }
-    };
+    
   </script>
 </head>
 
 <body style="background-color: #172136;">
 
 <div id="dict_outline">
- <div id="dict_topbar"></div>
- <div id="dict_body">
+ <div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div>
+ <div id="dict_body" style="display: flex;">
+ <!--- <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
   <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
   <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
   <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
   <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
   <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
-  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
-  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div>
+  <div class="dict_row"><div class="dict_cell left">koń by się uśmiał</div><div class="dict_cell right">don't make me laugh</div></div> -->
  </div>
  <div id="dict_bottombar">
     <textarea id="dict_searchbox"></textarea>
-    <img id="dict_logo" src="enwiktionary_grey.png" title="Wiktionary" onclick="switchIcon()"></img>
+    <img id="dict_logo" src="PONS.ico" title="PONS.com"></img>
+    <div id="dict_select" style="visibility: hidden;">
+      <div class="dict_name">PONS.com</div>
+      <div class="dict_name">Wiktionary</div>
+      <div class="dict_name">PONS.com (de)</div>
+      <div class="dict_name">Russian</div>
+      <div class="dict_name">Danish</div>
+    </div>
  </div>
  </div>
 
@@ -50,6 +45,7 @@
             
             dictLookupPolish(event.target.value.trim());
             document.getElementById("dict_body").innerHTML = "";
+            document.getElementById("dict_body").style.display = "flex";
             event.preventDefault();
             event.target.value = "";
         }
@@ -181,5 +177,32 @@
             }
         }
     };
+
+    document.getElementById("dict_close").addEventListener('click', () => {
+        let dict_body = document.getElementById("dict_body");
+        if(dict_body.style.display == "flex") dict_body.style.display = "none";
+        else dict_body.style.display = "flex";
+    })
+
+    let logo = 1;
+    const switchDict = (event) => {
+        if(changed) {
+            document.getElementById('dict_logo').src = 'enwiktionary_grey.png';
+            document.getElementById('dict_logo').title = 'Wiktionary';
+            changed = false;
+        }
+        else {
+            document.getElementById('dict_logo').src = 'PONS.ico';
+            document.getElementById('dict_logo').title = 'PONS.com';
+            changed = true;
+        }
+    };
+
+    document.getElementById("dict_logo").addEventListener('click', () => {
+        let dict_select = document.getElementById("dict_select");
+        if(dict_select.style.visibility == "hidden") dict_select.style.visibility = "visible";
+        else dict_select.style.visibility = "hidden";
+    });
+
 </script>
 </html>
