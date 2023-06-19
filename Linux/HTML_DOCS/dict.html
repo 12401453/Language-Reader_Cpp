@@ -28,22 +28,118 @@
     <textarea id="dict_searchbox"></textarea>
     <img id="dict_logo" src="PONS.ico" title="PONS.com"></img>
     <div id="dict_select" style="visibility: hidden;">
-      <div class="dict_name">PONS.com</div>
-      <div class="dict_name">Wiktionary</div>
-      <div class="dict_name">PONS.com (de)</div>
-      <div class="dict_name">Russian</div>
-      <div class="dict_name">Danish</div>
+      <div class="dict_name" id="PONS-pl-en">Polish (en)</div>
+      <div class="dict_name" id="Wk">Wiktionary</div>
+      <div class="dict_name" id="PONS-pl-de">Polish (de)</div>
+      <div class="dict_name" id="PONS-ru-de">Russian</div>
+      <div class="dict_name" id="PONS-sv-de">Swedish</div>
+      <div class="dict_name" id="PONS-da-de">Danish</div>
     </div>
  </div>
  </div>
 
 </body>
 <script>
+    const dictLookupPONS_pl_en = (word) => {
+    let send_data = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-englisch/"+encodeURIComponent(word);
+    const httpRequest = (method, url) => {
+        const xhttp = new XMLHttpRequest();
+        xhttp.open(method, url, true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.responseType = 'text';
+        xhttp.onreadystatechange = () => { 
+            if (xhttp.readyState == 4) {
+            scrapePONS(xhttp.responseText);
+            console.log("curl complete");
+            unpackDictResult(dict_result_PONS);
+            }
+        } 
+        xhttp.send(send_data);
+    };  
+    httpRequest("POST", "curl_lookup.php");  
+    };
 
+    const dictLookupPONS_pl_de = (word) => {
+    let send_data = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-deutsch/"+encodeURIComponent(word);
+    const httpRequest = (method, url) => {
+        const xhttp = new XMLHttpRequest();
+        xhttp.open(method, url, true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.responseType = 'text';
+        xhttp.onreadystatechange = () => { 
+            if (xhttp.readyState == 4) {
+            scrapePONS(xhttp.responseText);
+            console.log("curl complete");
+            unpackDictResult(dict_result_PONS);
+            }
+        } 
+        xhttp.send(send_data);
+    };  
+    httpRequest("POST", "curl_lookup.php");  
+    };
+
+    const dictLookupPONS_da_de = (word) => {
+    let send_data = "url=https://de.pons.com/%C3%BCbersetzung/d%C3%A4nisch-deutsch/"+encodeURIComponent(word);
+    const httpRequest = (method, url) => {
+        const xhttp = new XMLHttpRequest();
+        xhttp.open(method, url, true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.responseType = 'text';
+        xhttp.onreadystatechange = () => { 
+            if (xhttp.readyState == 4) {
+            scrapePONS(xhttp.responseText);
+            console.log("curl complete");
+            unpackDictResult(dict_result_PONS);
+            }
+        } 
+        xhttp.send(send_data);
+    };  
+    httpRequest("POST", "curl_lookup.php");  
+    };
+
+    const dictLookupPONS_ru_de = (word) => {
+    let send_data = "url=https://de.pons.com/%C3%BCbersetzung/russisch-deutsch/"+encodeURIComponent(word);
+    const httpRequest = (method, url) => {
+        const xhttp = new XMLHttpRequest();
+        xhttp.open(method, url, true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.responseType = 'text';
+        xhttp.onreadystatechange = () => { 
+            if (xhttp.readyState == 4) {
+            scrapePONS(xhttp.responseText);
+            console.log("curl complete");
+            unpackDictResult(dict_result_PONS);
+            }
+        } 
+        xhttp.send(send_data);
+    };  
+    httpRequest("POST", "curl_lookup.php");  
+    };
+
+    const dictLookupPONS_sv_de = (word) => {
+    let send_data = "url=https://de.pons.com/%C3%BCbersetzung/schwedisch-deutsch/"+encodeURIComponent(word);
+    const httpRequest = (method, url) => {
+        const xhttp = new XMLHttpRequest();
+        xhttp.open(method, url, true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.responseType = 'text';
+        xhttp.onreadystatechange = () => { 
+            if (xhttp.readyState == 4) {
+            scrapePONS(xhttp.responseText);
+            console.log("curl complete");
+            unpackDictResult(dict_result_PONS);
+            }
+        } 
+        xhttp.send(send_data);
+    };  
+    httpRequest("POST", "curl_lookup.php");  
+    };
+
+
+    let dict_func = dictLookupPONS_pl_de;
     const submitDict = (event) => {
         if(event.key == "Enter") {
-            
-            dictLookupPolish(event.target.value.trim());
+            dict_func(event.target.value.trim());
             document.getElementById("dict_body").innerHTML = "";
             document.getElementById("dict_body").style.display = "flex";
             event.preventDefault();
@@ -55,108 +151,80 @@
     let dict_result_PONS = Object.create(null);
 
     const scrapePONS = (PONS_html) => {
-    dict_result_PONS = {
-        beispielsaetze: {
-        },
-    };
-    const parser = new DOMParser();
-    const PONS_page = parser.parseFromString(PONS_html, "text/html");
+        dict_result_PONS = {
+            beispielsaetze: {
+            },
+        };
+        const parser = new DOMParser();
+        const PONS_page = parser.parseFromString(PONS_html, "text/html");
 
-    if(PONS_page.getElementsByClassName("fuzzysearch").length > 0) {
-        console.log("exact word not found");
-        return;
-    }
+        if(PONS_page.getElementsByClassName("fuzzysearch").length > 0) {
+            console.log("exact word not found");
+            return;
+        }
 
-    const extractText = (node_list) => {
-        let text = "";
-        node_list.forEach(node => {
-        if(node.nodeType == 1 && node.matches(".case, .info, .rhetoric, .genus, .style, .topic")) {
-            text += "[" + node.textContent + "]";
-        }
-        else if(node.nodeType == 1 && node.matches(".collocator")) {
-            text += "(" + node.textContent + ")";
-        }
-        else if(/^\s+$/.test(node.textContent)) {        
-            text += " ";
-        }
-        else {
-            text += node.textContent;
-        }
-        });
-        return text.trim();
-    };
-
-    let meaning_sections = PONS_page.querySelectorAll(".rom");
-    let rom_lngth = meaning_sections.length;
-    for(let i = 0; i < rom_lngth; i++) {
-        if(meaning_sections[i].querySelector(".signature-od") == null) {
-        dict_result_PONS[i] = {};
-        let blocks = meaning_sections[i].querySelectorAll(".translations"); //.opened"); this second .opened class seems to not appear when cURL-ing the page
-        let block_lngth = blocks.length;
-        for(let j = 0; j < block_lngth; j++) {
-            if(blocks[j].querySelector("h3").textContent.trim() == "Wendungen:") {
-            dict_result_PONS[i].wendungen = {};
-            let entries_pl = blocks[j].querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
-            let entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
-            let entries_lngth = entries_pl.length;
-            for(let k = 0; k < entries_lngth; k++) {                      
-                let pl_entry = extractText(entries_pl[k].childNodes);
-                let eng_entry = extractText(entries_eng[k].childNodes);
-                dict_result_PONS[i].wendungen[k] = [pl_entry, eng_entry];
+        const extractText = (node_list) => {
+            let text = "";
+            node_list.forEach(node => {
+            if(node.nodeType == 1 && node.matches(".case, .info, .rhetoric, .genus, .style, .topic")) {
+                text += "[" + node.textContent + "]";
             }
+            else if(node.nodeType == 1 && node.matches(".collocator")) {
+                text += "(" + node.textContent + ")";
+            }
+            else if(/^\s+$/.test(node.textContent)) {        
+                text += " ";
             }
             else {
-            dict_result_PONS[i][j] = {};
-            let entries_pl = blocks[j].querySelectorAll(".dt-inner > .source");
-            let entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
-            let entries_lngth = entries_pl.length;
-            for(let k = 0; k < entries_lngth; k++) {   
-                let pl_entry = extractText(entries_pl[k].childNodes);
-                let eng_entry = extractText(entries_eng[k].childNodes);
-                dict_result_PONS[i][j][k] = [pl_entry, eng_entry];
+                text += node.textContent;
             }
-            }
-        }
-        }
-    }
-    let beispielsatz_block = PONS_page.querySelector(".results-dict-examples");
-    if(beispielsatz_block != null) {
-        let beispiele_pl = beispielsatz_block.querySelectorAll(".dt-inner > .source");
-        let beispiele_eng = beispielsatz_block.querySelectorAll(".dd-inner > .target");
-        let beispiele_lngth = beispiele_pl.length;
-        for(let i = 0; i < beispiele_lngth; i++) {
-        dict_result_PONS.beispielsaetze[i] = [extractText(beispiele_pl[i].childNodes), extractText(beispiele_eng[i].childNodes)];
-        }
-    }
-    };
+            });
+            return text.trim();
+        };
 
-    
-    function dictLookupPolish(word, german=false) {
-    let send_data = "";
-    if(german) send_data = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-deutsch/"+encodeURIComponent(word);
-    else send_data = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-englisch/"+encodeURIComponent(word);
-    const httpRequest = (method, url) => {
-    
-        const xhttp = new XMLHttpRequest();
-        xhttp.open(method, url, true);
-        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        xhttp.responseType = 'text';
-        xhttp.onreadystatechange = () => {
-    
-            if (xhttp.readyState == 4) {
-            scrapePONS(xhttp.responseText);
-            console.log("curl complete");
-            unpackDictResult(dict_result_PONS);
+        let meaning_sections = PONS_page.querySelectorAll(".rom");
+        let rom_lngth = meaning_sections.length;
+        for(let i = 0; i < rom_lngth; i++) {
+            if(meaning_sections[i].querySelector(".signature-od") == null) {
+            dict_result_PONS[i] = {};
+            let blocks = meaning_sections[i].querySelectorAll(".translations"); //.opened"); this second .opened class seems to not appear when cURL-ing the page
+            let block_lngth = blocks.length;
+            for(let j = 0; j < block_lngth; j++) {
+                if(blocks[j].querySelector("h3").textContent.trim() == "Wendungen:") {
+                dict_result_PONS[i].wendungen = {};
+                let entries_pl = blocks[j].querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
+                let entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
+                let entries_lngth = entries_pl.length;
+                for(let k = 0; k < entries_lngth; k++) {                      
+                    let pl_entry = extractText(entries_pl[k].childNodes);
+                    let eng_entry = extractText(entries_eng[k].childNodes);
+                    dict_result_PONS[i].wendungen[k] = [pl_entry, eng_entry];
+                }
+                }
+                else {
+                dict_result_PONS[i][j] = {};
+                let entries_pl = blocks[j].querySelectorAll(".dt-inner > .source");
+                let entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
+                let entries_lngth = entries_pl.length;
+                for(let k = 0; k < entries_lngth; k++) {   
+                    let pl_entry = extractText(entries_pl[k].childNodes);
+                    let eng_entry = extractText(entries_eng[k].childNodes);
+                    dict_result_PONS[i][j][k] = [pl_entry, eng_entry];
+                }
+                }
             }
-    
+            }
         }
-    
-        xhttp.send(send_data);
+        let beispielsatz_block = PONS_page.querySelector(".results-dict-examples");
+        if(beispielsatz_block != null) {
+            let beispiele_pl = beispielsatz_block.querySelectorAll(".dt-inner > .source");
+            let beispiele_eng = beispielsatz_block.querySelectorAll(".dd-inner > .target");
+            let beispiele_lngth = beispiele_pl.length;
+            for(let i = 0; i < beispiele_lngth; i++) {
+            dict_result_PONS.beispielsaetze[i] = [extractText(beispiele_pl[i].childNodes), extractText(beispiele_eng[i].childNodes)];
+            }
+        }
     };
-    
-    httpRequest("POST", "curl_lookup.php");
-    
-    }
 
     const unpackDictResult = (dict_result) => {
         let dict_body = document.getElementById("dict_body");
@@ -186,16 +254,41 @@
 
     let logo = 1;
     const switchDict = (event) => {
-        if(changed) {
-            document.getElementById('dict_logo').src = 'enwiktionary_grey.png';
-            document.getElementById('dict_logo').title = 'Wiktionary';
-            changed = false;
+        let dict_id = event.target.id;
+
+        switch(dict_id) {
+            case "PONS-pl-en":
+                dict_func = dictLookupPONS_pl_en;
+                document.getElementById("dict_logo").src = "PONS.ico";
+                console.log("pl-en");
+                break;
+            case "PONS-pl-de":
+                dict_func = dictLookupPONS_pl_de;
+                document.getElementById("dict_logo").src = "PONS.ico";
+                console.log("pl-de");
+                break;
+            case "PONS-da-de":
+                dict_func = dictLookupPONS_da_de;
+                document.getElementById("dict_logo").src = "PONS.ico";
+                console.log("da-de");
+                break;
+            case "PONS-ru-de":
+                dict_func = dictLookupPONS_ru_de;
+                document.getElementById("dict_logo").src = "PONS.ico";
+                console.log("ru-de");
+                break;
+            case "PONS-sv-de":
+                dict_func = dictLookupPONS_sv_de;
+                document.getElementById("dict_logo").src = "PONS.ico";
+                console.log("sv-de");
+                break;
+            case "Wk":
+                dict_func = (word) => console.log("Wiktionary support unavailable");
+                document.getElementById("dict_logo").src = "enwiktionary_grey.png";
+                console.log("Wk");
+                break;
         }
-        else {
-            document.getElementById('dict_logo').src = 'PONS.ico';
-            document.getElementById('dict_logo').title = 'PONS.com';
-            changed = true;
-        }
+        event.target.parentElement.style.visibility = "hidden";
     };
 
     document.getElementById("dict_logo").addEventListener('click', () => {
@@ -203,6 +296,10 @@
         if(dict_select.style.visibility == "hidden") dict_select.style.visibility = "visible";
         else dict_select.style.visibility = "hidden";
     });
+
+    for(let dict_entry of document.getElementsByClassName("dict_name")) {
+        dict_entry.addEventListener('click', switchDict);
+    }
 
 </script>
 </html>
