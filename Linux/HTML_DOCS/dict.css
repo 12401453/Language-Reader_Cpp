@@ -138,6 +138,19 @@
     border-right: 2px solid black;
 }
 
+.dict_cell.Wk {
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+}
+.dict_cell.dict_pos {
+    background-color: #172136;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+}
+
 #dict_logo {    
     height: 80%;
     border-radius: 5px;

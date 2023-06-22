@@ -15,6 +15,41 @@ function tt_type() {
 }
 
 let lang_id = 0;
+let Wk_langname = "Polish";
+
+const setWkLangName = () => {
+  switch(lang_id) {
+    case(1):
+        Wk_langname = "Russian";
+        break;
+    case(2):
+        Wk_langname = "Kazakh";
+        break;
+    case(3):
+        Wk_langname = "Polish";
+        break;
+    case(4):
+        Wk_langname = "Bulgarian";
+        break;
+    case(6):
+        Wk_langname = "Swedish";
+        break;
+    case(7):
+        Wk_langname = "Turkish";
+        break;
+    case(8):
+        Wk_langname = "Danish";
+        break;
+    case(9):
+        Wk_langname = "French";
+        break;
+    case(10):
+        Wk_langname = "German";
+        break;
+    default:
+        Wk_langname = "Polish";
+  }
+};
 
 function setLangId() {
   let textselect_value = document.getElementById('textselect').value;
@@ -29,6 +64,7 @@ function setLangId() {
 
       if (xhttp.readyState == 4) {
         lang_id = Number(xhttp.responseText);
+        setWkLangName();
         console.log(lang_id);
       }
 
