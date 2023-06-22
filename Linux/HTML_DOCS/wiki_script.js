@@ -57,7 +57,7 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
             });
             def = def.trim();
             //console.log(def);
-            definition_array.push(def);
+            if(def != "") definition_array.push(def);
             el1 = el1.nextElementSibling;
           }
           dict_result_Wk[pos] = definition_array;       
