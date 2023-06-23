@@ -32,6 +32,8 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
           flag = flag || el.textContent.includes("Preposition");
           flag = flag || el.textContent.includes("Interjection");
           flag = flag || el.textContent.includes("Particle");
+          flag = flag || el.textContent.includes("Determiner");
+          flag = flag || el.textContent.includes("Pronoun");
           if(flag) {
             pos = el.querySelector(".mw-headline").textContent;
             console.log(pos);
