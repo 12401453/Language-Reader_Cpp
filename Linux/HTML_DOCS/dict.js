@@ -153,20 +153,38 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
 
         flag = false;
 
+        let pos_counters = [0,0,0,0,0,0,0,0,0,0,0,0];
+        let pos_index = 0;
+
         if (el.nodeName == "H4" || el.nodeName == "H3"){
 
           flag = flag || el.textContent.includes("Noun");
+          pos_index = 0;
           flag = flag || el.textContent.includes("Verb");
+          pos_index = 1;
           flag = flag || el.textContent.includes("Adverb");
+          pos_index = 2;
           flag = flag || el.textContent.includes("Adjective");
+          pos_index = 3;
           flag = flag || el.textContent.includes("Conjunction");
+          pos_index = 4;
           flag = flag || el.textContent.includes("Preposition");
+          pos_index = 5;
           flag = flag || el.textContent.includes("Interjection");
+          pos_index = 6;
           flag = flag || el.textContent.includes("Particle");
+          pos_index = 7;
           flag = flag || el.textContent.includes("Determiner");
+          pos_index = 8;
           flag = flag || el.textContent.includes("Pronoun");
+          pos_index = 9;
+          flag = flag || el.textContent.includes("Participle");
+          pos_index = 10;
+          flag = flag || el.textContent.includes("Letter");
+          pos_index = 11;
           if(flag) {
             pos = el.querySelector(".mw-headline").textContent;
+            pos_counters[pos_index] = pos_counters[pos_index] + 1;
             console.log(pos);
           };
             
@@ -193,7 +211,12 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
             if(def != "") definition_array.push(def);
             el1 = el1.nextElementSibling;
           }
-          dict_result_Wk[pos] = definition_array;       
+          if(dict_result_Wk[pos] == undefined) {
+            dict_result_Wk[pos] = definition_array;      
+          }
+          else {
+            dict_result_Wk[pos+String(pos_counters[pos_index] + 2)] = definition_array;
+          }
         }
     
       }
