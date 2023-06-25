@@ -153,7 +153,7 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
 
         flag = false;
 
-        let pos_counters = [0,0,0,0,0,0,0,0,0,0,0,0];
+        let pos_counters = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
         let pos_index = 0;
 
         if (el.nodeName == "H4" || el.nodeName == "H3"){
@@ -180,8 +180,14 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
           pos_index = 9;
           flag = flag || el.textContent.includes("Participle");
           pos_index = 10;
-          flag = flag || el.textContent.includes("Letter");
+          flag = flag || el.textContent.includes("Postposition");
           pos_index = 11;
+          flag = flag || el.textContent.includes("Letter");
+          pos_index = 12;
+          flag = flag || el.textContent.includes("Predicative");
+          pos_index = 13;
+          flag = flag || el.textContent.includes("Prefix");
+          pos_index = 14;
           if(flag) {
             pos = el.querySelector(".mw-headline").textContent;
             pos_counters[pos_index] = pos_counters[pos_index] + 1;
