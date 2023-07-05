@@ -1,7 +1,6 @@
 /* type '-lsqlite3' when compiling with g++ to include the sqlite3 library because the header file seems to just be forward declarations */
 /* ICU library if installed on the system can be included with g++ <source files> `pkg-config --libs --cflags icu-uc icu-io` -o <binary name>*/
 #include <sstream>
-#include <fstream>
 #include "WebServer.h"
 #include <math.h>
 #include <sys/stat.h>
@@ -1730,7 +1729,6 @@ void WebServer::sendFontFile(char* url_c_str, int clientSocket) {
 
 bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
     
-    UErrorCode status = U_ZERO_ERROR;
     sqlite3 *DB;
     sqlite3_stmt *statement;
 
@@ -2892,7 +2890,8 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
 }
 
 bool WebServer::curlLookup(std::string _POST[1], int clientSocket) {
-    CurlFetcher query(_POST[0].c_str());
+    
+    CurlFetcher query(_POST[0].c_str(), m_kaz_dict_cookies);
     query.fetch();
     
     std::ostringstream post_response;

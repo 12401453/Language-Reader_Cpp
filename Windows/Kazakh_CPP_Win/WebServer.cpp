@@ -1,7 +1,6 @@
 #include "WebServer.h"
 #include <string>
 #include <sstream>
-#include <fstream>
 #include <math.h>
 #include <sys/stat.h>
 #include <vector>
@@ -1755,7 +1754,6 @@ void WebServer::sendFontFile(char* url_c_str, SOCKET clientSocket) {
 
 bool WebServer::retrieveEngword(std::string _POST[3], SOCKET clientSocket) {
 
-    UErrorCode status = U_ZERO_ERROR;
     sqlite3* DB;
     sqlite3_stmt* statement;
 

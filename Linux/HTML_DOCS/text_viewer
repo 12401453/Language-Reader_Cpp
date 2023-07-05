@@ -30,7 +30,7 @@
   <?php ?>
   </select></div>
   <br><br><br>
-  <div id="tt_button">
+  <div id="tt_button" title="Shift+T">
     <label for="tt_toggle">Tooltip previews</label>
     <input type="checkbox" id="tt_toggle" name="tt_toggle" autocomplete="off" onclick="tt_type()">
   </div><br>

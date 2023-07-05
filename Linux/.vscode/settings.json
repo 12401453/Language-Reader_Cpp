@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.embeddedhtml": "html",
         "array": "cpp",
         "atomic": "cpp",
         "hash_map": "cpp",
@@ -78,6 +79,10 @@
         "xstddef": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "span": "cpp",
+        "stdfloat": "cpp"
     }
 }

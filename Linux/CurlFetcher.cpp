@@ -4,8 +4,9 @@
 
 class CurlFetcher {
     public:
-        CurlFetcher(const char* dict_url) {
+        CurlFetcher(const char* dict_url, std::string curl_cookies="") {
             m_dict_url = dict_url;
+            m_curl_cookies = curl_cookies;
         }
         void fetch() {
             CURL *curl;
@@ -17,7 +18,12 @@ class CurlFetcher {
                 curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
                 curl_easy_setopt(curl, CURLOPT_URL, m_dict_url);
                 curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-                curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); //disable this option to get sozdik.kz to work, otherwise you get blocked by an authentication requirement
+                curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+                if(!m_curl_cookies.empty()) {
+                    curl_easy_setopt(curl, CURLOPT_COOKIE, m_curl_cookies.c_str());
+
+                }
 
                 curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_get_html);
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
@@ -43,4 +49,5 @@ class CurlFetcher {
         }
 
         const char* m_dict_url;
+        std::string m_curl_cookies;
 };

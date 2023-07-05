@@ -153,7 +153,7 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
 
         flag = false;
 
-        let pos_counters = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        let pos_counters = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
         let pos_index = 0;
 
         if (el.nodeName == "H4" || el.nodeName == "H3"){
@@ -188,6 +188,8 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
           pos_index = 13;
           flag = flag || el.textContent.includes("Prefix");
           pos_index = 14;
+          flag = flag || el.textContent.includes("Numeral");
+          pos_index = 15;
           if(flag) {
             pos = el.querySelector(".mw-headline").textContent;
             pos_counters[pos_index] = pos_counters[pos_index] + 1;
@@ -279,6 +281,7 @@ const switchDict = (event) => {
             //dict_func = dictLookupPONS_pl_en;
             dict_func = dictLookupPONS;
             document.getElementById("dict_logo").src = "PONS.ico";
+            document.getElementById("dict_logo").title = "PONS.com";
             dict_url = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-englisch/"
             console.log("pl-en");
             break;
@@ -286,6 +289,7 @@ const switchDict = (event) => {
             //dict_func = dictLookupPONS_pl_de;
             dict_func = dictLookupPONS;
             document.getElementById("dict_logo").src = "PONS.ico";
+            document.getElementById("dict_logo").title = "PONS.com";
             dict_url = "url=https://de.pons.com/%C3%BCbersetzung/polnisch-deutsch/";
             console.log("pl-de");
             break;
@@ -293,6 +297,7 @@ const switchDict = (event) => {
             //dict_func = dictLookupPONS_da_de;
             dict_func = dictLookupPONS;
             document.getElementById("dict_logo").src = "PONS.ico";
+            document.getElementById("dict_logo").title = "PONS.com";
             dict_url = "url=https://de.pons.com/%C3%BCbersetzung/d%C3%A4nisch-deutsch/";
             console.log("da-de");
             break;
@@ -300,6 +305,7 @@ const switchDict = (event) => {
             //dict_func = dictLookupPONS_ru_de;
             dict_func = dictLookupPONS;
             document.getElementById("dict_logo").src = "PONS.ico";
+            document.getElementById("dict_logo").title = "PONS.com";
             dict_url = "url=https://de.pons.com/%C3%BCbersetzung/russisch-deutsch/";
             console.log("ru-de");
             break;
@@ -307,6 +313,7 @@ const switchDict = (event) => {
             //dict_func = dictLookupPONS_sv_de;
             dict_func = dictLookupPONS;
             document.getElementById("dict_logo").src = "PONS.ico";
+            document.getElementById("dict_logo").title = "PONS.com";
             dict_url = "url=https://de.pons.com/%C3%BCbersetzung/schwedisch-deutsch/";
             console.log("sv-de");
             break;
@@ -314,12 +321,14 @@ const switchDict = (event) => {
             //dict_func = dictLookupPONS_de_en;
             dict_func = dictLookupPONS;
             document.getElementById("dict_logo").src = "PONS.ico";
+            document.getElementById("dict_logo").title = "PONS.com";
             dict_url = "url=https://de.pons.com/%C3%BCbersetzung/deutsch-englisch/";
             console.log("de-en");
             break;
         case "Wk":
             dict_func = dictLookupWiktionary;
             document.getElementById("dict_logo").src = "enwiktionary_grey.png";
+            document.getElementById("dict_logo").title = "Wiktionary";
             dict_url = "url=https://en.wiktionary.org/wiki/";
             setWkLangName();
             console.log("Wk");

@@ -1,4 +1,5 @@
 #include "TcpListener.h"
+#include <fstream>
 #include <sqlite3.h>
 #include <unicode/unistr.h>
 #include <unicode/regex.h>
@@ -9,6 +10,17 @@ class WebServer : public TcpListener {
     public:
         WebServer(const char *ipAddress, int port, bool show_output) : TcpListener(ipAddress, port), m_DB_path{"Kazakh.db"}, m_show_output{show_output} {
             if(!m_show_output) std::cout.setstate(std::ios_base::failbit);
+            m_kaz_dict_cookies = "";
+            //this setting of the sozdik.kz cookies should be moved to only run when the language is set to Kazakh, when I implement language-separation
+            std::ifstream kaz_cookies_file;
+            kaz_cookies_file.open("kaz_cookies.txt");
+            if (kaz_cookies_file.good()) {
+                std::getline(kaz_cookies_file, m_kaz_dict_cookies);
+                kaz_cookies_file.close();
+            }
+            else {
+                std::cout << "No kaz_cookies.txt file found\n";
+            }
         }
 
     protected:
@@ -57,6 +69,7 @@ class WebServer : public TcpListener {
         bool retrieveMultiwordMeanings(std::string _POST[2], int clientSocket);
 
         bool curlLookup(std::string _POST[1], int clientSocket);
+        bool curlLookup_sozdik(std::string _POST[1], int clientSocket);
 
         std::string URIDecode(std::string &text);
         std::string htmlspecialchars(const std::string &innerHTML);
@@ -70,7 +83,8 @@ class WebServer : public TcpListener {
         char                m_url[50];
         const char*         m_DB_path;
         std::string         m_cookie[2];
-
         bool                m_show_output;
+
+        std::string         m_kaz_dict_cookies;
 
 };
