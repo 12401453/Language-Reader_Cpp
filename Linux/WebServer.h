@@ -8,14 +8,14 @@
 
 class WebServer : public TcpListener {
     public:
-        WebServer(const char *ipAddress, int port, bool show_output) : TcpListener(ipAddress, port), m_DB_path{"Kazakh.db"}, m_show_output{show_output} {
+        WebServer(const char *ipAddress, int port, bool show_output) : TcpListener(ipAddress, port), m_DB_path{"Kazakh.db"}, m_show_output{show_output}, m_dict_cookies{""} {
             if(!m_show_output) std::cout.setstate(std::ios_base::failbit);
-            m_kaz_dict_cookies = "";
+            
             //this setting of the sozdik.kz cookies should be moved to only run when the language is set to Kazakh, when I implement language-separation
             std::ifstream kaz_cookies_file;
             kaz_cookies_file.open("kaz_cookies.txt");
-            if (kaz_cookies_file.good()) {
-                std::getline(kaz_cookies_file, m_kaz_dict_cookies);
+            if(kaz_cookies_file.good()) {
+                std::getline(kaz_cookies_file, m_dict_cookies);
                 kaz_cookies_file.close();
             }
             else {
@@ -85,6 +85,6 @@ class WebServer : public TcpListener {
         std::string         m_cookie[2];
         bool                m_show_output;
 
-        std::string         m_kaz_dict_cookies;
+        std::string         m_dict_cookies;
 
 };

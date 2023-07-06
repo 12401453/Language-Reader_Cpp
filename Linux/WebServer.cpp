@@ -2891,7 +2891,7 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
 
 bool WebServer::curlLookup(std::string _POST[1], int clientSocket) {
     
-    CurlFetcher query(_POST[0].c_str(), m_kaz_dict_cookies);
+    CurlFetcher query(_POST[0].c_str(), m_dict_cookies);
     query.fetch();
     
     std::ostringstream post_response;
