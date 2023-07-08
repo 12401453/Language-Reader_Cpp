@@ -18,30 +18,42 @@ const dictLookupSozdik = (word) => {
     };
     httpRequest("POST", "curl_lookup.php");
 };
+ 
+function details_extractor (details_elem) {
+    let summary_text = "";
+    details_elem.querySelector('details > summary').childNodes.forEach(childNode => {
+        if(childNode.nodeName == "A") {
+            summary_text += "<span class=\"ru_clickable\">"+childNode.textContent+"</span>";
+        }
+        else if(childNode.nodeType == 3) {
+            summary_text += childNode.textContent;
+        }
+        else {
+            summary_text += childNode.outerHTML;
+        }
+    });
+    return summary_text;
+}
 
 let sozdik_parsed_result = Object.create(null);
 const scrapeSozdik = (sozdik_result) => {
+    sozdik_parsed_result = Object.create(null);
     const parser = new DOMParser();
     let sozdikHTML = parser.parseFromString(sozdik_result.data.translation, 'text/html');
 
     sozdikHTML.body.querySelectorAll('body > details').forEach( (details_elem, i) => {
 
-        let summary_text = "";
-        details_elem.querySelectorAll('body > details')[1].querySelector('summary').childNodes.forEach(childNode => {
-            if(childNode.nodeName == "a") {
-                summary_text += childNode.textContent;
-            }
-            else summary_text += childNode.innerHTML;
-        });
+        let summary_text = details_extractor(details_elem);
         console.log(summary_text);
-        
-        sozdik_parsed_result[i] = summary_text;
+        sozdik_parsed_result[i] = {title: summary_text};
 
-        /*let second_tier_details = */details_elem.querySelectorAll('details > details').forEach(details_elem_2 => {
-
+        details_elem.querySelectorAll('details > details').forEach( (details_elem_2, j) => {
+            let summary_2 = details_extractor(details_elem_2);
+            sozdik_parsed_result[i][j] = {title: summary_2};
         });
         
     });
+};
 
     /*let p_elements = sozdikHTML.getElementsByTagName("p");
     let p_length = p_elements.length;
@@ -57,4 +69,3 @@ const scrapeSozdik = (sozdik_result) => {
         sozdik_parsed_result[f]
         prev_parent = 
     } */
-}
