@@ -28,6 +28,9 @@ function details_extractor (details_elem) {
         else if(childNode.nodeType == 3) {
             summary_text += childNode.textContent;
         }
+        else if(childNode.nodeName == "ABBR") {
+            summary_text += childNode.outerHTML.replace("data-title", "title");
+        }
         else {
             summary_text += childNode.outerHTML;
         }
@@ -47,12 +50,31 @@ const scrapeSozdik = (sozdik_result) => {
         console.log(summary_text);
         sozdik_parsed_result[i] = {title: summary_text};
 
+        details_elem.querySelectorAll('body > details > p').forEach( (p, x) => {
+            sozdik_parsed_result[i][x] = p.innerHTML.replace("abbr data-title", "abbr title");
+        });
+
         details_elem.querySelectorAll('details > details').forEach( (details_elem_2, j) => {
             let summary_2 = details_extractor(details_elem_2);
             sozdik_parsed_result[i][j] = {title: summary_2};
+
+            details_elem_2.querySelectorAll('details > details > p').forEach( (p, y) => {
+                sozdik_parsed_result[i][j][y] = p.innerHTML.replace("abbr data-title", "abbr title");
+            });
+            /* this third-level has only existed due to error on the website's part so far */
+            details_elem_2.querySelectorAll('details > details').forEach( (details_elem_3, k) => {
+                let summary_3 = details_extractor(details_elem_3);
+                sozdik_parsed_result[i][j][k] = {title: summary_3};
+
+                details_elem_3.querySelectorAll('details > details > p').forEach( (p, z) => {
+                    sozdik_parsed_result[i][j][k][z] = p.innerHTML.replace("abbr data-title", "abbr title");
+                });
+            }); /* ^^^^^^^^possible bullshit^^^^^^*/
         });
         
     });
+
+    //the only thing the above doesn't get are phrases which have no <details> tags because they are just <p> elements from the main article of an actual lemma; sozdik.kz allows these to be searched and retrieved stand-alone, so I could either deal with them in this main sozdik_scraper code, or somehow check whether we have a purely <p> result and write a different scraper for those cases
 };
 
     /*let p_elements = sozdikHTML.getElementsByTagName("p");
