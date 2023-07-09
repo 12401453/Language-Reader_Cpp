@@ -53,7 +53,7 @@ const scrapeSozdik = (sozdik_result) => {
     sozdikHTML.body.querySelectorAll('body > details').forEach( (details_elem, i) => {
 
         let summary_text = details_extractor(details_elem);
-        //console.log(summary_text);
+        console.log(summary_text);
         //sozdik_parsed_result[i] = {title: summary_text};
 
         html_str += '<div class="dict_row"><div class="dict_cell sozdik_title">'+summary_text+'</div></div>';
@@ -61,33 +61,35 @@ const scrapeSozdik = (sozdik_result) => {
         details_elem.querySelectorAll('body > details > p').forEach( (p, x) => {
             //sozdik_parsed_result[i][x] 
             let bilingual_phrase = p.innerHTML.replace("abbr data-title", "abbr title").split("→").map(x => x.trim());
-
+            console.log(bilingual_phrase);
             html_str += '<div class="dict_row"><div class="dict_cell left">'+bilingual_phrase[0]+'</div><div class="dict_cell right">'+bilingual_phrase[1]+'</div></div>';
         });
 
         details_elem.querySelectorAll('details > details').forEach( (details_elem_2, j) => {
             let summary_2 = details_extractor(details_elem_2);
             //sozdik_parsed_result[i][j] = {title: summary_2};
+            console.log(summary_2);
 
             html_str += '<div class="dict_row"><div class="dict_cell sozdik_title">'+summary_2+'</div></div>';
 
             details_elem_2.querySelectorAll('details > details > p').forEach( (p, y) => {
                 //sozdik_parsed_result[i][j][y] = 
                 let bilingual_phrase = p.innerHTML.replace("abbr data-title", "abbr title").split("→").map(x => x.trim());
-
+                console.log(bilingual_phrase);
                 html_str += '<div class="dict_row"><div class="dict_cell left">'+bilingual_phrase[0]+'</div><div class="dict_cell right">'+bilingual_phrase[1]+'</div></div>';
             });
             /* this third-level has only existed due to error on the website's part so far */
             details_elem_2.querySelectorAll('details > details').forEach( (details_elem_3, k) => {
                 let summary_3 = details_extractor(details_elem_3);
                 //sozdik_parsed_result[i][j][k] = {title: summary_3};
+                console.log(summary_3);
 
                 html_str += '<div class="dict_row"><div class="dict_cell sozdik_title">'+summary_3+'</div></div>';
 
                 details_elem_3.querySelectorAll('details > details > p').forEach( (p, z) => {
                     //sozdik_parsed_result[i][j][k][z] 
                     let bilingual_phrase = p.innerHTML.replace("abbr data-title", "abbr title").split("→").map(x => x.trim());
-
+                    console.log(bilingual_phrase);
                     html_str += '<div class="dict_row"><div class="dict_cell left">'+bilingual_phrase[0]+'</div><div class="dict_cell right">'+bilingual_phrase[1]+'</div></div>';
                 });
             }); /* ^^^^^^^^possible bullshit^^^^^^*/

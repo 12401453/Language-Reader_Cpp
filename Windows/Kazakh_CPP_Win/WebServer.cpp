@@ -97,7 +97,12 @@ void WebServer::onMessageReceived(SOCKET clientSocket, const char* msg, int leng
         }
         if (!strcmp(fil_ext, ".ttf")) {
             content_type = "font/ttf";
-            sendFontFile(url_c_str, clientSocket);
+            sendFontFile(url_c_str, clientSocket, content_type);
+            return;
+        }
+        if (!strcmp(fil_ext, ".mp3")) {
+            content_type = "audio/mpeg";
+            sendFontFile(url_c_str, clientSocket, content_type);
             return;
         }
 
@@ -1708,7 +1713,7 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream& html) {
 }
 
 
-void WebServer::sendFontFile(char* url_c_str, SOCKET clientSocket) {
+void WebServer::sendFontFile(char* url_c_str, SOCKET clientSocket, const std::string &content_type) {
 
     std::ifstream urlFile(url_c_str, std::ios::binary);
     if (urlFile.good())
@@ -1725,7 +1730,7 @@ void WebServer::sendFontFile(char* url_c_str, SOCKET clientSocket) {
             std::cout << "Error reading fontfile size" << std::endl;
             return;
         }
-        std::string headers = "HTTP/1.1 200 OK\r\nContent-Type: font/ttf\r\nContent-Length: " + std::to_string(font_filesize) + "\r\n\r\n";
+        std::string headers = "HTTP/1.1 200 OK\r\nContent-Type: "+content_type+"\r\nContent-Length: " + std::to_string(font_filesize) + "\r\n\r\n";
         int headers_size = headers.size();
         const char* headers_c_str = headers.c_str();
 

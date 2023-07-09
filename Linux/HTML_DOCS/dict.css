@@ -242,3 +242,7 @@ abbr {
     font-weight: normal;
     font-style: italic;
 }
+
+.ru_clickable {
+    color: cyan;
+}

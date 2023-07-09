@@ -92,9 +92,15 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         }
         if(!strcmp(fil_ext, ".ttf")) {
             content_type = "font/ttf";
-            sendFontFile(url_c_str, clientSocket);
+            sendFontFile(url_c_str, clientSocket, content_type);
             return;
         }
+        if(!strcmp(fil_ext, ".mp3")) {
+            content_type = "audio/mpeg";
+            sendFontFile(url_c_str, clientSocket, content_type);
+            return;
+        }
+
         //should change this to send everything that isn't css, html or JS as binary, change sendFontFile() to sendBinaryData(), and then set the Content-Type header appropriately within that function, so that mp3 or videos etc. work as expected
        
 
@@ -1671,7 +1677,7 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
 }
 
 
-void WebServer::sendFontFile(char* url_c_str, int clientSocket) {
+void WebServer::sendFontFile(char* url_c_str, int clientSocket, const std::string &content_type) {
 
     std::ifstream urlFile(url_c_str, std::ios::binary);
     if (urlFile.good())
@@ -1688,7 +1694,7 @@ void WebServer::sendFontFile(char* url_c_str, int clientSocket) {
             std::cout << "Error reading fontfile size" << std::endl;
             return;
         }
-        std::string headers =  "HTTP/1.1 200 OK\r\nContent-Type: font/ttf\r\nContent-Length: "+ std::to_string(font_filesize) + "\r\n\r\n";
+        std::string headers =  "HTTP/1.1 200 OK\r\nContent-Type: "+content_type+"\r\nContent-Length: "+ std::to_string(font_filesize) + "\r\n\r\n";
         int headers_size = headers.size();
         const char* headers_c_str = headers.c_str();
 
