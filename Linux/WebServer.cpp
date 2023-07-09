@@ -95,6 +95,7 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
             sendFontFile(url_c_str, clientSocket);
             return;
         }
+        //should change this to send everything that isn't css, html or JS as binary, change sendFontFile() to sendBinaryData(), and then set the Content-Type header appropriately within that function, so that mp3 or videos etc. work as expected
        
 
 

@@ -9,7 +9,7 @@ const dictLookupPONS = (word, dict_url) => {
             if (xhttp.readyState == 4) {
             scrapePONS(xhttp.responseText);
             console.log("curl complete");
-            unpackDictResult(dict_result_PONS);
+            unPackPONSResult(dict_result_PONS);
             }
         }; 
         xhttp.send(send_data);
@@ -28,7 +28,7 @@ const dictLookupWiktionary = (word, dict_url, Wk_langname) => {
             if (xhttp.readyState == 4) {
             scrapeWiktionary(xhttp.responseText, Wk_langname);
             console.log("curl complete");
-            unpackDictResult_Wk(dict_result_Wk);
+            unPackWikResult(dict_result_Wk);
             }
         }; 
         xhttp.send(send_data);
@@ -147,57 +147,37 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
     let el = Wk_page.getElementById(Wk_langname).parentNode.nextElementSibling;
     console.log(Wk_langname + " Dictionary Entries Found:");
     
-  
+    let pos_counters = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    let pos_index = 0;
     while(el && langFlag) {
+        
       if(el.nodeName != "H2") {
 
-        flag = false;
-
-        let pos_counters = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-        let pos_index = 0;
-
-        if (el.nodeName == "H4" || el.nodeName == "H3"){
-
-          flag = flag || el.textContent.includes("Noun");
-          pos_index = 0;
-          flag = flag || el.textContent.includes("Verb");
-          pos_index = 1;
-          flag = flag || el.textContent.includes("Adverb");
-          pos_index = 2;
-          flag = flag || el.textContent.includes("Adjective");
-          pos_index = 3;
-          flag = flag || el.textContent.includes("Conjunction");
-          pos_index = 4;
-          flag = flag || el.textContent.includes("Preposition");
-          pos_index = 5;
-          flag = flag || el.textContent.includes("Interjection");
-          pos_index = 6;
-          flag = flag || el.textContent.includes("Particle");
-          pos_index = 7;
-          flag = flag || el.textContent.includes("Determiner");
-          pos_index = 8;
-          flag = flag || el.textContent.includes("Pronoun");
-          pos_index = 9;
-          flag = flag || el.textContent.includes("Participle");
-          pos_index = 10;
-          flag = flag || el.textContent.includes("Postposition");
-          pos_index = 11;
-          flag = flag || el.textContent.includes("Letter");
-          pos_index = 12;
-          flag = flag || el.textContent.includes("Predicative");
-          pos_index = 13;
-          flag = flag || el.textContent.includes("Prefix");
-          pos_index = 14;
-          flag = flag || el.textContent.includes("Numeral");
-          pos_index = 15;
-          if(flag) {
-            pos = el.querySelector(".mw-headline").textContent;
-            pos_counters[pos_index] = pos_counters[pos_index] + 1;
-            console.log(pos);
-          };
-            
-        } 
-
+        if(el.nodeName == "H4" || el.nodeName == "H3") {
+          
+          pos = el.querySelector(".mw-headline").textContent;
+          if(pos.includes("Noun")) {pos_index = 0; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Verb")) {pos_index = 1; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Adverb")) {pos_index = 2; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Adjective")) {pos_index = 3; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Conjunction")) {pos_index = 4; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Preposition")) {pos_index = 5; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Interjection")) {pos_index = 6; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Particle")) {pos_index = 7; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Determiner")) {pos_index = 8; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Pronoun")) {pos_index = 9; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Participle")) {pos_index = 10; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Postposition")) {pos_index = 11; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Letter")) {pos_index = 12; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Predicative")) {pos_index = 13; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Prefix")) {pos_index = 14; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Numeral")) {pos_index = 15; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Article")) {pos_index = 16; pos_counters[pos_index] = pos_counters[pos_index] + 1;}
+          else if (pos.includes("Contraction")) {pos_index = 17; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+          /*else if (pos.includes("Noun")) pos_index = 18;
+          else if (pos.includes("Noun")) pos_index = 19; */     
+        }
+        
         if(el.nodeName == "OL") {
           let definition_array = new Array();
           
@@ -223,20 +203,21 @@ const scrapeWiktionary = (Wk_html, Wk_langname) => {
             dict_result_Wk[pos] = definition_array;      
           }
           else {
-            dict_result_Wk[pos+String(pos_counters[pos_index] + 2)] = definition_array;
+            dict_result_Wk[pos+String(pos_counters[pos_index])] = definition_array;
           }
         }
     
-      }
+      } 
       else { 
         langFlag = false;
       } 
-      el = el.nextElementSibling;
+      el = el.nextElementSibling;   
     }
+    console.log(pos_counters);
   }
 };
 
-const unpackDictResult = (dict_result) => {
+const unPackPONSResult = (dict_result) => {
     let dict_body = document.getElementById("dict_body");
     for(let i in dict_result) {
         if(i == "beispielsaetze") {
@@ -256,7 +237,7 @@ const unpackDictResult = (dict_result) => {
     }
 };
 
-const unpackDictResult_Wk = (dict_result_Wk) => {
+const unPackWikResult = (dict_result_Wk) => {
     let dict_body = document.getElementById("dict_body");
     for(let pos in dict_result_Wk) {
         dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+pos+'</div></div>'));

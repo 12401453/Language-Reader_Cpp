@@ -226,3 +226,19 @@
 .dict_name:last-child {
     border-top-left-radius: 5px;
 }
+
+/* sozdik.kz */
+
+.dict_cell.sozdik_title {
+    background-color: #172136;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+}
+
+abbr {
+    font-weight: normal;
+    font-style: italic;
+}
