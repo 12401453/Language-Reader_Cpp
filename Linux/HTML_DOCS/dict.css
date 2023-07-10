@@ -231,8 +231,9 @@
 
 .dict_cell.sozdik_title {
     background-color: #172136;
-    font-weight: bold;
-    font-size: 14px;
+    font-weight: normal;
+    font-size: 17px;
+    font-family: Calibri;
     text-align: center;
     border-left: 2px solid black;
     border-right: 2px solid black;
@@ -245,4 +246,16 @@ abbr {
 
 .ru_clickable {
     color: cyan;
+}
+.kaz_clickable {
+    color: #ffca00;
+}
+.dict_cell.sozdik_synonyms {
+    background-color: #172136;
+    font-weight: normal;
+    font-size: 14px;
+    text-align: left;
+    font-style: italic;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
 }
