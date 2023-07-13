@@ -45,12 +45,12 @@ class WebServer : public TcpListener {
         void setURL(const char* msg);
         int getPostFields(const char* url);
         void handlePOSTedData(const char* post_data, int clientSocket);
-        bool setCookie(std::string cookie[2], const char* msg);
+        bool readCookie(std::string cookie[2], const char* msg);
 
         bool addText(std::string _POST[3], int clientSocket);
         bool lemmaTooltips(std::string _POST[2], int clientSocket);
         bool retrieveText(std::string text_id[1], int clientSocket);
-        void retrieveText(int cookie_textselect, std::ostringstream &html);
+        void void_retrieveText(std::string cookies[2], std::ostringstream &html);
         bool retrieveTextSplitup(std::string _POST[3], int clientSocket);
         bool retrieveEngword(std::string _POST[3], int clientSocket);
         bool recordLemma(std::string _POST[8], int clientSocket);
@@ -82,7 +82,7 @@ class WebServer : public TcpListener {
         bool                m_POST_continue;
         char                m_url[50];
         const char*         m_DB_path;
-        std::string         m_cookie[2];
+        std::string         m_cookies[2];
         bool                m_show_output;
 
         std::string         m_dict_cookies;

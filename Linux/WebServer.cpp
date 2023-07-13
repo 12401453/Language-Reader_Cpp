@@ -67,10 +67,10 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         strcpy(url_c_str, "HTML_DOCS");
         strcat(url_c_str, msg_url);
 
-        bool cookies_present = setCookie(m_cookie, msg);
+        bool cookies_present = readCookie(m_cookies, msg);
         std::cout << "Cookies present? " << cookies_present << std::endl;
         if(cookies_present) {
-            std::cout << "Cookie key: " << m_cookie[0] << "; Cookie value: " << m_cookie[1] << std::endl;
+            std::cout << "text_id cookie: " << m_cookies[0] << "; current_pageno cookie: " << m_cookies[1] << std::endl;
         }
 
         std::string content = "<h1>404 Not Found</h1>"; 
@@ -257,11 +257,11 @@ int WebServer::checkHeaderEnd(const char* msg) {
         while (std::getline(urlFile, line))
         {   
             if(page_type > 0 && line.find("<?php") != -1) insertTextSelect(ss_text);
-            else if(page_type == 1 && cookies_present && line.find("<?cky") != -1) retrieveText(std::stoi(m_cookie[1]), ss_text); 
+            else if(page_type == 1 && cookies_present && line.find("<?cky") != -1) void_retrieveText(m_cookies, ss_text); 
             else if(page_type == 1 && line.find("<?cky") != -1) ss_text << "<br><br>\n";
             
             //For some reason I do not understand, if you insert a <script> tag to declare the below JS variable outside of the script tag at the bottom, on Chrome Android the server very often will get stuck for absolutely ages on loading the Bookerly font file when you refresh the page, and the javascript engine will freeze for about 5-10seconds, but this never happens on Desktop. Thus I've had to make up another bullshit <?js tag to signal where to insert this C++-generated JS, and the only reason I'm inserting it server-side is because JS string functions are absolute dogshit and compared to my C-string parsing of the cookie text, doing it on the client by parsing the document.cookie string is ungodlily inefficient
-            else if(page_type == 1 && cookies_present && line.find("<?js") != -1) ss_text << "let cookie_textselect = " + m_cookie[1] + ";\n";
+            else if(page_type == 1 && cookies_present && line.find("<?js") != -1) ss_text << "let cookie_textselect = " + m_cookies[0] + ";\n";
             else if(page_type == 1 && line.find("<?js") != -1) ss_text << "let cookie_textselect = 0;\n";
 
             else if(page_type == 2 && line.find("<?lng") != -1) insertLangSelect(ss_text);
@@ -676,7 +676,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/curl_lookup.php")) return 1;
     else return 10;
 }
-
+/*
 bool WebServer::setCookie(std::string cookie[2], const char* msg) {
     int cookie_start = c_strFind(msg, "\r\nCookie") + 9;
     if(cookie_start == 8) return false; //c_strFind() returns -1 if unsuccessful, but I've just added 9 to it so the number signalling no cookies is 8
@@ -696,6 +696,39 @@ bool WebServer::setCookie(std::string cookie[2], const char* msg) {
     val[val_length] = '\0';
 
     cookie[1] = val;
+    return true;
+} */
+
+bool WebServer::readCookie(std::string cookie[2], const char* msg) {
+    int cookie_start = c_strFind(msg, "\r\nCookie") + 9;
+    if(cookie_start == 8) return false; //c_strFind() returns -1 if unsuccessful, but I've just added 9 to it so the number signalling no cookies is 8
+
+    const char* cookie_keys[2] {" text_id=", " current_pageno="};
+
+    for(int i = 0; i < 2; i++) {
+        int cookieName_start = c_strFind(msg+cookie_start, cookie_keys[i]);
+        if(i == 0 && cookieName_start == -1) return false;
+        if(cookieName_start == -1) {
+            cookie[i] = "1";
+            break;
+        }
+        //printf("cookieName_start: %i\n", cookieName_start);
+
+        int cookieName_length = strlen(cookie_keys[i]);
+
+        int val_length = c_strFindNearest(msg+cookie_start+cookieName_start + cookieName_length, ";", "\r\n");
+        //std::cout << "Cookie val_length: " << val_length << "\n";
+
+        char val[val_length + 1];
+        for(int j = 0; j < val_length; j++) {
+            val[j] = (msg + cookie_start + cookieName_start + cookieName_length)[j];
+            //printf("val[j] = %c\n", val[j]);
+        }
+        val[val_length] = '\0';
+
+        cookie[i] = val;
+    }
+
     return true;
 }
 
@@ -920,7 +953,7 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
     
     }
 
-    std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nSet-Cookie: text_id=" + _POST[0] + "; Max-Age=0\r\n\r\n";
+    std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nSet-Cookie: text_id=" + _POST[0] + "; Max-Age=0\r\nSet-Cookie: current_pageno=1\r\n\r\n";
     int size = POST_response.size() + 1;
 
     sendToClient(clientSocket, POST_response.c_str(), size);
@@ -1099,7 +1132,8 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
        std::ostringstream post_response_ss;
        post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length;
-       post_response_ss << "\r\n" << "Set-Cookie: text_id=" << text_id[0];
+       post_response_ss << "\r\n" << "Set-Cookie: text_id=" << text_id[0] << "; Max-Age=157680000";
+       post_response_ss << "\r\nSet-Cookie: current_pageno=1; Max-Age=157680000";
        post_response_ss << "\r\n\r\n" << content_str;
        int length = post_response_ss.str().size() + 1;
        sendToClient(clientSocket, post_response_ss.str().c_str(), length);
@@ -1206,16 +1240,6 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
             }
             html << "\">";
             
-
-            /*  if(lemma_id) {
-                html << "<span class=\"tooltip lemma_set_unexplicit lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
-            }
-            else if(first_lemma_id) {
-                html << "<span class=\"tooltip lemma_set_unexplicit\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
-            }
-            else {
-                html << "<span class=\"tooltip\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
-            } */
         }
         else {
             if(!strcmp(text_word, "¬")) {
@@ -1300,7 +1324,8 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
     std::ostringstream post_response_ss;
     post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html;charset=UTF-8\r\nContent-Length: " << content_length;
-    post_response_ss << "\r\n" << "Set-Cookie: text_id=" << text_id[0];
+    post_response_ss << "\r\nSet-Cookie: text_id=" << text_id[0] << "; Max-Age=157680000";
+    post_response_ss << "\r\nSet-Cookie: current_pageno=1; Max-Age=157680000";
     post_response_ss << "\r\n\r\n" << content_str;
     int length = post_response_ss.str().size() + 1;
     sendToClient(clientSocket, post_response_ss.str().c_str(), length);
@@ -1435,7 +1460,7 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
         int content_length = content_str.size();
 
         std::ostringstream post_response_ss;
-        post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << content_str;
+        post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n" << "Set-Cookie: current_pageno=" << page_cur << "; Max-Age=157680000\r\n\r\n" << content_str;
         int length = post_response_ss.str().size() + 1;
         sendToClient(clientSocket, post_response_ss.str().c_str(), length);
         std::cout << "Sent text to client" << std::endl;
@@ -1479,9 +1504,9 @@ bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
     else return false;
 }
 
-void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
-
-    std::cout << cookie_textselect << std::endl;
+void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &html) {
+    int cookie_textselect = std::stoi(cookies[0]);
+    int cookie_pageno = std::stoi(cookies[1]);
 
     if(cookie_textselect == 0) {
         html << "<br><br>\n";
@@ -1522,7 +1547,8 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         text_title_utf8.findAndReplace("¬", "\'");
         std::string text_title_str;
         text_title_utf8.toUTF8String(text_title_str);
-        html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">&emsp;";
+        html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">"; 
+        if(cookie_pageno == 1) html << "&emsp;";
         
      /*   else {
             html << "<h1 id=\"title\">" << sqlite3_column_text(statement, 2) << "</h1><br><div id=\"textbody\">&emsp;";
@@ -1577,8 +1603,16 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         chunk_count = 1;
         sql_text = "SELECT * FROM display_text WHERE tokno >= ? AND tokno <= ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        sqlite3_bind_int64(statement, 1, dt_start);
-        sqlite3_bind_int64(statement, 2, dt_end);
+        if(pagenos > 1) {
+            sqlite3_bind_int64(statement, 1, page_toknos[cookie_pageno - 1]);
+            sqlite3_bind_int64(statement, 2, dt_end); //it's complicated bollocks to put the exact current-page ending tokno, because on the final page there is no subsequent page to get it from, so it'd be pointless extra if-statements. 
+    
+        }
+        else {
+            sqlite3_bind_int64(statement, 1, dt_start);
+            sqlite3_bind_int64(statement, 2, dt_end);
+        }
+        
         //run_code = sqlite3_step(statement);
  
         int space, word_engine_id, lemma_meaning_no, lemma_id;
@@ -1654,15 +1688,15 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         sqlite3_finalize(stmt);
         sqlite3_finalize(statement);
         html << "</div>";
-       
-        
+
+
         if(pagenos > 1) {
             html << "<br><br><div id=\"pagenos\">";
 
             for(int i = 0; i < pagenos; i++) {
                 std::cout << "Page " << i + 1 << " starting tokno: " << page_toknos[i] << std::endl;
                 html << "<span class=\"pageno";
-                if(i == 0) html << " current_pageno";
+                if(i == cookie_pageno - 1) html << " current_pageno";
                 html << "\" onclick=\"selectText_splitup("<< page_toknos[i] << ", " << dt_end << ", " << i + 1 << ")\">" << i + 1 << "</span>";
             }
             html << "</div>";
