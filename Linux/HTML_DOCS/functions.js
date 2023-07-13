@@ -118,13 +118,7 @@ function selectText() {
             mw.addEventListener('mouseover', underlineMultiwords);
             mw.addEventListener('mouseout', removeUnderlineMultiwords);
           });
-           
-          let pagenos = document.querySelectorAll('.pageno');
-          pagenos.forEach(pageno => {
-            if(Number(pageno.innerHTML) == 1) {
-              pageno.classList.add("current_pageno");
-            }
-          }); 
+          
           if(tooltips_shown) {
             lemmaTooltip();
           }

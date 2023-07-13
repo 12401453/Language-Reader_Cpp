@@ -50,7 +50,7 @@
   </div>
   <div id="dict_bottombar">
      <textarea id="dict_searchbox"></textarea>
-     <img id="dict_logo" src="PONS.ico" title="PONS.com"></img>
+     <img id="dict_logo" src="PONS.png" title="PONS.com"></img>
      <div id="dict_select" style="visibility: hidden;">
        <div class="dict_name" id="PONS-pl-en">Polish (en)</div>
        <div class="dict_name" id="PONS-de-en">German</div>
@@ -110,15 +110,7 @@ window.onload = () => {
         }
       }
       if(textid_deleted == false) {
-        let pagenos = document.querySelectorAll('.pageno');
-        pagenos.forEach(pageno => {
-          if(Number(pageno.innerHTML) == 1) {
-            pageno.classList.add("current_pageno");
-          }
-        });
-
         let tt_btns = document.querySelectorAll('.tooltip');
-
         tt_btns.forEach(tt_btn => {
           tt_btn.onclick = showAnnotate;
         });

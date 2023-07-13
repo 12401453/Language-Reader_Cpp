@@ -38,7 +38,7 @@ private:
     void buildGETContent(short int page_type, char* url_c_str, std::string& content, bool cookies_present);
     void insertTextSelect(std::ostringstream& html);
     void insertLangSelect(std::ostringstream &html);
-    void sendFontFile(char* url_c_str, SOCKET clientSocket, const std::string &content_type);
+    void sendBinaryFile(char* url_c_str, SOCKET clientSocket, const std::string &content_type);
 
     int checkHeaderEnd(const char* msg);
     void buildPOSTedData(const char* msg, bool headers_present, int length);

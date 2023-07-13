@@ -87,22 +87,29 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         if(!strcmp(fil_ext, ".css")) {
             content_type = "text/css";
         }
-        if(!strcmp(fil_ext + 1, ".js")) {
+        else if(!strcmp(fil_ext + 1, ".js")) {
             content_type = "application/javascript";
         }
-        if(!strcmp(fil_ext, ".ttf")) {
+        else if(!strcmp(fil_ext, ".ttf")) {
             content_type = "font/ttf";
-            sendFontFile(url_c_str, clientSocket, content_type);
+            sendBinaryFile(url_c_str, clientSocket, content_type);
             return;
         }
-        if(!strcmp(fil_ext, ".mp3")) {
+        else if(!strcmp(fil_ext, ".mp3")) {
             content_type = "audio/mpeg";
-            sendFontFile(url_c_str, clientSocket, content_type);
+            sendBinaryFile(url_c_str, clientSocket, content_type);
             return;
         }
-
-        //should change this to send everything that isn't css, html or JS as binary, change sendFontFile() to sendBinaryData(), and then set the Content-Type header appropriately within that function, so that mp3 or videos etc. work as expected
-       
+        else if(!strcmp(fil_ext, ".png")) {
+            content_type = "image/png";
+            sendBinaryFile(url_c_str, clientSocket, content_type);
+            return;
+        }
+        else if(!strcmp(fil_ext, ".svg")) {
+            content_type = "image/svg+xml";
+            sendBinaryFile(url_c_str, clientSocket, content_type);
+            return;
+        }       
 
 
         buildGETContent(page_type, url_c_str, content, cookies_present);       
@@ -1276,7 +1283,9 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
         for(int i = 0; i < pagenos; i++) {
             std::cout << "Page " << i + 1 << " starting tokno: " << page_toknos[i] << std::endl;
-            html << "<span class=\"pageno\" onclick=\"selectText_splitup("<< page_toknos[i] << ", " << dt_end << ", " << i + 1 << ")\">" << i + 1 << "</span>";
+            html << "<span class=\"pageno";
+            if(i == 0) html << " current_pageno";
+            html << "\" onclick=\"selectText_splitup("<< page_toknos[i] << ", " << dt_end << ", " << i + 1 << ")\">" << i + 1 << "</span>";
         }
         html << "</div>";
     }
@@ -1508,12 +1517,12 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         int lang_id = sqlite3_column_int(statement, 3);
         
         
-            const char* text_title = (const char*)sqlite3_column_text(statement, 2);
-            icu::UnicodeString text_title_utf8 = text_title;
-            text_title_utf8.findAndReplace("¬", "\'");
-            std::string text_title_str;
-            text_title_utf8.toUTF8String(text_title_str);
-            html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">&emsp;";
+        const char* text_title = (const char*)sqlite3_column_text(statement, 2);
+        icu::UnicodeString text_title_utf8 = text_title;
+        text_title_utf8.findAndReplace("¬", "\'");
+        std::string text_title_str;
+        text_title_utf8.toUTF8String(text_title_str);
+        html << "<h1 id=\"title\">" << text_title_str << "</h1><br><div id=\"textbody\">&emsp;";
         
      /*   else {
             html << "<h1 id=\"title\">" << sqlite3_column_text(statement, 2) << "</h1><br><div id=\"textbody\">&emsp;";
@@ -1528,16 +1537,50 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         int chunk_total = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
         std::cout << "Total number of chunks in this text: " << chunk_total << std::endl;
-        
+
+        /* new bollocks below */
+
+        int chunk_count {1};
+        float words_per_page {750};
+        int words_per_page_int = (int)words_per_page;
+        sqlite3_int64 tokno;
+
+        int pagenos = (int)ceil(chunk_total/words_per_page);
+        sqlite3_int64 page_toknos[pagenos];
+
+        if(pagenos > 1) {
+            page_toknos[0] = dt_start;
+            int arr_index = 1;
+
+            sql_text = "SELECT tokno FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space = 1 OR text_word = '\n')";
+            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_int64(statement, 1, dt_start);
+            sqlite3_bind_int64(statement, 2, dt_end);
+
+            while(sqlite3_step(statement) == SQLITE_ROW) {
+            
+                tokno = sqlite3_column_int64(statement, 0);
+                
+                if(chunk_count % words_per_page_int == 0) {
+                    page_toknos[arr_index] = tokno + 1;
+                    std::cout << "arr_index: " << arr_index << std::endl;
+                    std::cout << "chunk_count: " << chunk_count << std::endl;
+                    arr_index++;
+                    
+                }
+                chunk_count++;
+            }   
+            sqlite3_finalize(statement);
+        }
+
+        /* new bollocks above */
+        chunk_count = 1;
         sql_text = "SELECT * FROM display_text WHERE tokno >= ? AND tokno <= ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_int64(statement, 1, dt_start);
         sqlite3_bind_int64(statement, 2, dt_end);
         //run_code = sqlite3_step(statement);
-
-        int chunk_count {1};
-        float words_per_page {750};
-        sqlite3_int64 tokno;
+ 
         int space, word_engine_id, lemma_meaning_no, lemma_id;
 
         sqlite3_stmt* stmt;
@@ -1581,17 +1624,6 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
                     html << " multiword\" data-multiword=\"" << multiword_count;
                 }
                 html << "\">";
-                
-
-              /*  if(lemma_id) {
-                    html << "<span class=\"tooltip lemma_set_unexplicit lemma_set\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
-                }
-                else if(first_lemma_id) {
-                    html << "<span class=\"tooltip lemma_set_unexplicit\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
-                }
-                else {
-                    html << "<span class=\"tooltip\" data-word_engine_id=\"" << word_engine_id << "\" data-tokno=\"" << tokno << "\">";
-                } */
             }
             else {
                 if(!strcmp(text_word, "¬")) {
@@ -1622,44 +1654,16 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
         sqlite3_finalize(stmt);
         sqlite3_finalize(statement);
         html << "</div>";
+       
         
-
-        if(chunk_total > words_per_page) {
+        if(pagenos > 1) {
             html << "<br><br><div id=\"pagenos\">";
-
-            chunk_count = 1;
-            int pagenos = (int)ceil(chunk_total/words_per_page);
-            sqlite3_int64 page_toknos[pagenos];
-            
-            
-            page_toknos[0] = dt_start;
-
-            int arr_index = 1;
-
-            sql_text = "SELECT tokno FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space = 1 OR text_word = '\n')";
-            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-            sqlite3_bind_int64(statement, 1, dt_start);
-            sqlite3_bind_int64(statement, 2, dt_end);
-
-            while(sqlite3_step(statement) == SQLITE_ROW) {
-            
-                tokno = sqlite3_column_int64(statement, 0);
-                
-                if(chunk_count % 750 == 0) {
-                    page_toknos[arr_index] = tokno + 1;
-                    std::cout << "arr_index: " << arr_index << std::endl;
-                    std::cout << "chunk_count: " << chunk_count << std::endl;
-                    arr_index++;
-                    
-                }
-                chunk_count++;
-            }
-            
-            sqlite3_finalize(statement);
 
             for(int i = 0; i < pagenos; i++) {
                 std::cout << "Page " << i + 1 << " starting tokno: " << page_toknos[i] << std::endl;
-                html << "<span class=\"pageno\" onclick=\"selectText_splitup("<< page_toknos[i] << ", " << dt_end << ", " << i + 1 << ")\">" << i + 1 << "</span>";
+                html << "<span class=\"pageno";
+                if(i == 0) html << " current_pageno";
+                html << "\" onclick=\"selectText_splitup("<< page_toknos[i] << ", " << dt_end << ", " << i + 1 << ")\">" << i + 1 << "</span>";
             }
             html << "</div>";
         }
@@ -1677,7 +1681,7 @@ void WebServer::retrieveText(int cookie_textselect, std::ostringstream &html) {
 }
 
 
-void WebServer::sendFontFile(char* url_c_str, int clientSocket, const std::string &content_type) {
+void WebServer::sendBinaryFile(char* url_c_str, int clientSocket, const std::string &content_type) {
 
     std::ifstream urlFile(url_c_str, std::ios::binary);
     if (urlFile.good())
