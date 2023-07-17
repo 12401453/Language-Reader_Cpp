@@ -69,7 +69,7 @@ const scrapePONS = (PONS_html) => {
     const extractText = (node_list) => {
         let text = "";
         node_list.forEach(node => {
-        if(node.nodeType == 1 && node.matches(".case, .info, .rhetoric, .genus, .style, .topic, .restriction, .complement")) {
+        if(node.nodeType == 1 && node.matches(".case, .info, .rhetoric, .genus, .style, .topic, .restriction, .complement, .region")) {
             text += "[" + node.textContent + "]";
         }
         else if(node.nodeType == 1 && node.matches(".collocator")) {

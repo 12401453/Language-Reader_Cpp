@@ -83,6 +83,8 @@
         "charconv": "cpp",
         "format": "cpp",
         "span": "cpp",
-        "stdfloat": "cpp"
+        "stdfloat": "cpp",
+        "bitset": "cpp",
+        "forward_list": "cpp"
     }
 }

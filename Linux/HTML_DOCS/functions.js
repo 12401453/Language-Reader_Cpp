@@ -290,7 +290,8 @@ function loadText() {
   
     if(xhttp.readyState == 4)  {
       loadingbutton.innerHTML = "&nbsp;&nbsp;Done&nbsp;&nbsp;"; //not really needed
-      location.reload(); /* window.open("update_db.php"); */
+      //location.reload(); /* window.open("update_db.php"); */
+      window.location = "/text_viewer";
     }
   }
    xhttp.send(send_data);
@@ -665,12 +666,12 @@ const switchMeaning = function (event) {
   document.getElementById("lemma_textarea").focus();
   
 };
-//this is just placeholder
+
 const disRegard = function () {
   const httpRequest = (method, url) => {
 
 
-    let send_data = "word_engine_id=" + word_engine_id + "&tokno_current=" + tokno_current;
+    let send_data = "tokno_current=" + tokno_current + "&word_engine_id=" + word_engine_id;
 
     const xhttp = new XMLHttpRequest();
     xhttp.open(method, url, true);
@@ -680,18 +681,17 @@ const disRegard = function () {
     xhttp.onload = () => {
       console.log("sent");
       // console.log(xhttp.responseText);
-      if (xhttp.readyState == 4) {
-        let json_response = xhttp.response;
-        console.log(json_response);
-        console.log(json_response.word); //the keys in the JSON string have to be in quotes, but as members of the json object they are just retrievable as if the key-name were a variable name. It also works as json_response["word"].
+      if (xhttp.readyState == 4 && xhttp.status == 204) {
+        let word_element = document.querySelector("[data-tokno='"+tokno_current+"']");
+        word_element.outerHTML = word_element.firstChild.textContent;
 
-
+        delAnnotate();
       }
     }
     xhttp.send(send_data);
   }
 
-  httpRequest("POST", "json_test.php");
+  httpRequest("POST", "disregard_word.php");
 };
 
 const lemmaRecord = function () {
@@ -1471,7 +1471,7 @@ const reactivateArrows = (meaning_no, max_meaning_no) => {
 };
 
 const displayAnnotBox = function () {
-  let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
+  let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
   document.getElementById('spoofspan').after(annot_box);
 };
 
