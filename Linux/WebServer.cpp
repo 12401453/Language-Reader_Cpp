@@ -67,7 +67,8 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         strcpy(url_c_str, "HTML_DOCS");
         strcat(url_c_str, msg_url);
 
-        bool cookies_present = readCookie(m_cookies, msg);
+        bool cookies_present = false;
+        if(page_type == 1) cookies_present = readCookie(m_cookies, msg);
         std::cout << "Cookies present? " << cookies_present << std::endl;
         if(cookies_present) {
             std::cout << "text_id cookie: " << m_cookies[0] << "; current_pageno cookie: " << m_cookies[1] << std::endl;
@@ -387,7 +388,7 @@ void WebServer::buildPOSTedData(const char* msg, bool headers_present, int lengt
     else {
         
         std::string post_data_cont {msg};
-        m_post_data_incomplete += post_data_cont;
+        m_post_data_incomplete.append(post_data_cont);
         m_post_data = m_post_data_incomplete.c_str();
         m_bytes_handled += length;
         if(m_total_post_bytes == m_bytes_handled) {
@@ -703,13 +704,13 @@ bool WebServer::setCookie(std::string cookie[2], const char* msg) {
     return true;
 } */
 
-bool WebServer::readCookie(std::string cookie[2], const char* msg) {
+bool WebServer::readCookie(std::string cookie[3], const char* msg) {
     int cookie_start = c_strFind(msg, "\r\nCookie") + 9;
     if(cookie_start == 8) return false; //c_strFind() returns -1 if unsuccessful, but I've just added 9 to it so the number signalling no cookies is 8
 
-    const char* cookie_keys[2] {" text_id=", " current_pageno="};
+    const char* cookie_keys[3] {" text_id=", " current_pageno=", " lang_id="};
 
-    for(int i = 0; i < 2; i++) {
+    for(int i = 0; i < 3; i++) {
         int cookieName_start = c_strFind(msg+cookie_start, cookie_keys[i]);
         if(i == 0 && cookieName_start == -1) return false;
         if(cookieName_start == -1) {
@@ -977,7 +978,7 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
 
         std::cout << "sqlite_close: " << sqlite3_close(DB) << std::endl;
 
-        std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nSet-Cookie: text_id="+std::to_string(new_text_id)+"; Max-Age=157680000\r\nSet-Cookie: lang_id="+std::to_string(lang_id)+"; Max-Age=157680000\r\n\r\n";
+        std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nSet-Cookie: text_id="+std::to_string(new_text_id)+"; Max-Age=157680000\r\nSet-Cookie: lang_id="+std::to_string(lang_id)+"; Max-Age=157680000\r\nSet-Cookie: current_pageno=1; Max-Age=157680000\r\n\r\n";
         int size = POST_response.size() + 1;
 
         sendToClient(clientSocket, POST_response.c_str(), size);
@@ -1219,7 +1220,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
        std::ostringstream post_response_ss;
        post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length;
-       post_response_ss << "\r\n" << "Set-Cookie: text_id=" << text_id[0] << "; Max-Age=157680000";
+       post_response_ss << "\r\n" << "Set-Cookie: text_id=0; Max-Age=157680000";
        post_response_ss << "\r\nSet-Cookie: current_pageno=1; Max-Age=157680000";
        post_response_ss << "\r\n\r\n" << content_str;
        int length = post_response_ss.str().size() + 1;

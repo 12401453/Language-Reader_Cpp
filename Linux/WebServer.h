@@ -83,7 +83,7 @@ class WebServer : public TcpListener {
         bool                m_POST_continue;
         char                m_url[50];
         const char*         m_DB_path;
-        std::string         m_cookies[2];
+        std::string         m_cookies[3];
         bool                m_show_output;
 
         std::string         m_dict_cookies;
