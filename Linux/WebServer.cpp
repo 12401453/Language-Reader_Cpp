@@ -1265,7 +1265,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
     } */
     sqlite3_finalize(statement);
 
-    sql_text = "SELECT count(*) FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space IS NOT NULL OR text_word = '\n')";
+    sql_text = "SELECT count(*) FROM display_text WHERE tokno >= ? AND tokno <= ? AND space IS NOT NULL"; // OR text_word = '\n')";
     prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
     sqlite3_bind_int64(statement, 1, dt_start);
     sqlite3_bind_int64(statement, 2, dt_end);
@@ -1327,10 +1327,10 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
         }
         else {
             //needed only for legacy texts - should alter the database manually to bring it in line with new addTexts() function really
-            if(!strcmp(text_word, "\n")) {
+          /*  if(!strcmp(text_word, "\n")) {
                 text_word = "<br></span><span class=\"chunk\">";
                 if(space == 0) chunk_count++;
-            }
+            } */
             // ^^
 
             /* else{
@@ -1378,7 +1378,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
         int arr_index = 1;
 
-        sql_text = "SELECT tokno FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space IS NOT NULL OR text_word = '\n')";
+        sql_text = "SELECT tokno FROM display_text WHERE tokno >= ? AND tokno <= ? AND space IS NOT NULL"; // OR text_word = '\n')";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_int64(statement, 1, dt_start);
         sqlite3_bind_int64(statement, 2, dt_end);
@@ -1505,10 +1505,10 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
             }
             else {
                 //needed only for legacy texts - should alter the database manually to bring it in line with new addTexts() function really
-                if(!strcmp(text_word, "\n")) {
+               /* if(!strcmp(text_word, "\n")) {
                     text_word = "<br></span><span class=\"chunk\">";
                     if(space == 0) chunk_count++;
-                }
+                } */
                 // ^^
 
                 /* else{
@@ -1641,7 +1641,7 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
         } */
         sqlite3_finalize(statement);
 
-        sql_text = "SELECT count(*) FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space IS NOT NULL OR text_word = '\n')";
+        sql_text = "SELECT count(*) FROM display_text WHERE tokno >= ? AND tokno <= ? AND space IS NOT NULL"; // OR text_word = '\n')";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_int64(statement, 1, dt_start);
         sqlite3_bind_int64(statement, 2, dt_end);
@@ -1664,7 +1664,7 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
             page_toknos[0] = dt_start;
             int arr_index = 1;
 
-            sql_text = "SELECT tokno FROM display_text WHERE tokno >= ? AND tokno <= ? AND (space IS NOT NULL OR text_word = '\n')";
+            sql_text = "SELECT tokno FROM display_text WHERE tokno >= ? AND tokno <= ? AND space IS NOT NULL"; // OR text_word = '\n')";
             prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
             sqlite3_bind_int64(statement, 1, dt_start);
             sqlite3_bind_int64(statement, 2, dt_end);
@@ -1743,10 +1743,10 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
             }
             else {
                 //needed only for legacy texts - should alter the database manually to bring it in line with new addTexts() function really
-                if(!strcmp(text_word, "\n")) {
+               /* if(!strcmp(text_word, "\n")) {
                     text_word = "<br></span><span class=\"chunk\">";
                     if(space == 0) chunk_count++;
-                }
+                } */
                 // ^^
 
                 /* else{
@@ -3051,6 +3051,11 @@ bool WebServer::disregardWord(std::string _POST[2], int clientSocket) {
         sqlite3_int64 tokno = std::stol(_POST[0]);
         int word_engine_id = std::stoi(_POST[1]);
 
+        const char* sql_BEGIN = "BEGIN IMMEDIATE";
+        const char* sql_COMMIT = "COMMIT";
+
+        sqlite3_exec(DB, sql_BEGIN, nullptr, nullptr, nullptr);
+
         const char* sql_text = "UPDATE display_text SET word_engine_id = NULL WHERE tokno = ?";
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_int64(statement, 1, tokno);
@@ -3065,7 +3070,9 @@ bool WebServer::disregardWord(std::string _POST[2], int clientSocket) {
 
         std::string post_response = "HTTP/1.1 204 No Content\r\n\r\n";
         int length = post_response.size() + 1;
-        sendToClient(clientSocket, post_response.c_str(), length);
+        sendToClient(clientSocket, post_response.c_str(), length); //not commiting the transaction until after the response is sent makes it seem much faster on the frontend, but it is cheeky and probably dangerous
+
+        sqlite3_exec(DB, sql_COMMIT, nullptr, nullptr, nullptr);
 
         sqlite3_close(DB);
         return true;
