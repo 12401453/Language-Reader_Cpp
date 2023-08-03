@@ -10,7 +10,6 @@ class WebServer : public TcpListener {
     public:
         WebServer(const char *ipAddress, int port, bool show_output) : TcpListener(ipAddress, port), m_DB_path{"Kazakh.db"}, m_show_output{show_output}, m_dict_cookies{""} {
             if(!m_show_output) std::cout.setstate(std::ios_base::failbit);
-            
             //this setting of the sozdik.kz cookies should be moved to only run when the language is set to Kazakh, when I implement language-separation
             std::ifstream kaz_cookies_file;
             kaz_cookies_file.open("kaz_cookies.txt");
@@ -45,7 +44,7 @@ class WebServer : public TcpListener {
         void setURL(const char* msg);
         int getPostFields(const char* url);
         void handlePOSTedData(const char* post_data, int clientSocket);
-        bool readCookie(std::string cookie[2], const char* msg);
+        bool readCookie(std::string cookie[3], const char* msg);
 
         bool addText(std::string _POST[3], int clientSocket);
         bool lemmaTooltips(std::string _POST[2], int clientSocket);
@@ -81,7 +80,7 @@ class WebServer : public TcpListener {
         int                 m_total_post_bytes;
         int                 m_bytes_handled;
         bool                m_POST_continue;
-        char                m_url[50];
+        char                m_url[50]; //only applies to POST urls; you can crash the server by sending it a POST request with a >50 char url but not by having long-named GETted resource amongst the HTML_DOCS
         const char*         m_DB_path;
         std::string         m_cookies[3];
         bool                m_show_output;

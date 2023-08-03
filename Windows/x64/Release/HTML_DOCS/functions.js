@@ -15,6 +15,41 @@ function tt_type() {
 }
 
 let lang_id = 0;
+let Wk_langname = "Polish";
+
+const setWkLangName = () => {
+  switch(lang_id) {
+    case(1):
+        Wk_langname = "Russian";
+        break;
+    case(2):
+        Wk_langname = "Kazakh";
+        break;
+    case(3):
+        Wk_langname = "Polish";
+        break;
+    case(4):
+        Wk_langname = "Bulgarian";
+        break;
+    case(6):
+        Wk_langname = "Swedish";
+        break;
+    case(7):
+        Wk_langname = "Turkish";
+        break;
+    case(8):
+        Wk_langname = "Danish";
+        break;
+    case(9):
+        Wk_langname = "French";
+        break;
+    case(10):
+        Wk_langname = "German";
+        break;
+    default:
+        Wk_langname = "Polish";
+  }
+};
 
 function setLangId() {
   let textselect_value = document.getElementById('textselect').value;
@@ -29,6 +64,7 @@ function setLangId() {
 
       if (xhttp.readyState == 4) {
         lang_id = Number(xhttp.responseText);
+        setWkLangName();
         console.log(lang_id);
       }
 
@@ -82,13 +118,7 @@ function selectText() {
             mw.addEventListener('mouseover', underlineMultiwords);
             mw.addEventListener('mouseout', removeUnderlineMultiwords);
           });
-           
-          let pagenos = document.querySelectorAll('.pageno');
-          pagenos.forEach(pageno => {
-            if(Number(pageno.innerHTML) == 1) {
-              pageno.classList.add("current_pageno");
-            }
-          }); 
+          
           if(tooltips_shown) {
             lemmaTooltip();
           }
@@ -260,7 +290,8 @@ function loadText() {
   
     if(xhttp.readyState == 4)  {
       loadingbutton.innerHTML = "&nbsp;&nbsp;Done&nbsp;&nbsp;"; //not really needed
-      location.reload(); /* window.open("update_db.php"); */
+      //location.reload(); /* window.open("update_db.php"); */
+      window.location = "/text_viewer";
     }
   }
    xhttp.send(send_data);
@@ -635,12 +666,12 @@ const switchMeaning = function (event) {
   document.getElementById("lemma_textarea").focus();
   
 };
-//this is just placeholder
+
 const disRegard = function () {
   const httpRequest = (method, url) => {
 
 
-    let send_data = "word_engine_id=" + word_engine_id + "&tokno_current=" + tokno_current;
+    let send_data = "tokno_current=" + tokno_current + "&word_engine_id=" + word_engine_id;
 
     const xhttp = new XMLHttpRequest();
     xhttp.open(method, url, true);
@@ -650,18 +681,17 @@ const disRegard = function () {
     xhttp.onload = () => {
       console.log("sent");
       // console.log(xhttp.responseText);
-      if (xhttp.readyState == 4) {
-        let json_response = xhttp.response;
-        console.log(json_response);
-        console.log(json_response.word); //the keys in the JSON string have to be in quotes, but as members of the json object they are just retrievable as if the key-name were a variable name. It also works as json_response["word"].
+      if (xhttp.readyState == 4 && xhttp.status == 204) {
+        let word_element = document.querySelector("[data-tokno='"+tokno_current+"']");
+        word_element.outerHTML = word_element.firstChild.textContent;
 
-
+        delAnnotate();
       }
     }
     xhttp.send(send_data);
   }
 
-  httpRequest("POST", "json_test.php");
+  httpRequest("POST", "disregard_word.php");
 };
 
 const lemmaRecord = function () {
@@ -1441,7 +1471,7 @@ const reactivateArrows = (meaning_no, max_meaning_no) => {
 };
 
 const displayAnnotBox = function () {
-  let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine (DOES NOTHING ATM)">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
+  let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
   document.getElementById('spoofspan').after(annot_box);
 };
 
@@ -1592,3 +1622,57 @@ window.addEventListener("keyup", event1 => {
     multiword.addEventListener('mouseover', underlineMultiwords);
     multiword.addEventListener('mouseout', removeUnderlineMultiwords);
   });
+
+  
+function dictLookupDanish(word) {
+  const pars = new DOMParser();
+  let send_data = "url=https://ordnet.dk/ddo/ordbog?query="+encodeURIComponent(word);
+  const httpRequest = (method, url) => {
+  
+      const xhttp = new XMLHttpRequest();
+      xhttp.open(method, url, true);
+      xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      xhttp.responseType = 'text';
+      xhttp.onreadystatechange = () => {
+  
+        if (xhttp.readyState == 4) {
+          let response_page = pars.parseFromString(xhttp.responseText, "text/html");
+          response_page.getElementById("content-betydninger").querySelectorAll(".definition").forEach(def => {console.log(def.textContent.trim());});
+        }
+  
+      }
+  
+      xhttp.send(send_data);
+  };
+  
+  httpRequest("POST", "curl_lookup.php");
+  
+}
+
+//sozdik will require login after about 15 translations, but I've found copying the HTTP headers used when logged in (by right-clicking the relevant request in the 'Network' tab of DevTools and selecting "Copy as cURL") allows curl to get data and it seems to fetch it straight from the API when you do that rather than load the whole HTML, so there probably will need to be a way of logging in manually via the browser once and then sending the HTTP headers with the authentication codes to the server so it can use them in its CURL requests; a tedious and laborious undertaking to be sure but one that needs to be done for serious Kazakh work
+function dictLookupKazakh(word) {
+  const pars = new DOMParser();
+  let send_data = "url=https://sozdik.kz/ru/dictionary/translate/kk/ru/"+encodeURIComponent(word)+"/";
+  const httpRequest = (method, url) => {
+
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.responseType = 'text';
+    xhttp.onreadystatechange = () => {
+
+      if (xhttp.readyState == 4) {
+        let response_page = pars.parseFromString(xhttp.responseText, "text/html");
+
+        response_page.getElementById("dictionary_translate_article_translation").querySelectorAll("details").forEach(detail => {console.log(detail.querySelector("summary").textContent.trim());});
+
+      }
+
+    }
+
+    xhttp.send(send_data);
+  };
+
+  httpRequest("POST", "curl_lookup.php");
+
+}

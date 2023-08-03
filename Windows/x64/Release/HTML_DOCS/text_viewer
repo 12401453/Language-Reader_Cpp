@@ -4,6 +4,8 @@
 <head>
 <link rel="stylesheet" type="text/css" href="tooltip_prevs.css" id="tt_styles">
 <link rel="stylesheet" type="text/css" href="flexbox.css" id="flexbox_styles">
+<link href="dict.css" rel="stylesheet" type="text/css">
+<link href="dict.css" rel="stylesheet" type="text/css">
 
   <link href="style.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
 <link href="style_small_screen.css" rel="stylesheet" media="all and (max-width: 768px)" type="text/css">
@@ -28,7 +30,7 @@
   <?php ?>
   </select></div>
   <br><br><br>
-  <div id="tt_button">
+  <div id="tt_button" title="Shift+T">
     <label for="tt_toggle">Tooltip previews</label>
     <input type="checkbox" id="tt_toggle" name="tt_toggle" autocomplete="off" onclick="tt_type()">
   </div><br>
@@ -42,7 +44,27 @@
 </div>
 <span id="spoofspan" style="display: inline;"></span>
 <span id="spoofspan2"><span id="hidden_lemma_tag"></span></span>
+<div id="dict_outline">
+  <div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div>
+  <div id="dict_body" style="display: flex;">
+  </div>
+  <div id="dict_bottombar">
+     <textarea id="dict_searchbox"></textarea>
+     <img id="dict_logo" src="PONS.png" title="PONS.com"></img>
+     <div id="dict_select" style="visibility: hidden;">
+       <div class="dict_name" id="PONS-pl-en">Polish (en)</div>
+       <div class="dict_name" id="PONS-de-en">German</div>
+       <div class="dict_name" id="PONS-pl-de">Polish (de)</div>
+       <div class="dict_name" id="Wk">Wiktionary</div>
+       <div class="dict_name" id="PONS-ru-de">Russian</div>
+       <div class="dict_name" id="PONS-sv-de">Swedish</div>
+       <div class="dict_name" id="PONS-da-de">Danish</div>
+     </div>
+  </div>
+  </div>
 <script src="functions.js"></script>
+<script src="dict.js"></script>
+<script src="sozdik_lookup.js"></script>
 </body>
 </html>
 <script>
@@ -88,15 +110,7 @@ window.onload = () => {
         }
       }
       if(textid_deleted == false) {
-        let pagenos = document.querySelectorAll('.pageno');
-        pagenos.forEach(pageno => {
-          if(Number(pageno.innerHTML) == 1) {
-            pageno.classList.add("current_pageno");
-          }
-        });
-
         let tt_btns = document.querySelectorAll('.tooltip');
-
         tt_btns.forEach(tt_btn => {
           tt_btn.onclick = showAnnotate;
         });

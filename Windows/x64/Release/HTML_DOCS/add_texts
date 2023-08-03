@@ -4,7 +4,7 @@
 <head>
 
   <link href="style.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
-<link href="style_small_screen.css" rel="stylesheet" media="all and (max-width: 768px)" type="text/css">
+  <link href="style_small_screen.css" rel="stylesheet" media="all and (max-width: 768px)" type="text/css">
 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,7 +25,8 @@
 <span id="lang_button">
   <label for="langselect">Language:</label>
   <select id="langselect" name="langselect" form="formid">
-  <option value="4">Bulgarian</option><option value="8">Danish</option><option value="2">Kazakh</option><option value="3">Polish</option><option value="1">Russian</option><option value="7">Turkish</option>
+  <?lng
+  <!-- <option value="4">Bulgarian</option><option value="8">Danish</option><option value="2">Kazakh</option><option value="3">Polish</option><option value="1">Russian</option><option value="7">Turkish</option> -->
   </select></span><br><br><br>
 
 

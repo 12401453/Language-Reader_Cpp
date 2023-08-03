@@ -676,9 +676,9 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/delete_multiword.php")) return 4;
     else if(!strcmp(url, "/update_MW_translations.php")) return 3;
     else if(!strcmp(url, "/pull_multiword.php")) return 2;
-    else if(!strcmp(url, "/clear_table.php")) return 0;
     else if(!strcmp(url, "/curl_lookup.php")) return 1;
     else if(!strcmp(url, "/disregard_word.php")) return 2;
+    else if(!strcmp(url, "/clear_table.php")) return 0;  
     else return 10;
 }
 /*
@@ -745,8 +745,6 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
 
     sqlite3 *DB;
     sqlite3_stmt *statement;
-
-    
 
     if(!sqlite3_open(m_DB_path, &DB)) {
 
@@ -966,15 +964,12 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
         sqlite3_step(statement);
         int new_text_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
-
       
         prep_code = sqlite3_prepare_v2(DB, sql_COMMIT, -1, &statement, NULL);
         run_code = sqlite3_step(statement);
         std::cout << prep_code << " " << run_code << std::endl;
 
         sqlite3_finalize(statement);
-
-       
 
         std::cout << "sqlite_close: " << sqlite3_close(DB) << std::endl;
 
@@ -987,8 +982,7 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
     else {
         std::cout << "Database connection failed on addText()\n";
         return false;
-    }
-    
+    }   
 }
 
 bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
@@ -999,55 +993,56 @@ bool WebServer::deleteText(std::string _POST[1], int clientSocket) {
     sqlite3_stmt* statement;
 
     if(!sqlite3_open(m_DB_path, &DB)) {
-    int prep_code, run_code;
-    const char* sql_text;
+        int prep_code, run_code;
+        const char* sql_text;
+        
+        sql_text = "SELECT MAX(text_id) FROM texts";
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        run_code = sqlite3_step(statement);
+        int end_text_id = sqlite3_column_int(statement, 0);
+        sqlite3_finalize(statement);
+
+        bool end_text = (end_text_id == text_id);
+
+        sql_text = "SELECT dt_start, dt_end FROM texts WHERE text_id = ?";
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, text_id);
+        run_code = sqlite3_step(statement);
+        std::cout << prep_code << " " << run_code << std::endl;
+
+        sqlite3_int64 dt_start = sqlite3_column_int64(statement, 0);
+        sqlite3_int64 dt_end = sqlite3_column_int64(statement, 1);
+        sqlite3_finalize(statement);
+
+        sql_text = "DELETE FROM display_text WHERE tokno >= ? AND tokno <= ?";
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int64(statement, 1, dt_start);
+        sqlite3_bind_int64(statement, 2, dt_end);
+        run_code = sqlite3_step(statement);
+        std::cout << prep_code << " " << run_code << std::endl;
+        sqlite3_finalize(statement);
+
+        sql_text = "DELETE FROM texts WHERE text_id = ?";
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, text_id);
+        run_code = sqlite3_step(statement);
+        std::cout << prep_code << " " << run_code << std::endl;
+        sqlite3_finalize(statement);
+
+        sqlite3_close(DB);
     
-    sql_text = "SELECT MAX(text_id) FROM texts";
-    prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-    run_code = sqlite3_step(statement);
-    int end_text_id = sqlite3_column_int(statement, 0);
-    sqlite3_finalize(statement);
+        std::cout << dt_start << "-->" << dt_end << std::endl;
 
-    bool end_text = (end_text_id == text_id);
+        std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nSet-Cookie: text_id=" + _POST[0] + "; Max-Age=0\r\nSet-Cookie: current_pageno=1\r\n\r\n";
+        int size = POST_response.size() + 1;
 
-    sql_text = "SELECT dt_start, dt_end FROM texts WHERE text_id = ?";
-    prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-    sqlite3_bind_int(statement, 1, text_id);
-    run_code = sqlite3_step(statement);
-    std::cout << prep_code << " " << run_code << std::endl;
-
-    sqlite3_int64 dt_start = sqlite3_column_int64(statement, 0);
-    sqlite3_int64 dt_end = sqlite3_column_int64(statement, 1);
-    sqlite3_finalize(statement);
-
-    sql_text = "DELETE FROM display_text WHERE tokno >= ? AND tokno <= ?";
-    prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-    sqlite3_bind_int64(statement, 1, dt_start);
-    sqlite3_bind_int64(statement, 2, dt_end);
-    run_code = sqlite3_step(statement);
-    std::cout << prep_code << " " << run_code << std::endl;
-    sqlite3_finalize(statement);
-
-    sql_text = "DELETE FROM texts WHERE text_id = ?";
-    prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-    sqlite3_bind_int(statement, 1, text_id);
-    run_code = sqlite3_step(statement);
-    std::cout << prep_code << " " << run_code << std::endl;
-    sqlite3_finalize(statement);
-
-    sqlite3_close(DB);
-   
-    std::cout << dt_start << "-->" << dt_end << std::endl;
-    
+        sendToClient(clientSocket, POST_response.c_str(), size);
+        return true;
     }
-
-    std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nSet-Cookie: text_id=" + _POST[0] + "; Max-Age=0\r\nSet-Cookie: current_pageno=1\r\n\r\n";
-    int size = POST_response.size() + 1;
-
-    sendToClient(clientSocket, POST_response.c_str(), size);
-    return true;
-
-
+    else {
+        std::cout << "Database connection failed on deleteText()\n";
+        return false;    
+    }  
 }
 
 bool WebServer::lemmaTooltips(std::string _POST[2], int clientSocket) {
@@ -1428,7 +1423,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
     }
     else {       
-        
+        std::cout << "Database connection failed on retrieveText()\n";
         return false; 
     }
 }
@@ -1440,7 +1435,7 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
 
     std::ostringstream html;
 
-    if (!sqlite3_open(m_DB_path, &DB)) {
+    if(!sqlite3_open(m_DB_path, &DB)) {
 
         int prep_code, run_code;
         const char *sql_text;
@@ -1552,8 +1547,10 @@ bool WebServer::retrieveTextSplitup(std::string _POST[3], int clientSocket) {
         std::cout << "Sent text to client" << std::endl;
         return true;
     }
-
-    else return false;
+    else {
+        std::cout << "Database connection failed on retrieveTextSplitup()\n";
+        return false;
+    }
 }
 
 bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
@@ -3081,6 +3078,5 @@ bool WebServer::disregardWord(std::string _POST[2], int clientSocket) {
         std::cout << "Database connection failed on disregardWord()\n";
         return false;
     }
-
 
 }
