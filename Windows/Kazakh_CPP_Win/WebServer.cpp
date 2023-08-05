@@ -522,6 +522,12 @@ void WebServer::handlePOSTedData(const char* post_data, SOCKET clientSocket) {
 
     int post_fields = getPostFields(m_url);
 
+    if(post_fields == -1) {
+        std::string bad_post_response = "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 30\r\n\r\nUnrecognised POST url - repent";
+        sendToClient(clientSocket, bad_post_response.c_str(), bad_post_response.length() + 1);
+        return;
+    }
+
     if(post_fields == 0 && !strcmp(m_url, "/clear_table.php")) { //clearing the table could be ruinous so adding the extra condition is prudent and should never be run except if post_fields == 0
         std::cout << "m_url: " << m_url << std::endl;
         bool php_func_success = clearTable(clientSocket);
@@ -669,13 +675,13 @@ void WebServer::setURL(const char* msg) {
     //  printf("url_end: %i\n", url_end);
     
     //char url[url_end - url_start + 1];
-    char url[4096];
-    memset(url, '\0', 4096);
-    for (int i = 0; i < url_end - url_start; i++)
+    char url[50];
+    memset(url, '\0', 50);
+    for (int i = 0; i < url_end - url_start && i < 49; i++)
     {
         url[i] = msg[url_start + i];
     }
-    url[url_end - url_start] = '\0';
+    //url[url_end - url_start] = '\0'; //redundant and allows writing off the end of the buffer
 
     strcpy(m_url, url); //m_url is max 50 chars but this is allowed because I tightly control what the POST urls are; using std::string would be wasteful
 }
@@ -701,7 +707,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/curl_lookup.php")) return 1;
     else if(!strcmp(url, "/disregard_word.php")) return 2;
     else if(!strcmp(url, "/clear_table.php")) return 0;
-    else return 10;
+    else return -1;
 }
 /*
 bool WebServer::setCookie(std::string cookie[2], const char* msg) {
