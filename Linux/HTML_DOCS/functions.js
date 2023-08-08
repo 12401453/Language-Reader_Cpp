@@ -1562,11 +1562,11 @@ const makeDraggable = function () {
 let diff_unexplicit_annot = false;
 const differentiateAnnotations = function () {
   if(diff_unexplicit_annot) {
-    document.getElementById("tt_styles").href = "tooltip_prevs.css";
+    document.getElementById("lemma_set_style").href = "lemma_set.css";
     diff_unexplicit_annot = false;
   }
   else {
-    document.getElementById("tt_styles").href = "tooltip_prevs_diff.css";
+    document.getElementById("lemma_set_style").href = "lemma_set_unexplicit.css";
     diff_unexplicit_annot = true;
   }
 

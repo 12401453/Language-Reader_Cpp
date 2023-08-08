@@ -2,13 +2,14 @@
 <html>
 
 <head>
-<link rel="stylesheet" type="text/css" href="tooltip_prevs.css" id="tt_styles">
+  
+
+<link href="style.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
+<link href="style_small_screen.css" rel="stylesheet" media="all and (max-width: 768px)" type="text/css">
+<link rel="stylesheet" type="text/css" href="lemma_set.css" id="lemma_set_style">
 <link rel="stylesheet" type="text/css" href="flexbox.css" id="flexbox_styles">
 <link href="dict.css" rel="stylesheet" type="text/css">
-<link href="dict.css" rel="stylesheet" type="text/css">
 
-  <link href="style.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
-<link href="style_small_screen.css" rel="stylesheet" media="all and (max-width: 768px)" type="text/css">
 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
