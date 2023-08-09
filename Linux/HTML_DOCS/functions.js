@@ -849,6 +849,7 @@ const lemmaTooltip = function () {
           i++;
         });
         document.getElementById("tt_toggle").disabled = false;
+        ttPosition();
       }
 
     }
@@ -933,7 +934,9 @@ let word_engine_id = 0;
 let annotation_mode = 0;
 ///////////////////////////////
 
-function showAnnotate(event) { 
+function showAnnotate(event) {
+  if(window.innerWidth < 769) return;
+
   if(display_word != null) delAnnotate();
   display_word = event.target;
   display_word.onclick = "";
@@ -1291,6 +1294,7 @@ const selectMultiword = (event) => {
 };
 
 const showMultiwordAnnotate = (event) => {
+  if(window.innerWidth < 769) return;
   if(display_word != null) delAnnotate();
   display_word = event.target;
   display_word.onclick = "";
@@ -1559,7 +1563,7 @@ const makeDraggable = function () {
 
 };
 
-let diff_unexplicit_annot = false;
+let diff_unexplicit_annot = true;
 const differentiateAnnotations = function () {
   if(diff_unexplicit_annot) {
     document.getElementById("lemma_set_style").href = "lemma_set.css";
@@ -1613,15 +1617,55 @@ window.addEventListener("keyup", event1 => {
   }
 });
 
-  const underlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px solid rgb(0, 255, 186)";})); };
+const underlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px solid rgb(0, 255, 186)";})); };
 
-  const removeUnderlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px dotted rgb(0, 255, 186, 0.5)";})); };
+const removeUnderlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px dotted rgb(0, 255, 186, 0.5)";})); };
 
-  document.querySelectorAll('.multiword').forEach(multiword => {
-    multiword.onclick = showMultiwordAnnotate;
-    multiword.addEventListener('mouseover', underlineMultiwords);
-    multiword.addEventListener('mouseout', removeUnderlineMultiwords);
+document.querySelectorAll('.multiword').forEach(multiword => {
+  multiword.onclick = showMultiwordAnnotate;
+  multiword.addEventListener('mouseover', underlineMultiwords);
+  multiword.addEventListener('mouseout', removeUnderlineMultiwords);
+});
+
+
+const ttPosition = function () {
+  const viewport_width = window.visualViewport.width;
+  if(viewport_width > 768) return;
+
+  const tooltips = document.body.querySelectorAll(".lemma_tt");
+  
+  tooltips.forEach(tooltip => {
+
+    tooltip.style.transform = "none";
+    tooltip.style.border = "none";
+    
+    let rectRight = tooltip.getBoundingClientRect().right;
+    let right_overflow = rectRight - viewport_width;
+    let rectLeft = tooltip.getBoundingClientRect().left;
+    let left_overflow = -1*rectLeft;
+
+
+    //console.log("right overflow: "+right_overflow);
+    if(right_overflow > 0) {
+    tooltip.style.transform = `translateX(${-1*right_overflow - 1}px)`;
+    //tooltip.style.border = "1px solid red";
+    }
+    else if(left_overflow > 0) {
+      tooltip.style.transform = `translateX(${left_overflow + 1}px)`;
+    }
+    
+      /* console.log(tooltip);
+      console.log(rectRight);
+      console.log(right_overflow);
+      console.log(viewport_width); */
+
   });
+
+};
+
+window.addEventListener("resize", ttPosition);
+
+
 
   
 function dictLookupDanish(word) {

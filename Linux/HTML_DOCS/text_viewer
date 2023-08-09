@@ -6,10 +6,9 @@
 
 <link href="style.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
 <link href="style_small_screen.css" rel="stylesheet" media="all and (max-width: 768px)" type="text/css">
-<link rel="stylesheet" type="text/css" href="lemma_set.css" id="lemma_set_style">
+<link rel="stylesheet" type="text/css" href="lemma_set_unexplicit.css" id="lemma_set_style">
 <link rel="stylesheet" type="text/css" href="flexbox.css" id="flexbox_styles">
 <link href="dict.css" rel="stylesheet" type="text/css">
-
 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -36,7 +35,7 @@
     <input type="checkbox" id="tt_toggle" name="tt_toggle" autocomplete="off" onclick="tt_type()">
   </div><br>
   <div id="tt_button"><label for="diffannot_toggle">Mark automatic annotations</label>
-    <input type="checkbox" id="diffannot_toggle" name="diffannot_toggle" autocomplete="off" onclick="differentiateAnnotations()">
+    <input type="checkbox" id="diffannot_toggle" name="diffannot_toggle" autocomplete="off" onclick="differentiateAnnotations()" checked>
   </div><br>  
 <p1 id="p1">
 <?cky ?>

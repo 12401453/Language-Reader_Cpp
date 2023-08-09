@@ -5,12 +5,16 @@
    @font-face {font-family: PT_Serif; src: url('PTSerif-Regular.ttf'); }
    @font-face {font-family: IBM_Plex_Sans; src: url('IBMPlexSans-Regular.ttf'); }
    @font-face {font-family: Calibri; src: url('calibri.ttf'); }
-      p1 {
-         font-family: Bookerly; color: #cbd9f4;
-         max-width: 100%;
-         align-self: stretch;
 
-      }
+body {
+  margin: 8px;
+}
+  
+p1 {
+  font-family: Bookerly; color: #cbd9f4;
+  max-width: 100%;
+  align-self: stretch;
+}
 
 #main_text {
   display: flex;
@@ -353,7 +357,7 @@
       z-index: 1;
       bottom: 100%;
       left: 50%;
-      margin-left: -85px;
+      margin-left: -62.5px;
     
       display: flex;
       flex-flow: column nowrap;

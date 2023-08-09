@@ -1,8 +1,8 @@
-   @font-face { font-family: LiberationSerif; src: url('LiberationSerif-Regular.ttf'); }
-   @font-face {font-family: Bookerly; src: url('Bookerly.ttf'); }
-   @font-face {font-family: PT_Serif; src: url('PTSerif-Regular.ttf'); }
-   @font-face {font-family: IBM_Plex_Sans; src: url('IBMPlexSans-Regular.ttf'); }
-   @font-face {font-family: Calibri; src: url('calibri.ttf'); }
+   @font-face { font-family: LiberationSerif; src: local('Liberation Serif, Regular') ,url('LiberationSerif-Regular.ttf'); }
+   @font-face {font-family: Bookerly; src: local('Bookerly') ,url('Bookerly.ttf'); }
+   @font-face {font-family: PT_Serif; src: local('PT Serif'), url('PTSerif-Regular.ttf'); }
+   @font-face {font-family: IBM_Plex_Sans; src: local('IBM Plex Sans'), url('IBMPlexSans-Regular.ttf'); }
+   @font-face {font-family: Calibri; src: local('Calibri'), url('calibri.ttf'); }
 
   p1 {
     font-family: Bookerly; color: #cbd9f4;
