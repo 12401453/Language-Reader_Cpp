@@ -61,7 +61,7 @@
        <div class="dict_name" id="PONS-da-de">Danish</div>
      </div>
   </div>
-  </div>
+</div>
 <script src="functions.js"></script>
 <script src="dict.js"></script>
 <script src="sozdik_lookup.js"></script>

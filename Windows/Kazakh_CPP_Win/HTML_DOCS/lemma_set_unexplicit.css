@@ -1,0 +1,21 @@
+.lemma_set_unexplicit {
+  color: rgb(0 255 186 / 76%);
+
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.lemma_set {
+  color: rgb(0 255 186);
+
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+.lemma_set:hover, .lemma_set_unexplicit:hover {
+  color: rgb(0 255 34);
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}

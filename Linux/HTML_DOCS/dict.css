@@ -37,6 +37,7 @@
 
     box-sizing: border-box;
     height: 60px;
+    min-height: 60px; /*looks redundant but without it the bar shrinks to 57 when the results pop up, fuck knows why */
     width: 100%;
     border-left: 2px solid black;
     border-right: 2px solid black;
