@@ -138,13 +138,16 @@ class Dictionary {
         this.dict_type = dicts_arr[(dicts_arr.indexOf(this.dict_type) + 1) % dicts_arr.length];
         console.log("dict_type: "+this.dict_type);
         document.getElementById("dict_logo").outerHTML = '<img id="dict_logo" src="' + this.logos[this.dict_type].logo_url + '></img>';
-        console.log('<img id="dict_logo" src="' + this.logos[this.dict_type].logo_url + '></img>');
+        //console.log('<img id="dict_logo" src="' + this.logos[this.dict_type].logo_url + '></img>');
+        if(this.dict_type == 4) document.getElementById("dict_logo").style.filter = "hue-rotate(270deg)";
+        else document.getElementById("dict_logo").style.filter = "none";
         document.getElementById("dict_logo").addEventListener('click', this.switchDict);
     };
     
 
 
     lookUp(word, dict_type=this.dict_type, PONS_german=this.PONS_german) {
+        if(this.bool_displayed == false) return;
         document.getElementById("dict_body").innerHTML = "";
         document.getElementById("dict_body").style.display = "flex";
         let send_data = "url="+this.urlMaker(word, dict_type, PONS_german); //this has all been URI-encoded already
@@ -175,6 +178,15 @@ class Dictionary {
         dict_body.style.display = "flex";
         dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+message+'</div></div>'));
     }
+
+    lookUpMouseSelection = (event) => {
+        if(event.key == "Enter") {
+            let lemma_tag_area = document.getElementById("lemma_tag");
+            const highlighted_text = lemma_tag_area.value.slice(lemma_tag_area.selectionStart, lemma_tag_area.selectionEnd);
+            this.lookUp(highlighted_text);
+            event.preventDefault();
+        }        
+    };
 
     /* Dict-type codes:
         PONS: 1

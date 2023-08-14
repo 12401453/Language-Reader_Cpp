@@ -1009,6 +1009,7 @@ const fetchLemmaData = function (box_present = true) {
         document.getElementById('meaning_rightarrow').onclick = switchMeaning;
         document.getElementById('lemma_tag').onblur = pullInLemma;
 
+        document.getElementById("lemma_tag").addEventListener("keydown", dict.lookUpMouseSelection); //DELETE
       } //}, 1300);
     }
     xhttp.send(send_data);
@@ -1449,6 +1450,7 @@ const fetchMultiwordData = function (box_present = true) {
         document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
         document.getElementById('lemma_tag').onblur = "";
 
+        document.getElementById("lemma_tag").addEventListener("keydown", dict.lookUpMouseSelection);
       }
     }
     xhttp.send(send_data);
