@@ -183,6 +183,7 @@ class Dictionary {
         if(event.key == "Enter") {
             let lemma_tag_area = document.getElementById("lemma_tag");
             const highlighted_text = lemma_tag_area.value.slice(lemma_tag_area.selectionStart, lemma_tag_area.selectionEnd);
+            document.getElementById("dict_searchbox").value = highlighted_text;
             this.lookUp(highlighted_text);
             event.preventDefault();
         }        

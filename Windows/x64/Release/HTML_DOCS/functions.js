@@ -15,7 +15,7 @@ function tt_type() {
 }
 
 let lang_id = 0;
-let Wk_langname = "Polish";
+/*let Wk_langname = "Polish";
 
 const setWkLangName = () => {
   switch(lang_id) {
@@ -49,8 +49,8 @@ const setWkLangName = () => {
     default:
         Wk_langname = "Polish";
   }
-};
-
+}; */
+let dict = Object.create(null);
 function setLangId() {
   let textselect_value = document.getElementById('textselect').value;
   let post_data = "textselect=" + textselect_value;
@@ -64,8 +64,11 @@ function setLangId() {
 
       if (xhttp.readyState == 4) {
         lang_id = Number(xhttp.responseText);
-        setWkLangName();
+        //setWkLangName();
         console.log(lang_id);
+        if(dict.bool_displayed == true) dict.remove();
+        dict = new Dictionary();
+        dict.display();
       }
 
     }
@@ -1006,6 +1009,7 @@ const fetchLemmaData = function (box_present = true) {
         document.getElementById('meaning_rightarrow').onclick = switchMeaning;
         document.getElementById('lemma_tag').onblur = pullInLemma;
 
+        document.getElementById("lemma_tag").addEventListener("keydown", dict.lookUpMouseSelection); //DELETE
       } //}, 1300);
     }
     xhttp.send(send_data);
@@ -1446,6 +1450,7 @@ const fetchMultiwordData = function (box_present = true) {
         document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
         document.getElementById('lemma_tag').onblur = "";
 
+        document.getElementById("lemma_tag").addEventListener("keydown", dict.lookUpMouseSelection);
       }
     }
     xhttp.send(send_data);

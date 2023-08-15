@@ -44,7 +44,7 @@
 </div>
 <span id="spoofspan" style="display: inline;"></span>
 <span id="spoofspan2"><span id="hidden_lemma_tag"></span></span>
-<div id="dict_outline">
+<!--<div id="dict_outline">
   <div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div>
   <div id="dict_body" style="display: flex;">
   </div>
@@ -61,10 +61,11 @@
        <div class="dict_name" id="PONS-da-de">Danish</div>
      </div>
   </div>
-</div>
+</div> -->
 <script src="functions.js"></script>
-<script src="dict.js"></script>
-<script src="sozdik_lookup.js"></script>
+<script src="dict_class.js"></script>
+<!--<script src="dict.js"></script>
+<script src="sozdik_lookup.js"></script> -->
 </body>
 </html>
 <script>
