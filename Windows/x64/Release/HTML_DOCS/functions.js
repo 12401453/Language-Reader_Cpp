@@ -307,6 +307,10 @@ function loadText() {
 
 
 function clearTable() {
+
+  if(!confirm("Are you absolutely sure you want to clear the entire database and delete all your texts and saved words?")) {
+    return;
+  }
   
   let loadingbutton = document.createElement('div');
   loadingbutton.innerHTML = "Loading...";

@@ -32,6 +32,9 @@ class Dictionary {
                 this.dict_type = 1;
                 this.lang_name = "Danish";
                 break;
+            case 9:
+                this.dict_type = 2;
+                this.lang_name = "Indonesian";
         }
     }
 
@@ -99,12 +102,11 @@ class Dictionary {
         6: [1,2],
         7: [1,2],
         8: [1,2],
+        9: [2],
     };
 
     display() {
         let logo_url = this.logos[this.dict_type].logo_url;
-        //if(this.dict_type == 2) logo_url = 'enwiktionary_grey.png" title="Wiktionary"';
-       // else if(this.dict_type == 3 || this.dict_type == 4) logo_url = 'sozdik.svg" title="sozdik.kz"';
         let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox"></textarea><img id="dict_logo" src="'+logo_url+'></img></div></div>');
         document.getElementById("spoofspan2").after(dict_html);
         document.getElementById("dict_searchbox").addEventListener("keydown", this.submit);
@@ -138,7 +140,6 @@ class Dictionary {
         this.dict_type = dicts_arr[(dicts_arr.indexOf(this.dict_type) + 1) % dicts_arr.length];
         console.log("dict_type: "+this.dict_type);
         document.getElementById("dict_logo").outerHTML = '<img id="dict_logo" src="' + this.logos[this.dict_type].logo_url + '></img>';
-        //console.log('<img id="dict_logo" src="' + this.logos[this.dict_type].logo_url + '></img>');
         if(this.dict_type == 4) document.getElementById("dict_logo").style.filter = "hue-rotate(270deg)";
         else document.getElementById("dict_logo").style.filter = "none";
         document.getElementById("dict_logo").addEventListener('click', this.switchDict);
@@ -325,7 +326,7 @@ class Dictionary {
         const extractText = (node_list) => {
             let text = "";
             node_list.forEach(node => {
-            if(node.nodeType == 1 && node.matches(".case, .info, .rhetoric, .genus, .style, .topic, .restriction, .complement, .region")) {
+            if(node.nodeType == 1 && node.matches(".case, .info, .rhetoric, .genus, .style, .topic, .restriction, .complement, .region, .explanation")) {
                 text += "[" + node.textContent + "]";
             }
             else if(node.nodeType == 1 && node.matches(".collocator")) {
