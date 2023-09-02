@@ -339,6 +339,10 @@ function clearTable() {
 }
 
 function deleteText() {
+  if(!confirm("Are you sure you want to delete this text?")) {
+    return;
+  }
+
   let textselect_value = document.getElementById('textselect').value;
   if(textselect_value == 0) { return;}
   
