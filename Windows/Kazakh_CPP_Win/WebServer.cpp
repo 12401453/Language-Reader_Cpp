@@ -304,21 +304,21 @@ void WebServer::insertTextSelect(std::ostringstream& html) {
 
         int text_id = 0;
         const char* text_title;
-        std::string text_title_str = "";
+        //std::string text_title_str = "";
 
         while (sqlite3_step(statement) == SQLITE_ROW) {
             text_id = sqlite3_column_int(statement, 0);
             text_title = (const char*)sqlite3_column_text(statement, 1);
 
-            icu::UnicodeString unicode_text_title;
+          /*  icu::UnicodeString unicode_text_title;
             icu::UnicodeString weird_dash;
             weird_dash = weird_dash.fromUTF8("¬");
             unicode_text_title = unicode_text_title.fromUTF8(text_title);
             unicode_text_title.findAndReplace(weird_dash, "\'");
-            unicode_text_title.toUTF8String(text_title_str);
+            unicode_text_title.toUTF8String(text_title_str); */
 
-            html << "<option value=\"" << text_id << "\">" << text_title_str << "</option>\n";
-            text_title_str = "";
+            html << "<option value=\"" << text_id << "\">" << text_title << "</option>\n";
+            //text_title_str = "";
         }
 
         sqlite3_finalize(statement);
@@ -766,6 +766,7 @@ bool WebServer::readCookie(std::string cookie[3], const char* msg) {
     return true;
 }
 
+
 bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
     std::cout << "update_db.php" << std::endl;
 
@@ -775,14 +776,11 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
     sqlite3* DB;
     sqlite3_stmt* statement;
 
-    if(!sqlite3_open(m_DB_path, &DB)) {
-
-        //   int count = 0;
+    if (!sqlite3_open(m_DB_path, &DB)) {
 
         icu::BreakIterator* bi = icu::BreakIterator::createWordInstance(icu::Locale::getUS(), status);
         icu::UnicodeString regexp = "\\p{L}"; // from the ICU regex documentation: \p{UNICODE PROPERTY NAME}	Match any character having the specified Unicode Property. (L = letter). This will catch exactly the same things as what the BreakIterator views as word-boundaries, meaning words with thigns like the OCS abbreviation tilde which would get classified as non-words if we used \P{UNICODE PROPERTY NAME} (match characters NOT having the specified property). If the BreakIterator fucks up then this will fuck up, but in that case we were fucked anyway. possibly \w (match Unicode 'words') is better but that also matches numerals which I'm ambivalent about given there can be infinity numbers
         icu::RegexMatcher* matcher = new icu::RegexMatcher(regexp, 0, status); //call delete on this
-
 
         std::istringstream iss(text_body);
 
@@ -791,8 +789,6 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
         const char* sql_text;
 
         int lang_id = std::stoi(_POST[2]);
-
-
 
         sql_text = "SELECT MAX(tokno) FROM display_text";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
@@ -810,24 +806,20 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
 
         icu::UnicodeString weird_dash;
         weird_dash = weird_dash.fromUTF8("¬");
-        icu::UnicodeString weird_comma;
-        weird_comma = weird_comma.fromUTF8("’");
-
+       /* icu::UnicodeString weird_comma;
+        weird_comma = weird_comma.fromUTF8("’"); */
 
         for (std::string token; std::getline(iss, token, ' '); ) {
             icu::UnicodeString token_unicode;
             token_unicode = token_unicode.fromUTF8(token);
 
-           
-
-            token_unicode.findAndReplace("'", weird_dash);
-            token_unicode.findAndReplace(weird_comma, weird_dash);
+            token_unicode.findAndReplace("'", weird_dash);//the reason why even normal apostrophes need to be replaced is because the BreakIterator doesn't see them as word-boundaries, so it fucks up; it has nothing to do with SQLite using apostrophes as the string-marker. We restore the apostrophes before inserting them into the table, so we can get rid of icu::UnicodeString::findAndReplace() calls on the retrieveText() etc. functions
 
             bi->setText(token_unicode);
 
             int32_t start_range, end_range;
             icu::UnicodeString tb_copy;
-            std::string chunk;
+            std::string word_eng_word;
 
             std::string text_word;
 
@@ -837,127 +829,105 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
             std::string punctuation = "";
             bool punct_empty = true;
             int newline_code = 1;
+            bool word_punct = false;
+
+            auto insertWord = [&]() {
+                sqlite3_prepare_v2(DB, "INSERT OR IGNORE INTO word_engine (word, lang_id) VALUES (?, ?)", -1, &statement, NULL);
+                sqlite3_bind_text(statement, 1, word_eng_word.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_int(statement, 2, lang_id);
+                sqlite3_step(statement);
+                sqlite3_finalize(statement);
+
+                sqlite3_prepare_v2(DB, "INSERT INTO display_text (word_engine_id, text_word) SELECT word_engine_id, ? FROM word_engine WHERE word = ? AND lang_id = ?", -1, &statement, NULL);
+                sqlite3_bind_text(statement, 1, text_word.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_text(statement, 2, word_eng_word.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_int(statement, 3, lang_id);
+                sqlite3_step(statement);
+                sqlite3_finalize(statement);
+            };
+
+            auto insertPunct = [&]() {
+                sqlite3_prepare_v2(DB, "INSERT INTO display_text (text_word) VALUES (?)", -1, &statement, NULL);
+                sqlite3_bind_text(statement, 1, punctuation.c_str(), -1, SQLITE_STATIC);
+                sqlite3_step(statement);
+                sqlite3_finalize(statement);
+                punctuation = "";
+                punct_empty = true;
+            };
+            auto updateNewline = [&]() {
+                sqlite3_prepare_v2(DB, "UPDATE display_text SET space = ? WHERE tokno = last_insert_rowid()", -1, &statement, NULL);
+                sqlite3_bind_int(statement, 1, newline_code);
+                sqlite3_step(statement);
+                sqlite3_finalize(statement);
+                newline_code = 1;
+            };
 
             while (p != icu::BreakIterator::DONE) {
                 tb_copy = token_unicode;
                 start_range = p;
                 p = bi->next();
                 end_range = p;
-                if(end_range == -1) break;
+                if (end_range == -1) break;
                 tb_copy.retainBetween(start_range, end_range);
 
                 matcher->reset(tb_copy); //tells the RegexMatcher object to use tb_copy as its haystack
-                if(matcher->find()) {
+                if (matcher->find()) {
                     is_a_word = true;
                 }
                 else {
                     is_a_word = false;
                 }
 
-                if(is_a_word) {
-                    //new
-                    if(punct_empty == false) {
-                        sql_text_str = "INSERT INTO display_text (text_word) VALUES (\'"+punctuation+"\')";
-                        // std::cout << sql_text_str << std::endl;
-                        sql_text = sql_text_str.c_str();
-                        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-                        run_code = sqlite3_step(statement);
-                        sqlite3_finalize(statement);
-
-                        punctuation = "";
-                        punct_empty = true;
+                if (is_a_word) {
+                    if (punct_empty == false) {
+                        insertPunct();
                     }
-                    if(newline_code > 1) {
-                        sql_text_str = "UPDATE display_text SET space = ? WHERE tokno = last_insert_rowid()";
-                    //  std::cout << sql_text_str << std::endl;
-                        prep_code = sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
-                        sqlite3_bind_int(statement, 1, newline_code);
-                        run_code = sqlite3_step(statement);
-                        sqlite3_finalize(statement);
-
-                        newline_code = 1;
+                    if (newline_code > 1) {
+                        updateNewline();
                     }
-                    //new
 
                     tb_copy.toUTF8String(text_word);
-                    if(lang_id == 7) {
+                    if (lang_id == 7) {
                         tb_copy.toLower(icu::Locale("tr", "TR"));
                     }
                     else {
                         tb_copy.toLower();
                     }
 
-                    tb_copy.toUTF8String(chunk);
+                    tb_copy.toUTF8String(word_eng_word);
 
-                    sql_text_str = "INSERT OR IGNORE INTO word_engine (word, lang_id) VALUES (\'" + chunk + "\', " + _POST[2] + ")";
-                    //std::cout << sql_text_str << std::endl;
-                    sql_text = sql_text_str.c_str();
-                           
-                    prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-                    run_code = sqlite3_step(statement);
-                    sqlite3_finalize(statement);
-                      
-                    
-
-                    sql_text_str = "INSERT INTO display_text (word_engine_id, text_word) SELECT word_engine_id, \'" + text_word + "\' FROM word_engine WHERE word = \'" + chunk + "\' AND lang_id = " + _POST[2];
-                    // std::cout << sql_text_str << std::endl;
-                    sql_text = sql_text_str.c_str();
-                    prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-                    run_code = sqlite3_step(statement);
-                    sqlite3_finalize(statement);
+                    insertWord();
                 }
 
                 else {
                     tb_copy.toUTF8String(text_word);
-                    if(text_word == "¬") text_word = "\'\'"; //SQLite escapes apostrophes by doubling them; in this case I need to escape it because I'm inserting it with string interpolation of the SQL statement rather than sqlite3_bind_text(). I strongly suspect that the bind() functions are extra overhead. textword here is guaranteed to be only one (unicode) character so I don't need to use icu::UnicodeString::findAndReplace()
+                    if (text_word == "¬") text_word = "\'";
 
-                    if(text_word == "\n") {
-                        if(punct_empty == false) {
-                            sql_text_str = "INSERT INTO display_text (text_word) VALUES (\'" +punctuation+"\')";
-                            sql_text = sql_text_str.c_str();
-                            prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-                            run_code = sqlite3_step(statement);
-                            sqlite3_finalize(statement);
-
-                            punctuation = "";
-                            punct_empty = true;
+                    if (text_word == "\n") {
+                        if (punct_empty == false) {
+                            insertPunct();
                         }
                         newline_code++;
                     }
                     else {
-                        if(newline_code > 1) {
-                            sql_text_str = "UPDATE display_text SET space = ? WHERE tokno = last_insert_rowid()";
-                            prep_code = sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
-                            sqlite3_bind_int(statement, 1, newline_code);
-                            run_code = sqlite3_step(statement);
-                            sqlite3_finalize(statement);
-
-                            newline_code = 1;
+                        if (newline_code > 1) {
+                            updateNewline();
                         }
                         punctuation.append(text_word);
                         punct_empty = false;
                     }
                 }
-                chunk = ""; //toUTF8String appends the string in tb_copy to chunk rather than overwriting it
+
+                word_eng_word = ""; //toUTF8String appends the string in tb_copy to word_eng_word rather than overwriting it
                 text_word = "";
             }
 
-            if(punct_empty == false) {
-                sql_text_str = "INSERT INTO display_text (text_word) VALUES (\'"+punctuation+"\')";
-                // std::cout << sql_text_str << std::endl;
-                sql_text = sql_text_str.c_str();
-                prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-                run_code = sqlite3_step(statement);
-                sqlite3_finalize(statement);
+            if (punct_empty == false) {
+                insertPunct();
             }
 
-            if(newline_code > 1) {
-                sql_text_str = "UPDATE display_text SET space = ? WHERE tokno = last_insert_rowid()";
-                //  std::cout << sql_text_str << std::endl;
-                prep_code = sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
-                sqlite3_bind_int(statement, 1, newline_code);
-                run_code = sqlite3_step(statement);
-                sqlite3_finalize(statement);
+            if (newline_code > 1) {
+                updateNewline();
             }
 
             sql_text_str = "UPDATE display_text SET space = 1 WHERE tokno = last_insert_rowid() AND space IS NULL";
@@ -974,7 +944,7 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
         icu::UnicodeString unicode_text_title;
         unicode_text_title = unicode_text_title.fromUTF8(URIDecode(_POST[1]));
         std::string text_title;
-        unicode_text_title.findAndReplace(weird_comma, "\'"); //don't need to escape the apostrophes by doubling because we're using sqlite3_bind_text()
+        /*unicode_text_title.findAndReplace(weird_comma, "\'"); */
         unicode_text_title.toUTF8String(text_title);
         const char* text_title_c_str = text_title.c_str();
 
@@ -1005,17 +975,18 @@ bool WebServer::addText(std::string _POST[3], SOCKET clientSocket) {
 
         std::cout << "sqlite_close: " << sqlite3_close(DB) << std::endl;
 
-        std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nSet-Cookie: text_id="+std::to_string(new_text_id)+"; Max-Age=157680000\r\nSet-Cookie: lang_id="+std::to_string(lang_id)+"; Max-Age=157680000\r\nSet-Cookie: current_pageno=1; Max-Age=157680000\r\n\r\n";
+        std::string POST_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\nSet-Cookie: text_id=" + std::to_string(new_text_id) + "; Max-Age=157680000\r\nSet-Cookie: lang_id=" + std::to_string(lang_id) + "; Max-Age=157680000\r\nSet-Cookie: current_pageno=1; Max-Age=157680000\r\n\r\n";
         int size = POST_response.size() + 1;
 
         sendToClient(clientSocket, POST_response.c_str(), size);
         return true;
     }
     else {
-       std::cout << "Database connection failed on addText()\n";
-       return false; 
+        std::cout << "Database connection failed on addText()\n";
+        return false;
     }
 }
+
 
 bool WebServer::deleteText(std::string _POST[1], SOCKET clientSocket) {
     int text_id = std::stoi(_POST[0]);

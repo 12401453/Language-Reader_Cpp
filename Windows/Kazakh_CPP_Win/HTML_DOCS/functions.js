@@ -250,8 +250,8 @@ function progressBar(word_count) {
 
 function loadText() {
 
-  let newtext_raw = document.getElementById('newtext').value.replaceAll('\u00AD', '').trim();
-  let text_title_raw = document.getElementById('text_title').value.replaceAll('\u00AD', '').trim(); //U+00AD is a soft-hyphen, invisible little bastard
+  let newtext_raw = document.getElementById('newtext').value.replaceAll('\u00AD', '').replaceAll("’", "\'").trim();
+  let text_title_raw = document.getElementById('text_title').value.replaceAll('\u00AD', '').replaceAll("’", "\'").trim(); //U+00AD is a soft-hyphen, invisible little bastard
   if(text_title_raw == '' && newtext_raw == '') { return; }
   if(text_title_raw == '') { alert("Do not leave Text Title blank"); return; }
   if(newtext_raw == '') {alert("You cannot submit a blank text"); return; }
@@ -307,6 +307,10 @@ function loadText() {
 
 
 function clearTable() {
+
+  if(!confirm("Are you absolutely sure you want to clear the entire database and delete all your texts and saved words?")) {
+    return;
+  }
   
   let loadingbutton = document.createElement('div');
   loadingbutton.innerHTML = "Loading...";
