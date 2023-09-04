@@ -341,12 +341,50 @@ class Dictionary {
             });
             return text.trim();
         };
+        const extractHeaderText = (node_list) => {
+            let text = "";
+            let span_inserted = false;
+            node_list.forEach( (node, i) => {
+                if(node.nodeType == 1 && node.className != "headword_attributes" && span_inserted == false) {
+                    text += '<span class="PONS_title_info">';
+                    span_inserted = true;
+                }
+                if(node.nodeType == 3) {
+                    text += node.textContent.trim();
+                    text += " ";
+                }
+                else {
+                    text += node.textContent.trim();
+                    text += " ";
+                }
+
+            });
+            text += '</span>';
+            return text;
+        };
     
         let meaning_sections = PONS_page.querySelectorAll(".rom"); //it can occur that no .rom exists but a single transation is given (Ru. хуй), so need to add a check for it
         let rom_lngth = meaning_sections.length;
+
+       /* if(rom_lngth == 0) {
+            let results_sections = PONS_page.querySelectorAll(".results");
+            let results_lngth = results_sections.length;
+            this.dict_result_PONS[0][0] = {};
+            for(let i = 0; i < results_lngth; i++) {
+                
+                
+            }
+        } */
+
+
         for(let i = 0; i < rom_lngth; i++) {
             if(meaning_sections[i].querySelector(".signature-od") == null) {
-                this.dict_result_PONS[i] = {};
+                this.dict_result_PONS[i] = {h2_text: {},};
+                
+                
+                this.dict_result_PONS[i].h2_text = extractHeaderText(meaning_sections[i].querySelector("h2").childNodes);
+
+
                 let blocks = meaning_sections[i].querySelectorAll(".translations"); //.opened"); this second .opened class seems to not appear when cURL-ing the page
                 let block_lngth = blocks.length;
                 for(let j = 0; j < block_lngth; j++) {
@@ -393,16 +431,22 @@ class Dictionary {
 
         for(let i in this.dict_result_PONS) {
             if(i == "beispielsaetze") {
-            for(let x in this.dict_result_PONS.beispielsaetze) {
-                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS.beispielsaetze[x][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS.beispielsaetze[x][1]+'</div></div>'));
-            }
-            }
-            else {
-            for(let j in this.dict_result_PONS[i]) {
-                for(let k in this.dict_result_PONS[i][j]) {
-                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>'));
+                if(Object.keys(this.dict_result_PONS.beispielsaetze).length > 0) {
+                    dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">Beispielsätze</div></div>'));
+                    for(let x in this.dict_result_PONS.beispielsaetze) {
+                        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS.beispielsaetze[x][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS.beispielsaetze[x][1]+'</div></div>'));
+                    }
                 }
             }
+            else {
+                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i].h2_text+'</div></div>'));
+                for(let j in this.dict_result_PONS[i]) {    
+                    if(j == "h2_text") continue;           
+                    for(let k in this.dict_result_PONS[i][j]) {
+                        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>'));
+                    }
+                
+                }
             }
         }
     }

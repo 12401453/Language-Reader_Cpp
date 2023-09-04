@@ -147,6 +147,11 @@
     border-left: 2px solid black;
     border-right: 2px solid black;
 }
+.PONS_title_info {
+    font-weight: normal;
+    color: rgb(230, 230, 230);
+    font-size: 12px;
+}
 
 #dict_logo {    
     height: 80%;

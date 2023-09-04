@@ -82,7 +82,7 @@ function setLangId() {
 }
 
 function selectText() {
-  
+  if(display_word != null) delAnnotate();
   setLangId();
 
   let loadingbutton = document.createElement('div');
@@ -339,12 +339,17 @@ function clearTable() {
 }
 
 function deleteText() {
-  if(!confirm("Are you sure you want to delete this text?")) {
+  
+  let title_select = document.getElementById('textselect');
+  let textselect_value = title_select.value;
+  if(textselect_value == 0) { return;}
+  let text_title = title_select.options[title_select.selectedIndex].textContent;
+
+  if(!confirm(`Are you sure you want to delete "${text_title}"?`)) {
+    title_select.selectedIndex = 0;
+    title_select.dispatchEvent(new Event('change'));
     return;
   }
-
-  let textselect_value = document.getElementById('textselect').value;
-  if(textselect_value == 0) { return;}
   
   let loadingbutton = document.createElement('div');
   loadingbutton.innerHTML = "Loading...";
