@@ -182,11 +182,13 @@ class Dictionary {
 
     lookUpMouseSelection = (event) => {
         if(event.key == "Enter") {
+            event.preventDefault();
             let lemma_tag_area = document.getElementById("lemma_tag");
             const highlighted_text = lemma_tag_area.value.slice(lemma_tag_area.selectionStart, lemma_tag_area.selectionEnd);
+            if(highlighted_text.length == 0) return;
             document.getElementById("dict_searchbox").value = highlighted_text;
             this.lookUp(highlighted_text);
-            event.preventDefault();
+            //event.preventDefault();
         }        
     };
 
@@ -357,7 +359,6 @@ class Dictionary {
                     text += node.textContent.trim();
                     text += " ";
                 }
-
             });
             text += '</span>';
             return text;
@@ -366,15 +367,26 @@ class Dictionary {
         let meaning_sections = PONS_page.querySelectorAll(".rom"); //it can occur that no .rom exists but a single transation is given (Ru. хуй), so need to add a check for it
         let rom_lngth = meaning_sections.length;
 
-       /* if(rom_lngth == 0) {
+        //this is for when PONS probably doesn't have an exact entry for the word but does have the word included in other example sentences/entries; the structure of the HTML is very different so we are just dumping them out without bothering to making a JSON object first
+        if(rom_lngth == 0) {
             let results_sections = PONS_page.querySelectorAll(".results");
             let results_lngth = results_sections.length;
-            this.dict_result_PONS[0][0] = {};
-            for(let i = 0; i < results_lngth; i++) {
-                
-                
+            if(results_lngth == 0) {
+                this.noResultsFound();
+                return;
             }
-        } */
+            let dict_body = document.getElementById("dict_body");
+            dict_body.innerHTML = "";
+            dict_body.style.display = "flex";
+            for(let i = 0; i < results_lngth && i < 2; i++) {
+                const entries_left = results_sections[i].querySelectorAll(".dt-inner > .source");
+                const entries_right = results_sections[i].querySelectorAll(".dd-inner > .target");
+                for(let j = 0; j < entries_left.length; j++) {
+                    dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+extractText(entries_left[j].childNodes)+'</div><div class="dict_cell right">'+extractText(entries_right[j].childNodes)+'</div></div>'));
+                }               
+            }
+            return;
+        } 
 
 
         for(let i = 0; i < rom_lngth; i++) {
