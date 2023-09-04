@@ -40,7 +40,7 @@ class Dictionary {
 
     urlMaker(word, dict_type=this.dict_type, PONS_german=this.PONS_german) {
         if(dict_type == 1) {
-            let PONS_lang_dir = ""
+            let PONS_lang_dir = "";
             const PONS_target = PONS_german ? "deutsch/" : "englisch/";
             
             switch(this.m_lang_id) {

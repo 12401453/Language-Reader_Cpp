@@ -141,6 +141,7 @@ function selectText() {
 }
 
 function selectText_splitup(dt_start, dt_end, page_cur) {
+  if(display_word != null) delAnnotate();
 
   let highlight_pagenos = document.querySelectorAll('.current_pageno');
   highlight_pagenos.forEach(highlighted_pageno => {
