@@ -1,0 +1,42 @@
+<!DOCTYPE html> 
+<html>
+
+<head>
+  
+
+<link href="words.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
+<link href="words_small_screens.css" rel="stylesheet" media="all and (max-width: 768px)" type="text/css">
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+</head>
+
+<body style="background-color: #071022;">
+  <br>
+<div id="main_box">
+<div id="toplinks-flexbox"> 
+  <a href="text_viewer"><div id="texts_link" class="toplink-buttons">Texts</div></a>
+  <a href="words"><div id="words_link" class="toplink-buttons current">Words</div></a>
+  <!--<div id="other_link" class="toplink-buttons">Other shit</div> -->
+</div>
+<script>document.getElementById("toplinks-flexbox").addEventListener('click', (event) => { 
+  if(event.target.className == "toplink-buttons") {
+    document.querySelector(".toplink-buttons.current").classList.remove("current"); 
+    event.target.classList.add("current");
+  }
+}
+);</script>
+<div id="main_words_box">
+    <span id="lang_button">
+    <label for="langselect">Language:</label>
+    <select id="langselect" name="langselect" form="formid">
+    <?lng
+    </select></span>
+</div>
+</div>
+<span id="spoofspan" style="display: inline;"></span>
+<span id="spoofspan2"><span id="hidden_lemma_tag"></span></span>
+</body>
+</html>

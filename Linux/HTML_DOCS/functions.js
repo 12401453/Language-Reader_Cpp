@@ -382,14 +382,6 @@ function deleteText() {
 
 }
 
-
- function texts_link() {
-   window.location = "/text_viewer";
- }
- function add_text_link() {
-  window.location = "/add_texts";
-}
-
 function showDeletion() {
   let spoofspan_display = document.getElementById("spoofspan").style.display;
   if(spoofspan_display == "inline") {
@@ -1737,3 +1729,5 @@ function dictLookupKazakh(word) {
   httpRequest("POST", "curl_lookup.php");
 
 }
+
+//--------------new shit
