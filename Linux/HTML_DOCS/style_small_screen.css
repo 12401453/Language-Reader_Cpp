@@ -125,7 +125,7 @@ a {
   position:relative;
   font-size: 10px;
   cursor: pointer;
-  max-width:fit-content;
+  width: fit-content;
 
 }
 

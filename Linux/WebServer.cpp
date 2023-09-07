@@ -58,6 +58,7 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         short int page_type = 0;
         if(!strcmp(msg_url, "/text_viewer")) page_type = 1;
         else if(!strcmp(msg_url, "/add_texts")) page_type = 2;
+        else if(!strcmp(msg_url, "/words")) page_type = 3;
 
         //#include "docRoot.cpp"
    
@@ -265,7 +266,7 @@ int WebServer::checkHeaderEnd(const char* msg) {
             else if(page_type == 1 && cookies_present && line.find("<?js") != -1) ss_text << "let cookie_textselect = " + m_cookies[0] + ";\n";
             else if(page_type == 1 && line.find("<?js") != -1) ss_text << "let cookie_textselect = 0;\n";
 
-            else if(page_type == 2 && line.find("<?lng") != -1) insertLangSelect(ss_text);
+            else if(page_type > 1 && line.find("<?lng") != -1) insertLangSelect(ss_text);
 
             else ss_text << line << '\n';
         }
