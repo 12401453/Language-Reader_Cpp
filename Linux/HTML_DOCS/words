@@ -21,20 +21,36 @@
   <a href="words"><div id="words_link" class="toplink-buttons current">Words</div></a>
   <!--<div id="other_link" class="toplink-buttons">Other shit</div> -->
 </div>
-<script>document.getElementById("toplinks-flexbox").addEventListener('click', (event) => { 
-  if(event.target.className == "toplink-buttons") {
-    document.querySelector(".toplink-buttons.current").classList.remove("current"); 
-    event.target.classList.add("current");
-  }
-}
-);</script>
+
 <div id="main_words_box">
     <span id="lang_button">
     <label for="langselect">Language:</label>
     <select id="langselect" name="langselect" form="formid">
     <?lng
     </select></span>
+    <div id="pos_selectors">
+      <span id="pos_sel_noun" class="pos_sel">noun</span>
+      <span id="pos_sel_verb" class="pos_sel">verb</span>
+      <span id="pos_sel_adj" class="pos_sel">adject.</span>
+      <span id="pos_sel_adverb" class="pos_sel">adverb</span>
+      <span id="pos_sel_prep" class="pos_sel">prep.</span>
+      <span id="pos_sel_conj" class="pos_sel">conj.</span>
+      <span id="pos_sel_part" class="pos_sel">part.</span>
+      <span id="pos_sel_ques" class="pos_sel">ques.</span>
+
+    </div>
+    <div id="words_body" style="display: flex;"></div>
 </div>
+<script>document.getElementById("pos_selectors").addEventListener('click', (event) => { 
+  if(event.target.className == "pos_sel") {
+    event.target.classList.toggle("pos_selected");
+  }
+}
+); </script>
+
+
+<script>const addRow = () => {words_body.appendChild(document.createRange().createContextualFragment('<div class="words_row"><div class="words_cell left">left side dummy text hahaha</div><div class="words_cell right">right side dummy text hahahahaha you gormless wazzock</div></div>')); }</script>
+
 </div>
 <span id="spoofspan" style="display: inline;"></span>
 <span id="spoofspan2"><span id="hidden_lemma_tag"></span></span>

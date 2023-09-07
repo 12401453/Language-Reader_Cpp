@@ -69,10 +69,10 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
         strcat(url_c_str, msg_url);
 
         bool cookies_present = false;
-        if(page_type == 1) cookies_present = readCookie(m_cookies, msg);
+        if(page_type > 0) cookies_present = readCookie(m_cookies, msg); //want to avoid reading cookies when serving auxilliary files like stylesheets
         std::cout << "Cookies present? " << cookies_present << std::endl;
         if(cookies_present) {
-            std::cout << "text_id cookie: " << m_cookies[0] << "; current_pageno cookie: " << m_cookies[1] << std::endl;
+            std::cout << "text_id cookie: " << m_cookies[0] << "; current_pageno cookie: " << m_cookies[1] << "; lang_id cookie: " << m_cookies[2]  << std::endl;
         }
 
         std::string content = "<h1>404 Not Found</h1>"; 
@@ -334,7 +334,9 @@ void WebServer::insertLangSelect(std::ostringstream &html) {
             lang_id = sqlite3_column_int(statement, 0);
             lang_name = (const char*)sqlite3_column_text(statement, 1);
 
-            html << "<option value=\"" << lang_id << "\">" << lang_name << "</option>\n";
+            html << "<option value=\"" << lang_id << "\"";
+            if(lang_id == std::stoi(m_cookies[2])) html << " selected";
+            html << ">" << lang_name << "</option>\n";
         }
 
         sqlite3_finalize(statement);
@@ -1548,7 +1550,7 @@ bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
 
 
     std::ostringstream html;
-    html << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << lang_id;
+    html << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\nSet-Cookie: lang_id=" << lang_id << "; Max-Age=157680000" << "\r\n\r\n" << lang_id;
     int length = html.str().size() + 1;
 
     sqlite3_close(DB);
