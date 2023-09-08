@@ -102,3 +102,129 @@ a {
   background-color: #040a16;
   color: #cbd9f4;
 }
+
+
+#pos_selectors {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  margin-top: 20px;
+  width: 100%;
+}
+.pos_sel {
+  border: 2px solid black;
+  border-radius: 7px;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-bottom: 3px;
+  min-width: 55px;
+  user-select: none;
+  color: black;
+  font-family: IBM_PLEX_SANS;
+  text-align: center;
+  opacity: 0.4;
+  cursor: pointer;
+}
+/*on-hover change removed from small-screens because doesn't play well with touch */
+.pos_selected {
+  opacity: 1;
+}
+#pos_sel_verb {
+  background-color: #4dac0d;
+}
+/*
+#pos_sel_verb.pos_selected{
+  background-color: #67ff00;
+} */
+
+#pos_sel_adj {
+  background-color: #c97119;
+}
+/*
+#pos_sel_adj.pos_selected {
+  background-color: #ff7f00;
+} */
+
+#pos_sel_noun {
+  background-color: #9cac0d;
+}
+/*
+#pos_sel_noun.pos_selected {
+  background-color: #e5ff00;
+} */
+
+#pos_sel_adverb {
+  background-color: #e32f1a;
+  #ff1b00
+}
+
+#pos_sel_prep {
+  background-color: #0d9cac;
+  #00e5ff
+}
+
+#pos_sel_conj {
+  background-color: #0dac62;
+  #00ff88
+}
+
+#pos_sel_part {
+  background-color: #ac0d9c;
+  #ff00e5
+}
+
+#pos_sel_ques {
+  background-color: hsl(345, 100%, 70%);
+}
+
+
+
+#words_body {
+    display: flex;
+    flex-flow: column nowrap;
+    height: fit-content;
+    overflow-y: auto;
+
+    /*firefox*/
+    scrollbar-color: #040a16 #172136;
+    scrollbar-width: 9px;
+}
+
+.words_row {
+    display: flex;
+    flex-flow: row nowrap;
+    height: fit-content;
+   
+    color: #cbd9f4;
+    font-family: IBM_Plex_Sans;
+    font-size: 13px;
+    background-color: #071022;
+    border-bottom: 1px solid black;
+}
+.words_row:nth-child(even) {
+    background-color: #040a16;
+}
+.words_row:first-child {
+    border-top: 1px solid black;
+}
+
+
+.words_cell {
+    
+    /*height: inherit; */
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+    word-break: break-word;
+}
+
+
+
+.words_cell.left {
+    border-left: 2px solid black;
+    border-right: 1px solid black;
+}
+.words_cell.right {
+    border-left: 1px solid black;
+    border-right: 2px solid black;
+}

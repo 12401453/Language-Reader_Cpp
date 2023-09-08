@@ -39,10 +39,21 @@
       <span id="pos_sel_ques" class="pos_sel">ques.</span>
 
     </div>
-    <div id="words_body" style="display: flex;"></div>
+    <div id="words_body" style="display: flex;">
+      <div id="words_top">
+        <div id="left_top_header"><span id="left_top_upper"><textarea id="lemma_searchbox" autocomplete="off" placeholder="Search lemmas..."></textarea></span><span id="left_top_lower"><div id="left_top_title">Lemmas</div></span></div>
+        <div id="right_top_header"><span id="right_top_upper"><textarea id="meaning_searchbox" autocomplete="off" placeholder="Search meanings..."></textarea></span><span id="right_top_lower"><div id="right_top_title">Meanings</div></span></div>
+      </div>
+    
+    
+    
+    
+    
+    
+    </div>
 </div>
 <script>document.getElementById("pos_selectors").addEventListener('click', (event) => { 
-  if(event.target.className == "pos_sel") {
+  if(event.target.classList.contains("pos_sel")) {
     event.target.classList.toggle("pos_selected");
   }
 }
@@ -53,6 +64,7 @@
 
 </div>
 <span id="spoofspan" style="display: inline;"></span>
-<span id="spoofspan2"><span id="hidden_lemma_tag"></span></span>
+<span id="spoofspan2"><span id="hidden_searchbox"></span></span>
 </body>
+<script src ="words.js"></script>
 </html>
