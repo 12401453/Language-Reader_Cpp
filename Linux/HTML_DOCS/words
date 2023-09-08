@@ -29,17 +29,17 @@
     <?lng
     </select></span>
     <div id="pos_selectors">
-      <span id="pos_sel_noun" class="pos_sel">noun</span>
-      <span id="pos_sel_verb" class="pos_sel">verb</span>
-      <span id="pos_sel_adj" class="pos_sel">adject.</span>
-      <span id="pos_sel_adverb" class="pos_sel">adverb</span>
-      <span id="pos_sel_prep" class="pos_sel">prep.</span>
-      <span id="pos_sel_conj" class="pos_sel">conj.</span>
-      <span id="pos_sel_part" class="pos_sel">part.</span>
-      <span id="pos_sel_ques" class="pos_sel">ques.</span>
+      <span id="pos_sel_noun" class="pos_sel noun">noun</span>
+      <span id="pos_sel_verb" class="pos_sel verb">verb</span>
+      <span id="pos_sel_adj" class="pos_sel adj">adject.</span>
+      <span id="pos_sel_adverb" class="pos_sel adverb">adverb</span>
+      <span id="pos_sel_prep" class="pos_sel prep">prep.</span>
+      <span id="pos_sel_conj" class="pos_sel conj">conj.</span>
+      <span id="pos_sel_part" class="pos_sel part">part.</span>
+      <span id="pos_sel_ques" class="pos_sel ques">ques.</span>
 
     </div>
-    <div id="words_body" style="display: flex;">
+    <div id="words_body" >
       <div id="words_top">
         <div id="left_top_header"><span id="left_top_upper"><textarea id="lemma_searchbox" autocomplete="off" placeholder="Search lemmas..."></textarea></span><span id="left_top_lower"><div id="left_top_title">Lemmas</div></span></div>
         <div id="right_top_header"><span id="right_top_upper"><textarea id="meaning_searchbox" autocomplete="off" placeholder="Search meanings..."></textarea></span><span id="right_top_lower"><div id="right_top_title">Meanings</div></span></div>
@@ -52,16 +52,6 @@
     
     </div>
 </div>
-<script>document.getElementById("pos_selectors").addEventListener('click', (event) => { 
-  if(event.target.classList.contains("pos_sel")) {
-    event.target.classList.toggle("pos_selected");
-  }
-}
-); </script>
-
-
-<script>const addRow = () => {words_body.appendChild(document.createRange().createContextualFragment('<div class="words_row"><div class="words_cell left">left side dummy text hahaha</div><div class="words_cell right">right side dummy text hahahahaha you gormless wazzock</div></div>')); }</script>
-
 </div>
 <span id="spoofspan" style="display: inline;"></span>
 <span id="spoofspan2"><span id="hidden_searchbox"></span></span>
