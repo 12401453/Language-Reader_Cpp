@@ -647,6 +647,9 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     else if(!strcmp(m_url, "/disregard_word.php")) {
         bool php_func_success = disregardWord(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/dump_lemmas.php")) {
+        bool php_func_success = dumpLemmaTable(post_values, clientSocket);
+    }
 
     std::cout << "m_url: " << m_url << std::endl;
     
@@ -689,7 +692,8 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/pull_multiword.php")) return 2;
     else if(!strcmp(url, "/curl_lookup.php")) return 1;
     else if(!strcmp(url, "/disregard_word.php")) return 2;
-    else if(!strcmp(url, "/clear_table.php")) return 0;  
+    else if(!strcmp(url, "/clear_table.php")) return 0;
+    else if(!strcmp(url, "/dump_lemmas.php")) return 1;
     else return -1;
 }
 /*
@@ -1536,28 +1540,28 @@ bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
 
     if(!sqlite3_open(m_DB_path, &DB)) {
     
-    int prep_code, run_code;
+        int prep_code, run_code;
+        
+        std::string sql_text_str = "SELECT lang_id FROM texts WHERE text_id = "+text_id[0];
+        const char* sql_text = sql_text_str.c_str();
+        prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        run_code = sqlite3_step(statement);
     
-    std::string sql_text_str = "SELECT lang_id FROM texts WHERE text_id = "+text_id[0];
-    const char* sql_text = sql_text_str.c_str();
-    prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-    run_code = sqlite3_step(statement);
-   
-    int lang_id = sqlite3_column_int(statement, 0);
-    sqlite3_finalize(statement);
+        int lang_id = sqlite3_column_int(statement, 0);
+        sqlite3_finalize(statement);
 
-    int content_length = lang_id > 9 ? 2 : 1;
+        int content_length = lang_id > 9 ? 2 : 1;
 
 
-    std::ostringstream html;
-    html << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\nSet-Cookie: lang_id=" << lang_id << "; Max-Age=157680000" << "\r\n\r\n" << lang_id;
-    int length = html.str().size() + 1;
+        std::ostringstream html;
+        html << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\nSet-Cookie: lang_id=" << lang_id << "; Max-Age=157680000" << "\r\n\r\n" << lang_id;
+        int length = html.str().size() + 1;
 
-    sqlite3_close(DB);
+        sqlite3_close(DB);
 
-    sendToClient(clientSocket, html.str().c_str(), length);
-    
-    return true;
+        sendToClient(clientSocket, html.str().c_str(), length);
+        
+        return true;
     }
     else return false;
 }
@@ -3053,5 +3057,65 @@ bool WebServer::disregardWord(std::string _POST[2], int clientSocket) {
         std::cout << "Database connection failed on disregardWord()\n";
         return false;
     }
+}
 
+bool WebServer::dumpLemmaTable(std::string _POST[1], int clientSocket) {
+    sqlite3* DB;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        sqlite3_stmt* statement;
+        int lang_id = std::stoi(_POST[0]);
+
+        const char* sql_text = "SELECT lemma, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10, pos FROM lemmas WHERE lang_id = ?";
+
+        std::ostringstream json;
+        json << "[";
+
+        sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, lang_id);
+        while(sqlite3_step(statement) == SQLITE_ROW) {
+            int pos = sqlite3_column_int(statement, 11);
+            json << "{\"pos\":" << pos << ",\"lemma_form\":";
+            
+            const char* lemma_form;
+            const unsigned char* lemma_rawsql = sqlite3_column_text(statement, 0);
+            if(lemma_rawsql != nullptr) {
+                lemma_form = (const char*)lemma_rawsql;
+            }
+            else lemma_form = "";
+            json << "\"" << htmlspecialchars(lemma_form) << "\",\"meanings\":{";
+
+            for(int i = 1; i < 11; i++) {
+                const char* meaning;
+                const unsigned char* meaning_rawsql = sqlite3_column_text(statement, i);
+                if(meaning_rawsql != nullptr) {
+                    meaning = (const char*)meaning_rawsql;
+                    json << "\"" << i << "\":\"" << htmlspecialchars(meaning) << "\",";
+                }
+                if(i == 10) {
+                    json.seekp(-1, std::ios_base::cur);
+                    json << "}";
+                }
+            }
+            json << "},";
+        }
+        json.seekp(-1, std::ios_base::cur);
+        json << "]";
+        sqlite3_finalize(statement);
+
+        int content_length = json.str().size();
+
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+
+        int length = post_response.str().size() + 1;
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+
+        sqlite3_close(DB);
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on dumpLemmaTable()\n";
+        return false;
+    }
 }
