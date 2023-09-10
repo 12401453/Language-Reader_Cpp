@@ -139,7 +139,7 @@ a {
   min-width: 55px;
   user-select: none;
   color: black;
-  font-family: IBM_PLEX_SANS;
+  font-family: IBM_Plex_Sans;
   text-align: center;
   opacity: 0.4;
   cursor: pointer;
@@ -197,7 +197,7 @@ a {
   user-select: none;
   background-color: #181f2e;
   color: #cbd9f4;
-  font-family: IBM_PLEX_SANS;
+  font-family: IBM_Plex_Sans;
   text-align: center;
   opacity: 0.6;
   cursor: pointer;
@@ -410,7 +410,7 @@ a {
 
   width: 100%;
   height: fit-content;
-  font-family: IBM_PLEX_SANS;
+  font-family: IBM_Plex_Sans;
   font-size: 14px;
   word-break: break-word;
   box-sizing: border-box;
