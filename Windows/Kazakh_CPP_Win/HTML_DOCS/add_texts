@@ -19,14 +19,13 @@
   <br>
 
 <div id="new_text">
-<div class="link-buttons" onclick="texts_link()">View texts</div><br>
+<a href="text_viewer"><div class="link-buttons">View texts</div><a><br>
 
 <form action="javascript:void(0)" id="formid" name="addtextform" accept-charset="utf-8">
 <span id="lang_button">
   <label for="langselect">Language:</label>
   <select id="langselect" name="langselect" form="formid">
   <?lng
-  <!-- <option value="4">Bulgarian</option><option value="8">Danish</option><option value="2">Kazakh</option><option value="3">Polish</option><option value="1">Russian</option><option value="7">Turkish</option> -->
   </select></span><br><br><br>
 
 

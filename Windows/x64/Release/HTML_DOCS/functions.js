@@ -140,6 +140,16 @@ function selectText() {
 
 }
 
+const showLoadingButton = () => {
+  let loadingbutton = document.createElement('div');
+  loadingbutton.innerHTML = "Loading...";
+  loadingbutton.id = 'loadingbutton';
+  document.getElementById('spoofspan').after(loadingbutton);
+};
+const removeLoadingButton = () => {
+  document.getElementById("loadingbutton").remove();
+};
+
 function selectText_splitup(dt_start, dt_end, page_cur) {
   if(display_word != null) delAnnotate();
 
@@ -380,14 +390,6 @@ function deleteText() {
  
   httpRequest("POST", "delete_text.php");
 
-}
-
-
- function texts_link() {
-   window.location = "/text_viewer";
- }
- function add_text_link() {
-  window.location = "/add_texts";
 }
 
 function showDeletion() {
@@ -1737,3 +1739,5 @@ function dictLookupKazakh(word) {
   httpRequest("POST", "curl_lookup.php");
 
 }
+
+//--------------new shit

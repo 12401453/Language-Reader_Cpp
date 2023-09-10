@@ -3069,11 +3069,14 @@ bool WebServer::dumpLemmaTable(std::string _POST[1], int clientSocket) {
         const char* sql_text = "SELECT lemma, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10, pos FROM lemmas WHERE lang_id = ?";
 
         std::ostringstream json;
-        json << "[";
+        json << "[[";
 
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_int(statement, 1, lang_id);
+        bool meanings_empty = true;
+        bool lemmas_empty = true;
         while(sqlite3_step(statement) == SQLITE_ROW) {
+            lemmas_empty = false;
             int pos = sqlite3_column_int(statement, 11);
             json << "{\"pos\":" << pos << ",\"lemma_form\":";
             
@@ -3085,31 +3088,67 @@ bool WebServer::dumpLemmaTable(std::string _POST[1], int clientSocket) {
             else lemma_form = "";
             json << "\"" << escapeQuotes(lemma_form) << "\",\"meanings\":{";
 
+            meanings_empty = true;
             for(int i = 1; i < 11; i++) {
                 const char* meaning;
                 const unsigned char* meaning_rawsql = sqlite3_column_text(statement, i);
                 if(meaning_rawsql != nullptr) {
                     meaning = (const char*)meaning_rawsql;
                     json << "\"" << i << "\":\"" << escapeQuotes(meaning) << "\",";
+                    meanings_empty = false;
                 }
                 if(i == 10) {
-                    json.seekp(-1, std::ios_base::cur);
+                    if(meanings_empty == false) json.seekp(-1, std::ios_base::cur);
                     json << "}";
                 }
             }
             json << "},";
         }
-        json.seekp(-1, std::ios_base::cur);
-        json << "]";
+        
+        if(lemmas_empty == false) json.seekp(-1, std::ios_base::cur);
+
+        json << "],[";
+        sqlite3_finalize(statement);
+
+        sql_text = "SELECT multiword_lemma_form, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, pos FROM multiword_lemmas WHERE lang_id = ?";
+        sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, lang_id);
+        lemmas_empty = true;
+        while(sqlite3_step(statement) == SQLITE_ROW) {
+            lemmas_empty = false;
+            int pos = sqlite3_column_int(statement, 6);
+            json << "{\"pos\":" << pos << ",\"lemma_form\":";
+            
+            const char* mw_lemma_form;
+            const unsigned char* mw_lemma_rawsql = sqlite3_column_text(statement, 0);
+            if(mw_lemma_rawsql != nullptr) {
+                mw_lemma_form = (const char*)mw_lemma_rawsql;
+            }
+            else mw_lemma_form = "";
+            json << "\"" << escapeQuotes(mw_lemma_form) << "\",\"meanings\":{";
+
+            meanings_empty = true;
+            for(int i = 1; i < 6; i++) {
+                const char* meaning;
+                const unsigned char* meaning_rawsql = sqlite3_column_text(statement, i);
+                if(meaning_rawsql != nullptr) {
+                    meaning = (const char*)meaning_rawsql;
+                    json << "\"" << i << "\":\"" << escapeQuotes(meaning) << "\",";
+                    meanings_empty = false;
+                }
+                if(i == 5) {
+                    if(meanings_empty == false) json.seekp(-1, std::ios_base::cur);
+                    json << "}";
+                }
+            }
+            json << "},";
+        }
+        if(lemmas_empty == false) json.seekp(-1, std::ios_base::cur);
+        json << "]]";
+
         sqlite3_finalize(statement);
 
         int content_length = json.str().size();
-        if(content_length == 1) {
-            json.str("[]");
-            content_length = 2;
-        }
-
-
         std::ostringstream post_response;
         post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
 
