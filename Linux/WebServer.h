@@ -84,7 +84,7 @@ class WebServer : public TcpListener {
         bool                m_POST_continue;
         char                m_url[50]; //only applies to POST urls; you can crash the server by sending it a POST request with a >50 char url but not by having long-named GETted resource amongst the HTML_DOCS
         const char*         m_DB_path;
-        std::string         m_cookies[3];
+        std::string         m_cookies[3] {"1", "1", "1"};
         bool                m_show_output;
 
         std::string         m_dict_cookies;

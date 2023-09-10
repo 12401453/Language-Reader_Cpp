@@ -13,7 +13,7 @@ document.getElementById("pos_selectors").addEventListener('click', (event) => {
       event.target.classList.add("just_turned_off");
     }
 
-    displayLemmas();
+    displayLemmas(filterLemmas(lemmas_object));
   }
 });
 
@@ -71,8 +71,12 @@ const addSubRow = (meaning_no, meaning_text) => {
 };
 
 let lemmas_object = [];
+let filtered_lemmas = [];
 const dumpLemmas = () => {
   showLoadingButton();
+  document.getElementById("lemma_searchbox").value = "";
+  document.getElementById("meaning_searchbox").value = "";
+
   let lang_id = document.getElementById("langselect").value;
 
   const httpRequest = (method, url) => {
@@ -111,8 +115,16 @@ const displayLemmas = (lemmas=lemmas_object) => {
   document.getElementById("left_top_title").textContent = `Lemmas (${lemma_count})`;
 };
 
-document.querySelectorAll(".pos_sel").forEach(pos_sel => pos_sel.addEventListener('click', displayLemmas));
+const filterLemmas = (lemmas=lemmas_object) => {
+  const meaning_searchbox_value = document.getElementById("meaning_searchbox").value.trim();
+  return lemmas.filter(obj => obj.lemma_form.startsWith(document.getElementById("lemma_searchbox").value.trim())).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value)));
 
-document.getElementById("lemma_searchbox").addEventListener('input', (event) => displayLemmas(lemmas_object.filter(obj => obj.lemma_form.startsWith(event.target.value.trim()))));
+
+  //lemmas.filter(obj => Object.values(obj.meanings).includes(document.getElementById("lemma_searchbox").value.trim()));
+}
+
+document.getElementById("lemma_searchbox").addEventListener('input', (event) => displayLemmas(filterLemmas(lemmas_object)));
+document.getElementById("meaning_searchbox").addEventListener('input', (event) => displayLemmas(filterLemmas(lemmas_object)));
+//lemmas_object.filter(obj => obj.lemma_form.startsWith(event.target.value.trim()))
 
 dumpLemmas();
