@@ -3083,14 +3083,14 @@ bool WebServer::dumpLemmaTable(std::string _POST[1], int clientSocket) {
                 lemma_form = (const char*)lemma_rawsql;
             }
             else lemma_form = "";
-            json << "\"" << htmlspecialchars(lemma_form) << "\",\"meanings\":{";
+            json << "\"" << escapeQuotes(lemma_form) << "\",\"meanings\":{";
 
             for(int i = 1; i < 11; i++) {
                 const char* meaning;
                 const unsigned char* meaning_rawsql = sqlite3_column_text(statement, i);
                 if(meaning_rawsql != nullptr) {
                     meaning = (const char*)meaning_rawsql;
-                    json << "\"" << i << "\":\"" << htmlspecialchars(meaning) << "\",";
+                    json << "\"" << i << "\":\"" << escapeQuotes(meaning) << "\",";
                 }
                 if(i == 10) {
                     json.seekp(-1, std::ios_base::cur);
@@ -3104,6 +3104,11 @@ bool WebServer::dumpLemmaTable(std::string _POST[1], int clientSocket) {
         sqlite3_finalize(statement);
 
         int content_length = json.str().size();
+        if(content_length == 1) {
+            json.str("[]");
+            content_length = 2;
+        }
+
 
         std::ostringstream post_response;
         post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();

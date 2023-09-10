@@ -29,14 +29,14 @@
     <?lng
     </select></span>
     <div id="pos_selectors">
-      <span id="pos_sel_noun" class="pos_sel noun">noun</span>
-      <span id="pos_sel_verb" class="pos_sel verb">verb</span>
-      <span id="pos_sel_adj" class="pos_sel adj">adject.</span>
-      <span id="pos_sel_adverb" class="pos_sel adverb">adverb</span>
-      <span id="pos_sel_prep" class="pos_sel prep">prep.</span>
-      <span id="pos_sel_conj" class="pos_sel conj">conj.</span>
-      <span id="pos_sel_part" class="pos_sel part">part.</span>
-      <span id="pos_sel_ques" class="pos_sel ques">ques.</span>
+      <span data-pos_code="1" class="pos_sel noun pos_selected">noun</span>
+      <span data-pos_code="2" class="pos_sel verb pos_selected">verb</span>
+      <span data-pos_code="3" class="pos_sel adj pos_selected">adject.</span>
+      <span data-pos_code="4" class="pos_sel adverb pos_selected">adverb</span>
+      <span data-pos_code="5" class="pos_sel prep pos_selected">prep.</span>
+      <span data-pos_code="6" class="pos_sel conj pos_selected">conj.</span>
+      <span data-pos_code="7" class="pos_sel part pos_selected">part.</span>
+      <span data-pos_code="8" class="pos_sel ques pos_selected">ques.</span>
 
     </div>
     <div id="words_body" >

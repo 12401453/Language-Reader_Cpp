@@ -132,6 +132,9 @@ a {
 .pos_selected {
   opacity: 1;
 }
+.pos_sel.just_turned_off:hover {
+  opacity: 0.4;
+}
 .verb {
   background-color: #4dac0d;
 }
@@ -330,7 +333,7 @@ a {
   
   color: #cbd9f4;
   background-color: #071022;
-  border-bottom: 2px solid black;
+  border-bottom: 3px solid black;
   border-left: 4px solid black;
   border-right: 4px solid black;
 }
@@ -377,7 +380,7 @@ a {
   width: 100%;
   height: fit-content;
   font-family: IBM_PLEX_SANS;
-  font-size: 12px;
+  font-size: 14px;
   word-break: break-word;
   box-sizing: border-box;
   flex-grow: 1;
@@ -391,8 +394,8 @@ a {
   flex-flow: column nowrap;
   justify-content: center;
   align-items: center;
-  width: 40px;
-  min-width: 40px;
+  width: 30px;
+  min-width: 30px;
   border-right: 1px dotted black;
   cursor: default;
 }
