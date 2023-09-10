@@ -6,6 +6,7 @@ document.getElementById("pos_selectors").addEventListener('click', (event) => {
     const index = event.target.dataset.pos_code - 1;
     if(pos_selector_states[index] == false) {
       pos_selector_states[index] = true;
+      event.target.classList.remove("just_turned_off");
     }
     else {
       pos_selector_states[index] = false;
@@ -39,19 +40,29 @@ const htmlspecialchars = (text) => {
   //.replaceAll("\x5c", "\x5c\x5c").replaceAll("\n", "\x5c\x6e").replaceAll("\t", "\x5c\x74").replaceAll("\r", "\x5c\x72").replaceAll("\f", "\x5c\x66")
 };
 
+const showLoadingButton = () => {
+  let loadingbutton = document.createElement('div');
+  loadingbutton.innerHTML = "Loading...";
+  loadingbutton.id = 'loadingbutton';
+  document.getElementById('spoofspan').after(loadingbutton);
+};
+const removeLoadingButton = () => {
+  document.getElementById("loadingbutton").remove();
+};
 
 const pos_names = {1:"noun", 2:"verb", 3:"adj", 4:"adverb", 5:"prep", 6:"conj", 7:"part", 8:"ques"};
-const addRow = (x) => {
-  let html_text = `<div class="words_row"><div class="word_cell_left"><div class="pos_colour left ${pos_names[x.pos]}"></div><div class="word_cell_lemma">${htmlspecialchars(x.lemma_form)}</div><div class="pos_colour right adj"></div></div><div class="word_cell_right">`;
+
+const buildRowHTML = (x, html_str_arr) => {
+  html_str_arr.push(`<div class="words_row"><div class="word_cell_left"><div class="pos_colour left ${pos_names[x.pos]}"></div><div class="word_cell_lemma">${htmlspecialchars(x.lemma_form)}</div><div class="pos_colour right adj"></div></div><div class="word_cell_right">`);
   
   for(let y in x.meanings) {
     let meaning_no = Object.keys(x.meanings).length > 1 ? y+".)" : "";
-    html_text += `<div class="word_cell_meaning_strip"><div class="meaning_no_box"><div class="meaning_no" title="Meaning number">${meaning_no}</div></div><div class="meaning_text">${htmlspecialchars(x.meanings[y])}</div></div>`;
+    html_str_arr.push(`<div class="word_cell_meaning_strip"><div class="meaning_no_box"><div class="meaning_no" title="Meaning number">${meaning_no}</div></div><div class="meaning_text">${htmlspecialchars(x.meanings[y])}</div></div>`);
   }
   
-  html_text += `</div></div>`;
+  html_str_arr.push(`</div></div>`);
 
-  document.getElementById("words_body").appendChild(document.createRange().createContextualFragment(html_text)); 
+  //document.getElementById("words_body").appendChild(document.createRange().createContextualFragment(html_text)); 
 };
 
 const addSubRow = (meaning_no, meaning_text) => {
@@ -60,10 +71,9 @@ const addSubRow = (meaning_no, meaning_text) => {
 };
 
 let lemmas_object = [];
-const dumpLemmaTest = () => {
+const dumpLemmas = () => {
+  showLoadingButton();
   let lang_id = document.getElementById("langselect").value;
-
-  document.querySelectorAll(".words_row").forEach (row => row.remove());
 
   const httpRequest = (method, url) => {
     let send_data = "lang_id="+lang_id;
@@ -76,22 +86,33 @@ const dumpLemmaTest = () => {
       if(xhttp.readyState == 4) {
         lemmas_object = xhttp.response;
         displayLemmas();
+        removeLoadingButton();
       }
     };
     xhttp.send(send_data);
   };
   httpRequest("POST", "dump_lemmas.php");
 };
-document.getElementById("langselect").addEventListener('change', dumpLemmaTest);
+document.getElementById("langselect").addEventListener('change', dumpLemmas);
 
 const displayLemmas = (lemmas=lemmas_object) => {
-  document.querySelectorAll(".words_row").forEach (row => row.remove());
+  let html_str_arr = [];
+  let lemma_count = 0;
   for(let x of lemmas) {
-    //if(event.target.dataset.pos_code == x.pos) addRow(x);
-    if(pos_selector_states[x.pos - 1] == true) addRow(x);
-  } 
+    
+    if(pos_selector_states[x.pos - 1] == true) {
+      buildRowHTML(x, html_str_arr);
+      lemma_count++;
+    }
+    
+  }
+  const html_str = html_str_arr.join("");
+  document.getElementById("words_results").innerHTML = html_str;
+  document.getElementById("left_top_title").textContent = `Lemmas (${lemma_count})`;
 };
 
 document.querySelectorAll(".pos_sel").forEach(pos_sel => pos_sel.addEventListener('click', displayLemmas));
 
 document.getElementById("lemma_searchbox").addEventListener('input', (event) => displayLemmas(lemmas_object.filter(obj => obj.lemma_form.startsWith(event.target.value.trim()))));
+
+dumpLemmas();

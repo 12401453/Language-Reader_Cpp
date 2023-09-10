@@ -140,6 +140,16 @@ function selectText() {
 
 }
 
+const showLoadingButton = () => {
+  let loadingbutton = document.createElement('div');
+  loadingbutton.innerHTML = "Loading...";
+  loadingbutton.id = 'loadingbutton';
+  document.getElementById('spoofspan').after(loadingbutton);
+};
+const removeLoadingButton = () => {
+  document.getElementById("loadingbutton").remove();
+};
+
 function selectText_splitup(dt_start, dt_end, page_cur) {
   if(display_word != null) delAnnotate();
 

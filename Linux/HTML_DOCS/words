@@ -44,12 +44,7 @@
         <div id="left_top_header"><span id="left_top_upper"><textarea id="lemma_searchbox" autocomplete="off" placeholder="Search lemmas..."></textarea></span><span id="left_top_lower"><div id="left_top_title">Lemmas</div></span></div>
         <div id="right_top_header"><span id="right_top_upper"><textarea id="meaning_searchbox" autocomplete="off" placeholder="Search meanings..."></textarea></span><span id="right_top_lower"><div id="right_top_title">Meanings</div></span></div>
       </div>
-    
-    
-    
-    
-    
-    
+        <div id="words_results"></div>
     </div>
 </div>
 </div>
