@@ -3043,7 +3043,7 @@ bool WebServer::disregardWord(std::string _POST[2], SOCKET clientSocket) {
         sqlite3_step(statement);
         sqlite3_finalize(statement);
         
-        sql_text = "DELETE FROM word_engine WHERE word_engine_id = ?";
+        sql_text = "DELETE FROM word_engine WHERE word_engine_id = ? AND first_lemma_id IS NULL";
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         std::cout << "bind code: " << sqlite3_bind_int(statement, 1, word_engine_id) << std::endl;
         std::cout << "run code: " << sqlite3_step(statement) << std::endl;
