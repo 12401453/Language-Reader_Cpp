@@ -17,7 +17,7 @@ class Dictionary {
                 this.lang_name = "Polish";
                 break;
             case 4:
-                this.dict_type = 2;
+                this.dict_type = 1;
                 this.lang_name = "Bulgarian";
                 break;
             case 6:
@@ -49,6 +49,9 @@ class Dictionary {
                     break;
                 case 3:
                     PONS_lang_dir = "polnisch-";
+                    break;
+                case 4:
+                    PONS_lang_dir = "bulgarisch-";
                     break;
                 case 6:
                     PONS_lang_dir = "schwedisch-";
@@ -98,7 +101,7 @@ class Dictionary {
         1: [2,1],
         2: [3,4,2],
         3: [1,2],
-        4: [2],
+        4: [1,4],
         6: [1,2],
         7: [1,2],
         8: [1,2],
@@ -363,6 +366,64 @@ class Dictionary {
             text += '</span>';
             return text;
         };
+        const extractH3Text = (node_list) => {
+            if(node_list.length < 2) return {};
+            let text = '<span class="PONS_title_info">';
+            let span_inserted = false;
+            node_list.forEach( (node, i) => {
+                if(node.className == 'info') {
+                    text = text.concat('<abbr>').concat(node.textContent.trim()).concat('</abbr>');
+                    text += " ";
+                }
+                else {
+                    text += node.textContent.trim();
+                    text += " ";
+                }
+                
+            });
+            text += '</span>';
+            return text;
+        };
+
+        if(this.m_lang_id == 4) {
+            let results_sections = PONS_page.querySelectorAll(".results");
+            let entry_sections = results_sections[0].querySelectorAll(".entry");
+            entry_sections.forEach((entry, i) => {
+                this.dict_result_PONS[i] = {h2_text: {},};
+                this.dict_result_PONS[i].h2_text = extractHeaderText(entry.querySelector("h2").childNodes);
+                
+                entry.querySelectorAll(".translations").forEach((block, j) => {
+                    if(block.querySelector("h3").textContent.trim() == "Wendungen:") {
+                        this.dict_result_PONS[i].wendungen = {};
+                        const entries_pl = block.querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
+                        const entries_eng = block.querySelectorAll(".dd-inner > .target");
+                        const entries_lngth = entries_pl.length;
+                        for(let k = 0; k < entries_lngth; k++) {                      
+                            const pl_entry = extractText(entries_pl[k].childNodes);
+                            const eng_entry = extractText(entries_eng[k].childNodes);
+                            this.dict_result_PONS[i].wendungen[k] = [pl_entry, eng_entry];
+                        }
+                    }
+
+                    else {
+                        this.dict_result_PONS[i][j] = {h3_text: {},}
+                        this.dict_result_PONS[i][j].h3_text = extractH3Text(block.querySelector("h3").childNodes);
+                        const entries_pl = block.querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
+                        const entries_eng = block.querySelectorAll(".dd-inner > .target");
+                        const entries_lngth = entries_pl.length;
+                        for(let k = 0; k < entries_lngth; k++) {                      
+                            const pl_entry = extractText(entries_pl[k].childNodes);
+                            const eng_entry = extractText(entries_eng[k].childNodes);
+                            this.dict_result_PONS[i][j][k] = [pl_entry, eng_entry];
+                        }
+                    }
+
+                });
+
+            });
+            this.unPackPONSResult();
+            return;
+        }
     
         let meaning_sections = PONS_page.querySelectorAll(".rom"); //it can occur that no .rom exists but a single transation is given (Ru. хуй), so need to add a check for it
         let rom_lngth = meaning_sections.length;
@@ -378,6 +439,7 @@ class Dictionary {
             let dict_body = document.getElementById("dict_body");
             dict_body.innerHTML = "";
             dict_body.style.display = "flex";
+
             for(let i = 0; i < results_lngth && i < 2; i++) {
                 const entries_left = results_sections[i].querySelectorAll(".dt-inner > .source");
                 const entries_right = results_sections[i].querySelectorAll(".dd-inner > .target");
@@ -402,23 +464,29 @@ class Dictionary {
                 for(let j = 0; j < block_lngth; j++) {
                     if(blocks[j].querySelector("h3").textContent.trim() == "Wendungen:") {
                         this.dict_result_PONS[i].wendungen = {};
-                        let entries_pl = blocks[j].querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
-                        let entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
-                        let entries_lngth = entries_pl.length;
+                        const entries_pl = blocks[j].querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
+                        const entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
+                        const entries_lngth = entries_pl.length;
                         for(let k = 0; k < entries_lngth; k++) {                      
-                            let pl_entry = extractText(entries_pl[k].childNodes);
-                            let eng_entry = extractText(entries_eng[k].childNodes);
+                            const pl_entry = extractText(entries_pl[k].childNodes);
+                            const eng_entry = extractText(entries_eng[k].childNodes);
                             this.dict_result_PONS[i].wendungen[k] = [pl_entry, eng_entry];
                         }
                     }
                     else {
-                        this.dict_result_PONS[i][j] = {};
-                        let entries_pl = blocks[j].querySelectorAll(".dt-inner > .source");
-                        let entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
-                        let entries_lngth = entries_pl.length;
+                        //this.dict_result_PONS[i][j] = {};
+                        this.dict_result_PONS[i][j] = {h3_text: {},};
+                        //if(blocks[j].querySelector("h3").className != "empty hidden ") this.dict_result_PONS[i][j].h3_text = extractHeaderText(blocks[j].querySelector("h3").childNodes);
+                        this.dict_result_PONS[i][j].h3_text = extractH3Text(blocks[j].querySelector("h3").childNodes);
+
+
+
+                        const entries_pl = blocks[j].querySelectorAll(".dt-inner > .source");
+                        const entries_eng = blocks[j].querySelectorAll(".dd-inner > .target");
+                        const entries_lngth = entries_pl.length;
                         for(let k = 0; k < entries_lngth; k++) {   
-                            let pl_entry = extractText(entries_pl[k].childNodes);
-                            let eng_entry = extractText(entries_eng[k].childNodes);
+                            const pl_entry = extractText(entries_pl[k].childNodes);
+                            const eng_entry = extractText(entries_eng[k].childNodes);
                             this.dict_result_PONS[i][j][k] = [pl_entry, eng_entry];
                         }
                     }
@@ -453,9 +521,16 @@ class Dictionary {
             else {
                 dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i].h2_text+'</div></div>'));
                 for(let j in this.dict_result_PONS[i]) {    
-                    if(j == "h2_text") continue;           
+                    if(j == "h2_text") continue;
+                    if(j == "wendungen") {
+                        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">Wendungen</div></div>'));
+                    }
+                    else if(Object.keys(this.dict_result_PONS[i][j].h3_text).length > 0) {
+                        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i][j].h3_text+'</div></div>'));
+                    }
                     for(let k in this.dict_result_PONS[i][j]) {
-                        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>'));
+                        if(k == "h3_text") continue;
+                        else dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>'));
                     }
                 
                 }
