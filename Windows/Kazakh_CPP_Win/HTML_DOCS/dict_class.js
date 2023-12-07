@@ -195,14 +195,23 @@ class Dictionary {
         }        
     };
 
+    lookUpClick = (event) => {
+        if(event.type == 'click') {
+            const new_word = event.target.textContent.trim();
+            document.getElementById("dict_searchbox").value = new_word;
+            this.lookUp(new_word);        
+        }
+    };
+
     /* Dict-type codes:
         PONS: 1
         Wiktionary : 2
         sozdikQaz: 3
         sozdikRus: 4 
     */
+
     scrapeSozdik(response_text) {
-        let sozdik_result = JSON.parse(response_text);
+        const sozdik_result = JSON.parse(response_text);
         let dict_body = document.getElementById("dict_body");
     
         const parser = new DOMParser();
@@ -298,20 +307,29 @@ class Dictionary {
         if(sozdik_result.data.synonyms != "") {
             const synonymHTML = parser.parseFromString(sozdik_result.data.synonyms, 'text/html');
             let synonym_html_str = "";
-            synonymHTML.body.childNodes.forEach(childNode => {
-                if(childNode.nodeName == "A") {
-                    synonym_html_str += "<span class=\"kaz_clickable\">"+childNode.textContent+"</span>";
+            const synonym_nodes = synonymHTML.body.childNodes;
+            const synonyms_length = synonym_nodes.length;
+            let x = 0;
+            synonym_nodes.forEach(childNode => {
+                if(childNode.firstChild.nodeName == "A") {
+                    synonym_html_str += "<span class=\"kaz_clickable\">"+childNode.firstChild.textContent+"</span>";
                 }
-                else if(childNode.nodeType == 3) {
-                    synonym_html_str += childNode.textContent;
+                else if(childNode.firstChild.nodeType == 3) {
+                    synonym_html_str += childNode.firstChild.textContent;
                 }
+                x++;
+                if(x < synonyms_length) synonym_html_str += ", ";
             });
             html_str += '<div class="dict_row"><div class="dict_cell sozdik_synonyms">Synonyms:</div></div>';
             html_str += '<div class="dict_row"><div class="dict_cell Wk">'+synonym_html_str+'</div></div>';
+            
         }
         dict_body.innerHTML = "";
         dict_body.style.display = "flex";
         dict_body.appendChild(document.createRange().createContextualFragment(html_str));
+        document.querySelectorAll(".kaz_clickable").forEach(synonym => {
+                synonym.addEventListener('click', this.lookUpClick);
+        });
     }
 
     dict_result_PONS = Object.create(null);
@@ -367,7 +385,7 @@ class Dictionary {
             return text;
         };
         const extractH3Text = (node_list) => {
-            if(node_list.length < 2) return {};
+            if(node_list.length < 2) return {}; //sometimes the <h3> nodes can be just plain text so get skipped, but in these cases nothing interesting is said anyway
             let text = '<span class="PONS_title_info">';
             let span_inserted = false;
             node_list.forEach( (node, i) => {

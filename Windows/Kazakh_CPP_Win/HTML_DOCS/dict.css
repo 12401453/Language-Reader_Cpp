@@ -252,7 +252,12 @@ abbr {
 }
 .kaz_clickable {
     color: #ffca00;
+    cursor: pointer;
 }
+.kaz_clickable:hover {
+    color:#fbff00;
+}
+
 .dict_cell.sozdik_synonyms {
     background-color: #172136;
     font-weight: normal;
