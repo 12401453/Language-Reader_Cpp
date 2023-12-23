@@ -1,7 +1,7 @@
-//compile with 
-//    g++ -lsqlite3 -licuuc -licui18n -licudata -lcurl TcpListener.cpp WebServer.cpp main.cpp -o webserv
-// or 
-//    g++ -lsqlite3 -lcurl `pkg-config --libs --cflags icu-uc icu-io` TcpListener.cpp WebServer.cpp main.cpp -o webserv
+//compile with
+//  g++ TcpListener.cpp WebServer.cpp main.cpp -lsqlite3 -licuuc -licudata -licui18n -lcurl -o webserv
+//run with
+//  ./webserv <portnumber> [silent]
 
 #include "WebServer.h"
 
