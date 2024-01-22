@@ -1556,7 +1556,7 @@ bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
 
 
         std::ostringstream html;
-        html << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\nSet-Cookie: lang_id=" << lang_id << "; Max-Age=157680000" << "\r\n\r\n" << lang_id;
+        html << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\nSet-Cookie: lang_id=" << lang_id << "; Max-Age=157680000" << "\r\n" << "Cache-Control: no-cache" << "\r\n\r\n" << lang_id;
         int length = html.str().size() + 1;
 
         sqlite3_close(DB);
@@ -3152,7 +3152,7 @@ bool WebServer::dumpLemmaTable(std::string _POST[1], int clientSocket) {
 
         int content_length = json.str().size();
         std::ostringstream post_response;
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
 
         int length = post_response.str().size() + 1;
         sendToClient(clientSocket, post_response.str().c_str(), length);

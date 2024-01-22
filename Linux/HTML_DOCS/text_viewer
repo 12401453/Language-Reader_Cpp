@@ -38,7 +38,7 @@
 
 <div id="select_button">
   <label for="textselect">Choose text:</label>
-  <select id="textselect" name="textselect" onchange="selectText()" style="width: 100px;">
+  <select id="textselect" name="textselect" oninput="selectText()" style="width: 100px;">
   <option value="0"></option>
   <?php ?>
   </select></div>
@@ -82,7 +82,7 @@ const textselect_resize = (event) => {
   dummyselect.remove();
 };
 
-textselector.addEventListener('change', textselect_resize);
+textselector.addEventListener('input', textselect_resize);
 textselector.addEventListener('cookie_selection', textselect_resize);
 
 window.onload = () => {
