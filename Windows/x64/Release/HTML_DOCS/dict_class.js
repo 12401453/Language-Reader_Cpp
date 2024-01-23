@@ -20,6 +20,10 @@ class Dictionary {
                 this.dict_type = 1;
                 this.lang_name = "Bulgarian";
                 break;
+            case 5:
+                this.dict_type = 5;
+                this.lang_name = "German";
+                break;
             case 6:
                 this.dict_type = 1;
                 this.lang_name = "Swedish";
@@ -36,6 +40,7 @@ class Dictionary {
                 this.dict_type = 2;
                 this.lang_name = "Indonesian";
         }
+        this.PONS_german = this.m_lang_id == 5 ? false : true;
     }
 
     urlMaker(word, dict_type=this.dict_type, PONS_german=this.PONS_german) {
@@ -52,6 +57,9 @@ class Dictionary {
                     break;
                 case 4:
                     PONS_lang_dir = "bulgarisch-";
+                    break;
+                case 5:
+                    PONS_lang_dir = "deutsch-";
                     break;
                 case 6:
                     PONS_lang_dir = "schwedisch-";
@@ -76,11 +84,14 @@ class Dictionary {
         else if(dict_type == 4) {
             return "https://sozdik.kz/translate/ru/kk/"+ encodeURIComponent(word)+ "/";
         }
+        else if(dict_type == 5) {
+            return "https://www.dict.cc/?s=" + encodeURIComponent(word);
+        }
     }
     dict_name = "";
     lang_name = "";
     dict_type = 2;
-    PONS_german = true;
+    //PONS_german = this.m_lang_id == 5 ? false : true;
     bool_displayed = false;
 
     logos = {
@@ -96,12 +107,16 @@ class Dictionary {
         4: {
             logo_url: 'sozdik.svg" title="sozdik.kz Ru-Kaz"',
         },
+        5: {
+            logo_url: 'dictcc.png" title="dict.cc"',
+        },
     };
     allowable_dicts = {
         1: [2,1],
         2: [3,4,2],
         3: [1,2],
-        4: [1,4],
+        4: [1,2],
+        5: [5,1,2],
         6: [1,2],
         7: [1,2],
         8: [1,2],
@@ -110,7 +125,7 @@ class Dictionary {
 
     display() {
         let logo_url = this.logos[this.dict_type].logo_url;
-        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox"></textarea><img id="dict_logo" src="'+logo_url+'></img></div></div>');
+        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox"></textarea><img id="dict_logo" src="'+logo_url+' draggable="false"></img></div></div>');
         document.getElementById("spoofspan2").after(dict_html);
         document.getElementById("dict_searchbox").addEventListener("keydown", this.submit);
         document.getElementById("dict_close").addEventListener('click', () => {
@@ -174,6 +189,7 @@ class Dictionary {
         if(dict_type == 3 || dict_type == 4) this.scrapeSozdik(response_text);
         else if(dict_type == 1) this.scrapePONS(response_text);
         else if(dict_type == 2) this.scrapeWiktionary(response_text);
+        else if(dict_type == 5) this.scrapeDictCC(response_text);
     }
 
     noResultsFound(message="No results found") {
@@ -368,13 +384,17 @@ class Dictionary {
             let text = "";
             let span_inserted = false;
             node_list.forEach( (node, i) => {
-                if(node.nodeType == 1 && node.className != "headword_attributes" && span_inserted == false) {
+                if(node.nodeType == 1 && node.className != "headword_attributes" && span_inserted == false && node.className != "separator") {
                     text += '<span class="PONS_title_info">';
                     span_inserted = true;
                 }
-                if(node.nodeType == 3) {
+                else if(node.className == "separator") {
+                    text = text.substring(0, text.length - 1);
                     text += node.textContent.trim();
-                    text += " ";
+                }
+                else if(node.nodeType == 3) {
+                    text += node.textContent.trim();
+                    text += " ";     
                 }
                 else {
                     text += node.textContent.trim();
@@ -654,6 +674,55 @@ class Dictionary {
             });
         }
     }
+
+    dict_result_dictcc = Object.create(null);
+    scrapeDictCC = (response_text) => {
+        const dict_body = document.getElementById("dict_body");
+        const extractText = (element) => {
+            let txt = "";
+            for(const child of element.childNodes) {
+                if(child.nodeName == "DIV" && child.id.startsWith("elliwrap")) txt += child.textContent;
+                else if(child.nodeName == "SPAN" && child.style.top == "-3px") txt += "<sup>" + child.textContent + "</sup>";
+                else if(child.nodeName != "DFN" && child.nodeName != "DIV") txt += child.textContent;
+                
+            }
+            return txt.trim();
+        }
+
+        this.dict_result_dictcc = {};
+        const parser = new DOMParser();
+        const dictcc_pg = parser.parseFromString(response_text, 'text/html');
+
+        const result_rows = dictcc_pg.getElementsByTagName("tr");
+        let definition_count  = 0;
+        let block_count = 0;
+        this.dict_result_dictcc[block_count] = {};
+        for(const result_row of result_rows) {
+            if(result_row.id == '') {
+                if(result_row.firstChild.className == "td6") {
+                    block_count++;
+                    this.dict_result_dictcc[block_count] = {};
+                    definition_count = 0;
+                    const block_header_text = result_row.firstChild.textContent;
+                    this.dict_result_dictcc[block_count]["block_header"] = block_header_text;
+
+                    dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+block_header_text+'</div></div>'));
+                }    
+                continue;
+            }
+            const lefthand_cell = result_row.getElementsByClassName('td7nl')[0];
+            const righthand_cell = result_row.getElementsByClassName('td7nl')[1];
+            const lefthand_text = extractText(lefthand_cell);
+            const righthand_text = extractText(righthand_cell);
+            this.dict_result_dictcc[block_count][definition_count] = [lefthand_text, righthand_text];
+            
+            dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+lefthand_text+'</div><div class="dict_cell right">'+righthand_text+'</div></div>'));
+
+            definition_count++;
+        }
+        if(Object.keys(this.dict_result_dictcc).length == 1 && Object.keys(this.dict_result_dictcc[0]).length == 0) this.noResultsFound();
+    };
+
 
 
 

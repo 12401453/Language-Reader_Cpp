@@ -58,7 +58,8 @@ function setLangId() {
 
     const xhttp = new XMLHttpRequest();
     xhttp.open(method, url, true);
-    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhttp.setRequestHeader('Cache-Control', 'no-cache');
 
     xhttp.onreadystatechange = () => {
 
@@ -83,7 +84,7 @@ function setLangId() {
 
 function selectText() {
   if(display_word != null) delAnnotate();
-  setLangId();
+  setLangId();  //not async safe, needs to change
 
   let loadingbutton = document.createElement('div');
   loadingbutton.innerHTML = "Loading...";
@@ -358,7 +359,7 @@ function deleteText() {
 
   if(!confirm(`Are you sure you want to delete "${text_title}"?`)) {
     title_select.selectedIndex = 0;
-    title_select.dispatchEvent(new Event('change'));
+    title_select.dispatchEvent(new Event('input'));
     return;
   }
   
@@ -576,6 +577,10 @@ const pullInLemma = function (can_skip = true) {
   if (lemma_form == lemma_form_tag_initial && can_skip) {
     return;
   }
+  if(lang_id == 5 && pos == 1) {
+    lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
+  }
+
   document.getElementById('save_button').onclick = "";
   const httpRequest = (method, url) => {
     let send_data = "lemma_form=" + encodeURIComponent(lemma_form) + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=";
@@ -598,6 +603,8 @@ const pullInLemma = function (can_skip = true) {
         lemma_id = json_response.lemma_id;
         meanings = Object.create(null);
         if(lemma_id != null) {
+          //added to cope with German auto-uppercasing nouns
+          document.getElementById('lemma_tag').value = lemma_form;
           
           let new_lemma_textarea_content = json_response.lemma_textarea_content;
           if(new_lemma_textarea_content != "") {
@@ -718,13 +725,20 @@ const lemmaRecord = function () {
   
   let clicked_lemma_meaning_no = lemma_meaning_no;
   let meanings_length = Object.keys(meanings).length;
+  
+  let lemma_form_trimmed = document.getElementById('lemma_tag').value.trim();
+  //auto-capitalise German nouns (will mess up words like 'iPhone' and 'eTicket', but those are unlikely to need translations)
+  if(lang_id == 5 && pos == 1) {
+    lemma_form_trimmed = lemma_form_trimmed[0].toUpperCase().concat(lemma_form_trimmed.slice(1));
+  }
+  const lemma_form = encodeURIComponent(lemma_form_trimmed);
+  
   let count = 1;
   for (let lemma_meaning_no in meanings) {
     let lemma_meaning = meanings[lemma_meaning_no];
     
     const httpRequest = (method, url) => {
 
-    let lemma_form = encodeURIComponent(document.getElementById('lemma_tag').value.trim());
     lemma_meaning = encodeURIComponent(lemma_meaning);
 
     let send_data = "word_engine_id=" + word_engine_id + "&lemma_form=" + lemma_form + "&lemma_meaning=" + lemma_meaning + "&lemma_meaning_no=" + lemma_meaning_no + "&lang_id=" + lang_id + "&tokno_current=" + tokno_current + "&pos=" + pos +"&clicked_lemma_meaning_no=" + clicked_lemma_meaning_no;

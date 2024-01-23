@@ -92,7 +92,6 @@ const dumpLemmas = () => {
   showLoadingButton();
   document.getElementById("lemma_searchbox").value = "";
   document.getElementById("meaning_searchbox").value = "";
-
   let lang_id = document.getElementById("langselect").value;
 
   const httpRequest = (method, url) => {
@@ -101,19 +100,47 @@ const dumpLemmas = () => {
     const xhttp = new XMLHttpRequest();
     xhttp.open(method, url, true);
     xhttp.responseType = 'json';
-    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhttp.setRequestHeader('Cache-Control', 'no-cache');
     xhttp.onload = () => {
       if(xhttp.readyState == 4) {
+        
         lemmas_object = xhttp.response;
         displayLemmas(filterLemmas(lemmas_object));
         removeLoadingButton();
       }
-    };
+    }; 
     xhttp.send(send_data);
   };
   httpRequest("POST", "dump_lemmas.php");
 };
-document.getElementById("langselect").addEventListener('change', dumpLemmas);
+
+//this is just a test of using the fetch() API
+const dumpLemmasFetch = () => {
+  let lang_id = document.getElementById("langselect").value;
+   // alert(lang_id);
+  let send_data = "lang_id="+lang_id;
+  const myheaders = new Headers();
+  myheaders.append('Content-Type', 'application/x-www-form-urlencoded');
+  myheaders.append('Cache-Control', 'no-cache');
+  const options = {method: "POST", headers: myheaders, cache: "no-store", body: send_data};
+  showLoadingButton();
+  document.getElementById("lemma_searchbox").value = "";
+  document.getElementById("meaning_searchbox").value = "";
+  fetch("dump_lemmas.php", options)
+  .then((response) => {
+    //alert("first response");
+    return response.json();
+  })
+  .then(response => {
+    lemmas_object = response
+    displayLemmas(filterLemmas(lemmas_object));
+    removeLoadingButton();
+  })
+  .finally(() => {removeLoadingButton()});
+};
+
+document.getElementById("langselect").addEventListener('input', dumpLemmas);
 
 const displayLemmas = (lemmas=lemmas_object) => {
   let html_str_arr = [];

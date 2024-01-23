@@ -62,7 +62,7 @@
 <script>
   const textselector = document.getElementById('textselect');
 
-textselector.addEventListener('change', event => {
+textselector.addEventListener('input', event => {
       let dummyselect = document.createElement('select');
       let dummyoption = document.createElement('option');
 

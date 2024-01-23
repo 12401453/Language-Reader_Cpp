@@ -1198,7 +1198,7 @@ bool WebServer::lemmaTooltips(std::string _POST[2], SOCKET clientSocket) {
         int content_length = json.str().size();
 
         std::ostringstream post_response;
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
 
         int length = post_response.str().size() + 1;
         sendToClient(clientSocket, post_response.str().c_str(), length);
@@ -1975,7 +1975,7 @@ bool WebServer::retrieveEngword(std::string _POST[3], SOCKET clientSocket) {
 
         int content_length = json.str().size();
         std::ostringstream post_response;
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
         int length = post_response.str().size() + 1;
 
         sendToClient(clientSocket, post_response.str().c_str(), length);
@@ -2185,7 +2185,7 @@ bool WebServer::pullInLemma(std::string _POST[4], SOCKET clientSocket) {
 
         int content_length = json.str().size();
         std::ostringstream post_response;
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
         int length = post_response.str().size() + 1;
 
         sendToClient(clientSocket, post_response.str().c_str(), length);
@@ -2565,7 +2565,7 @@ bool WebServer::retrieveMultiword(std::string _POST[3], SOCKET clientSocket) {
 
         int content_length = json.str().size();
         std::ostringstream post_response;
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
         int length = post_response.str().size() + 1;
 
         sendToClient(clientSocket, post_response.str().c_str(), length);
@@ -2655,7 +2655,7 @@ bool WebServer::pullInMultiword(std::string _POST[2], SOCKET clientSocket) {
         
         int content_length = json.str().size();
         std::ostringstream post_response;
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
         int length = post_response.str().size() + 1;
 
         sendToClient(clientSocket, post_response.str().c_str(), length);
@@ -3171,7 +3171,7 @@ bool WebServer::dumpLemmaTable(std::string _POST[1], SOCKET clientSocket) {
 
         int content_length = json.str().size();
         std::ostringstream post_response;
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
 
         int length = post_response.str().size() + 1;
         sendToClient(clientSocket, post_response.str().c_str(), length);
