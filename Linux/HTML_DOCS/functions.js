@@ -577,6 +577,10 @@ const pullInLemma = function (can_skip = true) {
   if (lemma_form == lemma_form_tag_initial && can_skip) {
     return;
   }
+  if(lang_id == 5 && pos == 1) {
+    lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
+  }
+
   document.getElementById('save_button').onclick = "";
   const httpRequest = (method, url) => {
     let send_data = "lemma_form=" + encodeURIComponent(lemma_form) + "&lemma_meaning_no=" + lemma_meaning_no + "&pos=";
@@ -599,6 +603,8 @@ const pullInLemma = function (can_skip = true) {
         lemma_id = json_response.lemma_id;
         meanings = Object.create(null);
         if(lemma_id != null) {
+          //added to cope with German auto-uppercasing nouns
+          document.getElementById('lemma_tag').value = lemma_form;
           
           let new_lemma_textarea_content = json_response.lemma_textarea_content;
           if(new_lemma_textarea_content != "") {
