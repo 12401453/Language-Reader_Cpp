@@ -1893,7 +1893,8 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
             lemma_tag_content = word_eng_word_str;
 
             //could return more than one row but we just take the first as the default
-            sql_text = "SELECT eng_trans1, pos FROM lemmas WHERE lemma = ? AND lang_id = ?";
+            if(lang_id == 5) sql_text = "SELECT eng_trans1, pos, lemma_id FROM lemmas WHERE lemma LIKE ? AND lang_id = ?"; //case-folding to account for German nouns
+            else sql_text = "SELECT eng_trans1, pos, lemma_id FROM lemmas WHERE lemma = ? AND lang_id = ?";
             prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
             sqlite3_bind_text(statement, 1, word_eng_word_str.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_int(statement, 2, lang_id);
@@ -1902,6 +1903,7 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
             const unsigned char* lemma_textarea_content_rawsql = sqlite3_column_text(statement, 0);
             if(lemma_textarea_content_rawsql != nullptr) lemma_textarea_content = (const char*)lemma_textarea_content_rawsql;
             pos = sqlite3_column_int(statement, 1);
+            lemma_id = sqlite3_column_int(statement, 2); //will remain 0 if no existing lemma is found
             if(!pos) pos = 1;
             sqlite3_finalize(statement);
         }
@@ -2122,13 +2124,15 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
         int lang_id = std::stoi(_POST[3]);
 
         if (pos == 0) {
-            sql_text_str = "SELECT eng_trans" + _POST[1] + ", lemma_id, pos FROM lemmas WHERE lemma = ? AND lang_id = ?";
+            if(lang_id == 5) sql_text_str = "SELECT eng_trans" + _POST[1] + ", lemma_id, pos FROM lemmas WHERE lemma LIKE ? AND lang_id = ?"; //casefold German to cope with nouns
+            else sql_text_str = "SELECT eng_trans" + _POST[1] + ", lemma_id, pos FROM lemmas WHERE lemma = ? AND lang_id = ?";
             sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
             sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_int(statement, 2, lang_id);
         }
         else {
-            sql_text_str = "SELECT eng_trans" + _POST[1] + ", lemma_id FROM lemmas WHERE lemma = ? AND pos = ? AND lang_id = ?";
+            if(lang_id == 5) sql_text_str = "SELECT eng_trans" + _POST[1] + ", lemma_id FROM lemmas WHERE lemma LIKE ? AND pos = ? AND lang_id = ?"; //casefold German to cope with nouns
+            else sql_text_str = "SELECT eng_trans" + _POST[1] + ", lemma_id FROM lemmas WHERE lemma = ? AND pos = ? AND lang_id = ?";
             sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
             sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_int(statement, 2, pos);

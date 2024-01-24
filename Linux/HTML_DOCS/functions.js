@@ -577,9 +577,9 @@ const pullInLemma = function (can_skip = true) {
   if (lemma_form == lemma_form_tag_initial && can_skip) {
     return;
   }
-  if(lang_id == 5 && pos == 1) {
+/*  if(lang_id == 5 && pos == 1) {
     lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
-  }
+  } */
 
   document.getElementById('save_button').onclick = "";
   const httpRequest = (method, url) => {
@@ -603,8 +603,6 @@ const pullInLemma = function (can_skip = true) {
         lemma_id = json_response.lemma_id;
         meanings = Object.create(null);
         if(lemma_id != null) {
-          //added to cope with German auto-uppercasing nouns
-          document.getElementById('lemma_tag').value = lemma_form;
           
           let new_lemma_textarea_content = json_response.lemma_textarea_content;
           if(new_lemma_textarea_content != "") {
@@ -614,6 +612,11 @@ const pullInLemma = function (can_skip = true) {
           document.getElementById("lemma_textarea").value = new_lemma_textarea_content;
 
           pos = Number(json_response.pos);
+          //German gets case-folded when the lemma-forms are looked up, so an originally lower-case noun-form that succeeds in pulling in a capitalised lemma's definition needs to be capitalised as well 
+          if(lang_id == 5 && pos == 1) {
+	          lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
+            document.getElementById('lemma_tag').value = lemma_form;
+	        }
           pos_initial = pos;
           document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
         }
@@ -998,22 +1001,32 @@ const fetchLemmaData = function (box_present = true) {
        
         if(!box_present) boxFunction(annotation_mode);
         let json_response = xhttp.response;
-        let lemma_tag_content = json_response.lemma_tag_content;
-        lemma_form_tag_initial = lemma_tag_content;
-        let lemma_textarea_content = json_response.lemma_textarea_content;
-        lemma_textarea_content_initial = lemma_textarea_content;
-        //let lemma_textarea_content_html = json_response.lemma_textarea_content_html;
-        lemma_meaning_no = Number(json_response.lemma_meaning_no);
-        lemma_id = Number(json_response.lemma_id);
         pos = Number(json_response.pos);
         pos_initial = pos;
-
+        lemma_id = Number(json_response.lemma_id);
+        lemma_meaning_no = Number(json_response.lemma_meaning_no);
+        let lemma_textarea_content = json_response.lemma_textarea_content;
+        lemma_textarea_content_initial = lemma_textarea_content;  
+        
+        show_delete_button = false;
         if(lemma_meaning_no != 0) {
           meanings[lemma_meaning_no] = lemma_textarea_content;
+          show_delete_button = true;
         }
         else {
           lemma_meaning_no = 1;
         }
+
+        let lemma_tag_content = json_response.lemma_tag_content;
+        //capitalise German nouns which aren't annotated but whose casefolded forms match existing noun lemmas
+        if(lang_id == 5 && lemma_id != 0 && pos == 1 && show_delete_button == false) {
+          lemma_tag_content = lemma_tag_content[0].toUpperCase().concat(lemma_tag_content.slice(1));
+        }
+
+        lemma_form_tag_initial = lemma_tag_content;
+        
+        //let lemma_textarea_content_html = json_response.lemma_textarea_content_html;
+        
         document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
         document.getElementById("number").innerHTML = lemma_meaning_no;     
         document.getElementById('lemma_tag').value = lemma_tag_content;
@@ -1024,7 +1037,7 @@ const fetchLemmaData = function (box_present = true) {
 
         reactivateArrows(lemma_meaning_no, 10);
 
-        if(lemma_id == 0) {
+        if(lemma_id == 0 || show_delete_button == false) {
           document.getElementById('delete_lemma_button').style.display = "none";
         }
         else {
