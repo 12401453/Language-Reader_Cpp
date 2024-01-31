@@ -1447,6 +1447,7 @@ const fetchMultiwordData = function (box_present = true) {
             current_mw.removeEventListener('mouseover', underlineMultiwords);
             current_mw.removeEventListener('mouseout', removeUnderlineMultiwords);
           });
+          toggleSave(true, recordMultiword);
         }
         else {
           display_word.classList.add("mw_current_select");
@@ -1488,7 +1489,7 @@ const fetchMultiwordData = function (box_present = true) {
 
         document.getElementById('delete_lemma_button').onclick = deleteMultiword;
 
-        document.getElementById('save_button').onclick = recordMultiword;
+        //document.getElementById('save_button').onclick = recordMultiword;
         document.getElementById('meaning_leftarrow').onclick = switchMultiwordMeanings;
         document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
         document.getElementById('lemma_tag').onblur = "";
