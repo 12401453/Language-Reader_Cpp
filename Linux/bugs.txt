@@ -1,3 +1,1 @@
 1.) Updating a lemma-meaning does not change the tooltip for other different-formed versions of that lemma in the same text (need to change updateLemmaTooltip() to look for same lemma_ids, which is not really possible without more database lookups because I purposefully do not store lemma_id's as data-attributes in the HTML)
-
-2.) When a yet-unannotated word matches the lemma-form of a saved word, only the first Meaning is pulled in, so you can't use the arrows to get to the other meanings. It needs to have all the meanings so that navigation to other meanings before clicking "Save" will populate them in the same way as they have already been saved
