@@ -310,9 +310,8 @@ function loadText() {
    xhttp.send(send_data);
  }
 
- httpRequest("POST", "update_db.php"); //SHOULD BE update_db.php
- // for(let x = 150; x > 0; x--) {
- //progressBar(word_count);
+ if(Number(langselect) == 10) httpRequest("POST", "add_text_OE.php")
+ else httpRequest("POST", "update_db.php");
  
 }
 
@@ -1524,6 +1523,10 @@ const reactivateArrows = (meaning_no, max_meaning_no) => {
 const displayAnnotBox = function () {
   let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box" title="not yet implemented">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
   document.getElementById('spoofspan').after(annot_box);
+
+  if(lang_id == 10) {
+    document.getElementById("lemma_tag").addEventListener('beforeinput', oldEnglishInput);
+  }
 };
 
 const delAnnotate = function (total = true) {
@@ -1714,8 +1717,8 @@ window.addEventListener("resize", ttPosition);
 
 
 
-  
-function dictLookupDanish(word) {
+//shitty and not used
+function dictLookupOrdbog(word) {
   const pars = new DOMParser();
   let send_data = "url=https://ordnet.dk/ddo/ordbog?query="+encodeURIComponent(word);
   const httpRequest = (method, url) => {
@@ -1740,32 +1743,96 @@ function dictLookupDanish(word) {
   
 }
 
-//sozdik will require login after about 15 translations, but I've found copying the HTTP headers used when logged in (by right-clicking the relevant request in the 'Network' tab of DevTools and selecting "Copy as cURL") allows curl to get data and it seems to fetch it straight from the API when you do that rather than load the whole HTML, so there probably will need to be a way of logging in manually via the browser once and then sending the HTTP headers with the authentication codes to the server so it can use them in its CURL requests; a tedious and laborious undertaking to be sure but one that needs to be done for serious Kazakh work
-function dictLookupKazakh(word) {
-  const pars = new DOMParser();
-  let send_data = "url=https://sozdik.kz/ru/dictionary/translate/kk/ru/"+encodeURIComponent(word)+"/";
-  const httpRequest = (method, url) => {
+const oldEnglishInput = (event) => {
 
-    const xhttp = new XMLHttpRequest();
-    xhttp.open(method, url, true);
-    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    xhttp.responseType = 'text';
-    xhttp.onreadystatechange = () => {
+	const key_pressed = event.data;
+	const textarea = event.target;
+	const selection_start = textarea.selectionStart;
+	const selection_end = textarea.selectionEnd;
 
-      if (xhttp.readyState == 4) {
-        let response_page = pars.parseFromString(xhttp.responseText, "text/html");
+	const digraph = (base_letter, replacement_upper, replacement_lower, input_element) => {
+		event.preventDefault();
+		const replacement = (base_letter == base_letter.toUpperCase()) ? replacement_upper : replacement_lower;
+		input_element.value = input_element.value.slice(0, selection_start - 1) + replacement + textarea.value.slice(selection_end);
+		textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+	};
 
-        response_page.getElementById("dictionary_translate_article_translation").querySelectorAll("details").forEach(detail => {console.log(detail.querySelector("summary").textContent.trim());});
+	if(key_pressed == 'w' || key_pressed == 'W' || key_pressed == 'g' || key_pressed == 'G') {
+		event.preventDefault();
+		let new_letter = '';
 
-      }
-
+		switch(key_pressed) {
+			case 'w':
+				new_letter = 'ƿ';
+				break;
+			case 'W':
+				new_letter = 'Ƿ';
+				break;
+			case 'g':
+				new_letter = 'ᵹ';
+				break;
+			case 'G':
+				new_letter = 'Ᵹ';
+				break;
+		}
+		const insertPos = selection_start + 1;
+		textarea.value = textarea.value.slice(0, selection_start) + new_letter + textarea.value.slice(selection_end);
+		textarea.selectionStart = insertPos; textarea.selectionEnd = insertPos;
+	}
+    else if(key_pressed == ":") {
+        let long_vowel = '';
+		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
+		const upper_case = (last_letter == last_letter.toUpperCase());
+		switch(last_letter.toLowerCase()) {
+			case 'a':
+				long_vowel = 'ā';
+				break;
+			case 'e':
+				long_vowel = 'ē';
+				break;
+			case 'i':
+				long_vowel = 'ī';
+				break;
+			case 'æ':
+				long_vowel = 'ǣ';
+				break;
+			case 'u':
+				long_vowel = 'ū';
+				break;
+			case 'o':
+				long_vowel = 'ō';
+				break;
+			case 'y':
+				long_vowel = 'ȳ';
+				break;
+			default:
+				;		
+		}
+		if(long_vowel != '') {
+			event.preventDefault();
+			if(upper_case) long_vowel = long_vowel.toUpperCase();
+			textarea.value = textarea.value.slice(0, selection_start - 1) + long_vowel + textarea.value.slice(selection_end);
+			textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+		}
     }
 
-    xhttp.send(send_data);
-  };
-
-  httpRequest("POST", "curl_lookup.php");
-
-}
-
-//--------------new shit
+	else {
+		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
+		if(key_pressed == 'e' && last_letter.toLowerCase() == 'a') {
+			digraph(last_letter, 'Æ', 'æ', textarea);
+		}
+		else if(key_pressed == 'h' && last_letter.toLowerCase() == 't') {
+			digraph(last_letter, 'Þ', 'þ', textarea);
+		}
+		else if(key_pressed == 'h' && last_letter.toLowerCase() == 'd') {
+			digraph(last_letter, 'Ð', 'ð', textarea);
+		}
+		else if(key_pressed == 'j' && last_letter.toLowerCase() == 'c') {
+			digraph(last_letter, 'Ċ', 'ċ', textarea);
+		}
+		else if(key_pressed == 'j' && last_letter.toLowerCase() == 'g') {
+			digraph(last_letter, 'Ġ', 'ġ', textarea);
+		}
+	}
+  setLemmaTagSize();
+};

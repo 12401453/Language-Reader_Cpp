@@ -36,9 +36,9 @@ class Dictionary {
                 this.dict_type = 1;
                 this.lang_name = "Danish";
                 break;
-            case 9:
+            case 10:
                 this.dict_type = 2;
-                this.lang_name = "Indonesian";
+                this.lang_name = "Old English";
         }
         this.PONS_german = this.m_lang_id == 5 ? false : true;
     }
@@ -76,6 +76,9 @@ class Dictionary {
             return "https://de.pons.com/%C3%BCbersetzung/" + PONS_lang_dir + encodeURIComponent(word);
         }
         else if(dict_type == 2) {
+            if(this.m_lang_id == 10) {
+                word = this.wiktionariseOldEnglish(word);
+            }
             return "https://en.wiktionary.org/wiki/" + encodeURIComponent(word);
         }
         else if(dict_type == 3) {
@@ -120,7 +123,7 @@ class Dictionary {
         6: [1,2],
         7: [1,2],
         8: [1,2],
-        9: [2],
+        10: [2],
     };
 
     display() {
@@ -217,6 +220,10 @@ class Dictionary {
             document.getElementById("dict_searchbox").value = new_word;
             this.lookUp(new_word);        
         }
+    };
+
+    wiktionariseOldEnglish = (OE_string) => {
+        return OE_string.replaceAll('ð', 'þ').replaceAll('ǣ', 'æ').replaceAll('ā', 'a').replaceAll('ē', 'e').replaceAll('ī', 'i').replaceAll('ȳ', 'y').replaceAll('ō', 'o').replaceAll('ū', 'u').replaceAll('ƿ', 'w').replaceAll('ᵹ', 'g').replaceAll('ċ', 'c');
     };
 
     /* Dict-type codes:
@@ -582,15 +589,16 @@ class Dictionary {
 
         const parser = new DOMParser();
         const Wk_page = parser.parseFromString(response_text, "text/html");
+        const wk_langName = this.lang_name.split(' ').join('_'); //multi-word language names in Wiktionary are joined by underscores for the purposes of element-id
 
-        if (Wk_page.getElementById(this.lang_name) == null) {
+        if (Wk_page.getElementById(wk_langName) == null) {
             this.noResultsFound("No " + this.lang_name + " definitions found");
             return;
         }
         else {
             let pos = "";
             let langFlag = true;
-            let el = Wk_page.getElementById(this.lang_name).parentNode.nextElementSibling;
+            let el = Wk_page.getElementById(wk_langName).parentNode.nextElementSibling;
             console.log(this.lang_name + " Dictionary Entries Found:");
 
             let pos_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
