@@ -267,3 +267,23 @@ abbr {
     border-left: 2px solid black;
     border-right: 2px solid black;
 }
+
+em {
+    font-weight: bold;
+}
+.MR_grammar {
+    font-size: 13px;
+    font-weight: normal;
+}
+.MR_link {
+    font-size: 13px;
+    font-weight: normal;
+    font-style: italic;
+}
+.MR_clickable {
+    cursor: pointer;
+    text-decoration: underline;
+}
+.MR_clickable:hover {
+    color: cyan;
+}
