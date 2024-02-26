@@ -137,7 +137,7 @@ class Dictionary {
 
     display() {
         let logo_url = this.logos[this.dict_type].logo_url;
-        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox"></textarea><img id="dict_logo" src="'+logo_url+' draggable="false"></img></div></div>');
+        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox" spellcheck="false"></textarea><img id="dict_logo" src="'+logo_url+' draggable="false"></img></div></div>');
         document.getElementById("spoofspan2").after(dict_html);
         document.getElementById("dict_searchbox").addEventListener("keydown", this.submit);
         document.getElementById("dict_close").addEventListener('click', () => {
@@ -752,7 +752,7 @@ class Dictionary {
 
     OE_results = [];
     MR_glossaryLookup = (query) => {
-        const results = this.OE_glossary.filter(entry => entry[2].startsWith(this.wiktionariseOldEnglish(query)));
+        const results = this.OE_glossary.filter(entry => entry[2].startsWith(this.wiktionariseOldEnglish(query).toLowerCase()));
         this.OE_results = results;
         const dict_body = document.getElementById("dict_body");
         if(results.length == 0) {
@@ -778,7 +778,7 @@ class Dictionary {
 
     dictOldEnglishInput = (event) => {
 
-        const key_pressed = event.data;
+        let key_pressed = event.data;
         const textarea = event.target;
         const selection_start = textarea.selectionStart;
         const selection_end = textarea.selectionEnd;
