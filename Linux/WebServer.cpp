@@ -3385,7 +3385,7 @@ bool WebServer::addTextOldEnglish(std::string _POST[3], int clientSocket) {
         return true;
     }
     else {
-        std::cout << "Database connection failed on addText()\n";
+        std::cout << "Database connection failed on addTextOldEnglish()\n";
         return false;
     }   
 }

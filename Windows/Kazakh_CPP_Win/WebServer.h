@@ -48,6 +48,7 @@ private:
     bool readCookie(std::string cookie[3], const char* msg);
 
     bool addText(std::string _POST[3], SOCKET clientSocket);
+    bool addTextOldEnglish(std::string _POST[3], SOCKET clientSocket);
     bool lemmaTooltips(std::string _POST[2], SOCKET clientSocket);
     bool retrieveText(std::string text_id[1], SOCKET clientSocket);
     void void_retrieveText(std::string cookies[2], std::ostringstream &html);
