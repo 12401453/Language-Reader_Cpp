@@ -36,9 +36,14 @@ class Dictionary {
                 this.dict_type = 1;
                 this.lang_name = "Danish";
                 break;
-            case 9:
-                this.dict_type = 2;
-                this.lang_name = "Indonesian";
+            case 10:
+                this.dict_type = 6;
+                this.lang_name = "Old English";
+                fetch("MR_glossary.json")
+                .then(response => {
+                    return response.json();
+                })
+                .then(response => this.OE_glossary = response);
         }
         this.PONS_german = this.m_lang_id == 5 ? false : true;
     }
@@ -76,6 +81,9 @@ class Dictionary {
             return "https://de.pons.com/%C3%BCbersetzung/" + PONS_lang_dir + encodeURIComponent(word);
         }
         else if(dict_type == 2) {
+            if(this.m_lang_id == 10) {
+                word = this.wiktionariseOldEnglish(word);
+            }
             return "https://en.wiktionary.org/wiki/" + encodeURIComponent(word);
         }
         else if(dict_type == 3) {
@@ -93,6 +101,7 @@ class Dictionary {
     dict_type = 2;
     //PONS_german = this.m_lang_id == 5 ? false : true;
     bool_displayed = false;
+    OE_glossary = [];
 
     logos = {
         1: {
@@ -110,6 +119,9 @@ class Dictionary {
         5: {
             logo_url: 'dictcc.png" title="dict.cc"',
         },
+        6: {
+            logo_url: 'MR_glossary.jpg" title="Glossary from Mitchell&Robinson\'s Guide to Old English"',
+        },
     };
     allowable_dicts = {
         1: [2,1],
@@ -120,12 +132,12 @@ class Dictionary {
         6: [1,2],
         7: [1,2],
         8: [1,2],
-        9: [2],
+        10: [6,2],
     };
 
     display() {
         let logo_url = this.logos[this.dict_type].logo_url;
-        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox"></textarea><img id="dict_logo" src="'+logo_url+' draggable="false"></img></div></div>');
+        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox" spellcheck="false"></textarea><img id="dict_logo" src="'+logo_url+' draggable="false"></img></div></div>');
         document.getElementById("spoofspan2").after(dict_html);
         document.getElementById("dict_searchbox").addEventListener("keydown", this.submit);
         document.getElementById("dict_close").addEventListener('click', () => {
@@ -134,6 +146,9 @@ class Dictionary {
             else dict_body.style.display = "flex";
         });
         document.getElementById("dict_logo").addEventListener('click', this.switchDict);
+        if(this.m_lang_id == 10) {
+            document.getElementById("dict_searchbox").addEventListener("beforeinput", this.dictOldEnglishInput);
+        }
         this.bool_displayed = true;
     }
     remove() {
@@ -144,12 +159,13 @@ class Dictionary {
 
     submit = (event) => {
         if(event.key == "Enter") {
-            this.lookUp(event.target.value.trim());
+            //this.lookUp(event.target.value.trim());
             document.getElementById("dict_body").innerHTML = "";
             document.getElementById("dict_body").style.display = "flex";
             event.preventDefault();
             //event.target.value = "";
             event.target.select();
+            this.lookUp(event.target.value.trim());
         }
     };
 
@@ -166,9 +182,13 @@ class Dictionary {
 
 
     lookUp(word, dict_type=this.dict_type, PONS_german=this.PONS_german) {
-        if(this.bool_displayed == false) return;
+        if(this.bool_displayed == false) return;  
         document.getElementById("dict_body").innerHTML = "";
         document.getElementById("dict_body").style.display = "flex";
+        if(dict_type == 6) {
+            this.MR_glossaryLookup(word);
+            return;
+        }
         let send_data = "url="+this.urlMaker(word, dict_type, PONS_german); //this has all been URI-encoded already
         const httpRequest = (method, url) => {
             const xhttp = new XMLHttpRequest();
@@ -219,11 +239,17 @@ class Dictionary {
         }
     };
 
+    wiktionariseOldEnglish = (OE_string) => {
+        return OE_string.replaceAll('ð', 'þ').replaceAll('ǣ', 'æ').replaceAll('ā', 'a').replaceAll('ē', 'e').replaceAll('ī', 'i').replaceAll('ȳ', 'y').replaceAll('ō', 'o').replaceAll('ū', 'u').replaceAll('ƿ', 'w').replaceAll('ᵹ', 'g').replaceAll('ċ', 'c').replaceAll('ġ', 'g');
+    };
+
     /* Dict-type codes:
         PONS: 1
         Wiktionary : 2
         sozdikQaz: 3
-        sozdikRus: 4 
+        sozdikRus: 4
+        dict.cc: 5
+        Mitchell&Robinson glossary: 6
     */
 
     scrapeSozdik(response_text) {
@@ -582,15 +608,16 @@ class Dictionary {
 
         const parser = new DOMParser();
         const Wk_page = parser.parseFromString(response_text, "text/html");
+        const wk_langName = this.lang_name.split(' ').join('_'); //multi-word language names in Wiktionary are joined by underscores for the purposes of element-id
 
-        if (Wk_page.getElementById(this.lang_name) == null) {
+        if (Wk_page.getElementById(wk_langName) == null) {
             this.noResultsFound("No " + this.lang_name + " definitions found");
             return;
         }
         else {
             let pos = "";
             let langFlag = true;
-            let el = Wk_page.getElementById(this.lang_name).parentNode.nextElementSibling;
+            let el = Wk_page.getElementById(wk_langName).parentNode.nextElementSibling;
             console.log(this.lang_name + " Dictionary Entries Found:");
 
             let pos_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -723,7 +750,101 @@ class Dictionary {
         if(Object.keys(this.dict_result_dictcc).length == 1 && Object.keys(this.dict_result_dictcc[0]).length == 0) this.noResultsFound();
     };
 
+    OE_results = [];
+    MR_glossaryLookup = (query) => {
+        const results = this.OE_glossary.filter(entry => entry[2].startsWith(this.wiktionariseOldEnglish(query).toLowerCase()));
+        this.OE_results = results;
+        const dict_body = document.getElementById("dict_body");
+        if(results.length == 0) {
+            this.noResultsFound("This term was not found in M&R's glossary");
+            return;
+        }
+
+        results.forEach((result, i) => {
+            if(result[0] == true) {
+                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+result[1] + ' <span class="MR_link">see</span> <span class="MR_clickable">'+ result[3]+'</span></div></div>'));
+            }
+            else {
+                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+result[1] +' <span class="MR_grammar">'+result[4]+'</span></div></div>'));
+                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+result[3]+'</div></div>'));
+            }
+        });
+
+        document.querySelectorAll(".MR_clickable").forEach(clickable => {
+            clickable.addEventListener('click', this.lookUpClick);
+    });
+    };
 
 
+    dictOldEnglishInput = (event) => {
+
+        let key_pressed = event.data;
+        const textarea = event.target;
+        const selection_start = textarea.selectionStart;
+        const selection_end = textarea.selectionEnd;
+    
+        const digraph = (base_letter, replacement_upper, replacement_lower, input_element) => {
+            event.preventDefault();
+            const replacement = (base_letter == base_letter.toUpperCase()) ? replacement_upper : replacement_lower;
+            input_element.value = input_element.value.slice(0, selection_start - 1) + replacement + textarea.value.slice(selection_end);
+            textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+        };
+    
+        if(key_pressed == ":") {
+            let long_vowel = '';
+            const last_letter = textarea.value.slice(selection_start - 1, selection_start);
+            const upper_case = (last_letter == last_letter.toUpperCase());
+            switch(last_letter.toLowerCase()) {
+                case 'a':
+                    long_vowel = 'ā';
+                    break;
+                case 'e':
+                    long_vowel = 'ē';
+                    break;
+                case 'i':
+                    long_vowel = 'ī';
+                    break;
+                case 'æ':
+                    long_vowel = 'ǣ';
+                    break;
+                case 'u':
+                    long_vowel = 'ū';
+                    break;
+                case 'o':
+                    long_vowel = 'ō';
+                    break;
+                case 'y':
+                    long_vowel = 'ȳ';
+                    break;
+                default:
+                    ;		
+            }
+            if(long_vowel != '') {
+                event.preventDefault();
+                if(upper_case) long_vowel = long_vowel.toUpperCase();
+                textarea.value = textarea.value.slice(0, selection_start - 1) + long_vowel + textarea.value.slice(selection_end);
+                textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+            }
+        }
+    
+        else {
+            const last_letter = textarea.value.slice(selection_start - 1, selection_start);
+            if(key_pressed == 'e' && last_letter.toLowerCase() == 'a') {
+                digraph(last_letter, 'Æ', 'æ', textarea);
+            }
+            else if(key_pressed == 'h' && last_letter.toLowerCase() == 't') {
+                digraph(last_letter, 'Þ', 'þ', textarea);
+            }
+            else if(key_pressed == 'h' && last_letter.toLowerCase() == 'd') {
+                digraph(last_letter, 'Ð', 'ð', textarea);
+            }
+            else if(key_pressed == 'j' && last_letter.toLowerCase() == 'c') {
+                digraph(last_letter, 'Ċ', 'ċ', textarea);
+            }
+            else if(key_pressed == 'j' && last_letter.toLowerCase() == 'g') {
+                digraph(last_letter, 'Ġ', 'ġ', textarea);
+            }
+        }
+    };
 
 }

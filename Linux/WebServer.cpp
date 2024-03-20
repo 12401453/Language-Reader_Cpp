@@ -113,7 +113,12 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
             content_type = "image/svg+xml";
             sendBinaryFile(url_c_str, clientSocket, content_type);
             return;
-        }       
+        }
+        else if(!strcmp(fil_ext, ".jpg")) {
+            content_type = "image/jpeg";
+            sendBinaryFile(url_c_str, clientSocket, content_type);
+            return;
+        } 
 
 
         buildGETContent(page_type, url_c_str, content, cookies_present);       
