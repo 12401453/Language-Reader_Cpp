@@ -110,15 +110,15 @@ function selectText() {
         if(xhttp.readyState == 4) {
           para1.innerHTML = xhttp.responseText;
          
-          
+          /*
           let tt_btns = document.querySelectorAll('.tooltip');
-
           tt_btns.forEach(tt_btn => {
             tt_btn.onclick = showAnnotate;
-          });
+          }); */
+          document.getElementById("textbody").addEventListener('click', showAnnotate);
 
           document.querySelectorAll('.multiword').forEach(mw => {
-            mw.onclick = showMultiwordAnnotate;
+            mw.addEventListener('click', showMultiwordAnnotate);
             mw.addEventListener('mouseover', underlineMultiwords);
             mw.addEventListener('mouseout', removeUnderlineMultiwords);
           });
@@ -183,14 +183,16 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
         if(xhttp.readyState == 4) {
           textbody.innerHTML = xhttp.responseText;
       
-          let tt_btns = document.querySelectorAll('.tooltip');
+          /*let tt_btns = document.querySelectorAll('.tooltip');
 
           tt_btns.forEach(tt_btn => {
             tt_btn.onclick = showAnnotate;
-          });
+          }); */
+          document.getElementById("textbody").addEventListener('click', showAnnotate);
 
           document.querySelectorAll('.multiword').forEach(mw => {
-            mw.onclick = showMultiwordAnnotate;
+            //mw.onclick = showMultiwordAnnotate;
+            mw.addEventListener('click', showMultiwordAnnotate);
             mw.addEventListener('mouseover', underlineMultiwords);
             mw.addEventListener('mouseout', removeUnderlineMultiwords);
           });
@@ -722,8 +724,16 @@ const disRegard = function () {
 
 const lemmaRecord = function () {
   if(document.getElementById("lemma_textarea").value.trim() != "" || meanings[lemma_meaning_no] != undefined) {
-    meanings[lemma_meaning_no] = document.getElementById("lemma_textarea").value;
+    meanings[lemma_meaning_no] = document.getElementById("lemma_textarea").value.trim();
   }
+
+  let skip = true;
+  for(let lemma_meaning_no in meanings) {
+    if(meanings[lemma_meaning_no].trim() != "") {
+      skip = false;
+    }
+  }
+  if(skip) return;
   
   let clicked_lemma_meaning_no = lemma_meaning_no;
   let meanings_length = Object.keys(meanings).length;
@@ -736,9 +746,9 @@ const lemmaRecord = function () {
   const lemma_form = encodeURIComponent(lemma_form_trimmed);
   
   let count = 1;
+
   for (let lemma_meaning_no in meanings) {
     let lemma_meaning = meanings[lemma_meaning_no];
-    
     const httpRequest = (method, url) => {
 
     lemma_meaning = encodeURIComponent(lemma_meaning);
@@ -963,6 +973,7 @@ let pos_initial = 1;
 let display_word = null;
 let tokno_current = 0;
 let word_engine_id = 0;
+let edit_mode = false;
 
 let annotation_mode = 0;
 ///////////////////////////////
@@ -970,9 +981,11 @@ let annotation_mode = 0;
 function showAnnotate(event) {
   if(window.innerWidth < 769) return;
 
+  if(event.target.classList.contains("tooltip") == false || event.target.classList.contains("multiword") || event.target.classList.contains("tooltip_selected") || event.target.classList.contains("mw_selectable") || edit_mode) return;
+
   if(display_word != null) delAnnotate();
   display_word = event.target;
-  display_word.onclick = "";
+  //display_word.onclick = "";
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
   tokno_current = display_word.dataset.tokno;
@@ -1044,7 +1057,7 @@ const fetchLemmaData = function (box_present = true) {
         }
         
         document.getElementById('delete_lemma_button').onclick = lemmaDelete;
-        document.getElementById('disregard_button').onclick = disRegard;
+        document.getElementById('disregard_button').onclick = editDisplayTextWord;
         toggleSave(true, lemmaRecord);
         //document.getElementById('save_button').onclick = lemmaRecord;
         document.getElementById('meaning_leftarrow').onclick = switchMeaning;
@@ -1168,7 +1181,8 @@ const deleteMultiword = function () {
         document.querySelectorAll(dataselectorstring).forEach(prev_mw => {
           prev_mw.removeAttribute('data-multiword');
           prev_mw.classList.remove("multiword");
-          prev_mw.onclick = showAnnotate;
+          //prev_mw.onclick = showAnnotate;
+          prev_mw.removeEventListener('click', showMultiwordAnnotate);
         });
 
       }
@@ -1337,11 +1351,13 @@ const selectMultiword = (event) => {
   }
 };
 
+//I'm halfway through replacing the onclick properties with an eventListener on the parent and code to return immediately from non .tooltip elements or elements already selected
 const showMultiwordAnnotate = (event) => {
   if(window.innerWidth < 769) return;
+  if(event.target.classList.contains("tooltip_selected") || event.target.classList.contains("mw_selectable") || edit_mode) return;
   if(display_word != null) delAnnotate();
   display_word = event.target;
-  display_word.onclick = "";
+  //display_word.onclick = "";
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
   tokno_current = display_word.dataset.tokno;
@@ -1459,7 +1475,8 @@ const fetchMultiwordData = function (box_present = true) {
           //the adjacent_toknos could include words from the next page which will make the querySelector return null
           if(wrd != null && (wrd.dataset.multiword == undefined || wrd.dataset.multiword == current_mw_number)) {
             wrd.classList.add("mw_selectable");
-            wrd.onclick = selectMultiword; 
+            //wrd.onclick = selectMultiword;
+            wrd.addEventListener('click', selectMultiword);
           }
         }
 
@@ -1521,7 +1538,7 @@ const reactivateArrows = (meaning_no, max_meaning_no) => {
 };
 
 const displayAnnotBox = function () {
-  let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag" spellcheck="false"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
+  let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Edit current text-word (UNFINISHED DO NOT USE)">Edit</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag" spellcheck="false"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
   document.getElementById('spoofspan').after(annot_box);
 
   if(lang_id == 10) {
@@ -1535,8 +1552,12 @@ const delAnnotate = function (total = true) {
     let annot_box = document.getElementById('annot_box');
     display_word.classList.add("tooltip");
     display_word.classList.remove("tooltip_selected");
-    display_word.onclick = showAnnotate;
+    //display_word.onclick = showAnnotate;
     display_word = null;
+    //possibly breaking
+    tokno_current = 0;
+    word_engine_id = 0;
+    //possibly breaking
     annot_box.remove();
   }
 
@@ -1551,10 +1572,11 @@ const delAnnotate = function (total = true) {
 
   document.querySelectorAll('.mw_selectable').forEach(mws => {
     mws.classList.remove("mw_selectable", "mw_current_select");
-    mws.onclick = showAnnotate;
+    mws.removeEventListener('click', selectMultiword);
   });
   document.querySelectorAll('.multiword').forEach(mw => {
-    mw.onclick = showMultiwordAnnotate;
+    //mw.onclick = showMultiwordAnnotate;
+    //mw.addEventListener('click', showMultiwordAnnotate);
     mw.addEventListener('mouseover', underlineMultiwords);
     mw.addEventListener('mouseout', removeUnderlineMultiwords);
   });
@@ -1672,7 +1694,8 @@ const underlineMultiwords = function (event) {(document.querySelectorAll('[data-
 const removeUnderlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px dotted rgb(0, 255, 186, 0.5)";})); };
 
 document.querySelectorAll('.multiword').forEach(multiword => {
-  multiword.onclick = showMultiwordAnnotate;
+  //multiword.onclick = showMultiwordAnnotate;
+  multiword.addEventListener('click', showMultiwordAnnotate);
   multiword.addEventListener('mouseover', underlineMultiwords);
   multiword.addEventListener('mouseout', removeUnderlineMultiwords);
 });
@@ -1779,8 +1802,8 @@ const oldEnglishInput = (event) => {
 		textarea.value = textarea.value.slice(0, selection_start) + new_letter + textarea.value.slice(selection_end);
 		textarea.selectionStart = insertPos; textarea.selectionEnd = insertPos;
 	}
-    else if(key_pressed == ":") {
-        let long_vowel = '';
+  else if(key_pressed == ":") {
+    let long_vowel = '';
 		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
 		const upper_case = (last_letter == last_letter.toUpperCase());
 		switch(last_letter.toLowerCase()) {
@@ -1814,7 +1837,7 @@ const oldEnglishInput = (event) => {
 			textarea.value = textarea.value.slice(0, selection_start - 1) + long_vowel + textarea.value.slice(selection_end);
 			textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
 		}
-    }
+  }
 
 	else {
 		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
@@ -1835,4 +1858,228 @@ const oldEnglishInput = (event) => {
 		}
 	}
   setLemmaTagSize();
+};
+
+
+
+
+
+
+
+const makeRegex = () => {
+  if(lang_id == 10) return new RegExp(/^(\p{L}|:)$/u);
+  else return new RegExp(/^\p{L}$/u);
+};
+
+const editDisplayTextWord = () => {
+  edit_mode = true;
+  const wordElement = document.querySelector("[data-tokno='"+tokno_current+"']");
+  delAnnotate(true);
+  wordElement.classList.remove("tooltip");
+  wordElement.classList.add("tooltip_selected");
+  //wordElement.onclick = "";
+
+  wordElement.classList.add("edit-displayWord");
+  let wordContent = wordElement.childNodes[0].textContent;
+  const originalWordContent = wordContent;
+  const letterRegex = makeRegex();    
+  let cursor_position = wordContent.length;
+
+  const flashBorder = (on) => {
+      if(on == true) wordElement.style.animation = "border-left-flash 0.9s steps(1, jump-start) infinite";
+      else wordElement.style.animation = "";
+  };
+
+  const flashLetter = () => {
+      if(cursor_position == 0) {
+          wordElement.childNodes[0].remove();
+          wordElement.prepend(wordContent.slice(cursor_position, wordContent.length));
+      }
+      else {
+          const flashingLetterNode = document.createRange().createContextualFragment("<span id=\"edit-letter\">"+wordContent.slice(cursor_position - 1, cursor_position)+"</span>");
+          
+          if(cursor_position == 1) {
+              wordElement.childNodes[0].remove();
+              wordElement.prepend(flashingLetterNode);
+              wordElement.childNodes[0].after(wordContent.slice(cursor_position, wordContent.length));
+          }
+          else {
+              wordElement.childNodes[0].textContent = wordContent.slice(0, cursor_position - 1);
+              wordElement.childNodes[0].after(flashingLetterNode);
+              if(wordContent.length - cursor_position > 0) wordElement.childNodes[1].after(wordContent.slice(cursor_position, wordContent.length)); //probably dont need the if
+          }
+      }       
+  };
+
+  const unflashLetter = () => {
+      let newWordContent = "";
+      //make an Array to hold references to the childNodes and iterate through that instead of the actual NodeList, because we are changing the length of the NodeList by calling remove() and thus messing up any for-loops
+      Array.from(wordElement.childNodes).forEach(childNode => {
+          if(childNode.className != "lemma_tt") {
+              newWordContent += childNode.textContent;
+              childNode.remove();
+          }
+      });
+      wordElement.prepend(newWordContent);
+  };
+
+  const insertChar = (character) => {
+      //if(character == "") return;
+      unflashLetter();
+      wordContent = wordContent.slice(0, cursor_position)+character+wordContent.slice(cursor_position)
+      cursor_position++;
+      flashLetter();
+  };
+
+  flashLetter();
+  const moveCursor = (event) => {
+      if(event.type == 'keydown') {
+          if(event.key == 'Enter' || event.key == ' ' || event.key == 'Tab' || event.key == 'Spacebar') {
+              event.preventDefault();
+              return;
+          }
+          else {
+              if(event.key == 'Delete' && cursor_position < wordContent.length) {
+                  unflashLetter();
+                  wordContent = wordContent.slice(0, cursor_position)+wordContent.slice(cursor_position + 1);
+                  flashLetter();
+              }
+              else if(event.key == 'Backspace' && cursor_position > 0) {
+                  
+                  unflashLetter();
+                  wordContent = wordContent.slice(0, cursor_position - 1)+wordContent.slice(cursor_position);
+                  cursor_position--;
+                  flashLetter();
+              }
+              else if(event.key == 'ArrowLeft' && cursor_position > 0) {
+                  unflashLetter();
+                  cursor_position--;
+                  flashLetter();
+              }
+              else if(event.key == 'ArrowRight') {
+                  if(cursor_position == wordContent.length) return;
+                  unflashLetter();
+                  cursor_position++;
+                  flashLetter();
+              }
+              else if(letterRegex.test(event.key)) {
+                  //console.log(event.key);
+                  let character = event.key
+                  if(lang_id == 10) {
+                      const OE_array = oldEnglishify(cursor_position, character, wordContent);
+                      if(OE_array[0] == true) window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Backspace'}));
+                      character = OE_array[1];
+                  }
+                  if(character == "") return;
+                  insertChar(character);
+              }
+          }
+      }
+      if(cursor_position == 0) flashBorder(true);
+      else flashBorder(false);
+  };
+
+  window.addEventListener('keydown', moveCursor);
+  
+  const stopEditing = (event) => {
+      if((event.type == 'dblclick' && event.target.classList.contains("edit-displayWord") == false) || (event.type == 'keydown' && event.key == 'Enter')) {
+          
+          window.removeEventListener('keydown', moveCursor);
+          unflashLetter();
+          window.removeEventListener('keydown', stopEditing);
+          window.removeEventListener('dblclick', stopEditing);
+          wordElement.classList.remove("edit-displayWord");
+
+          wordElement.classList.add("tooltip");
+          wordElement.classList.remove("tooltip_selected");
+          //wordElement.onclick = showAnnotate;
+          flashBorder(false);
+          edit_mode = false;
+      }
+  }
+  window.addEventListener('keydown', stopEditing);
+  window.addEventListener('dblclick', stopEditing);
+};
+
+
+const oldEnglishify = (cursor_position, key_pressed, wordContent) => {
+  const last_letter = wordContent.slice(cursor_position -1, cursor_position);
+
+const digraph = (base_letter, replacement_upper, replacement_lower) => {
+  return (base_letter == base_letter.toUpperCase()) ? replacement_upper : replacement_lower;
+};
+
+if(key_pressed == 'w' || key_pressed == 'W' || key_pressed == 'g' || key_pressed == 'G') {
+  let new_letter = '';
+
+  switch(key_pressed) {
+    case 'w':
+      new_letter = 'ƿ';
+      break;
+    case 'W':
+      new_letter = 'Ƿ';
+      break;
+    case 'g':
+      new_letter = 'ᵹ';
+      break;
+    case 'G':
+      new_letter = 'Ᵹ';
+      break;
+  }
+  return [false, new_letter];
+}
+  else if(key_pressed == ":") {
+    let long_vowel = '';
+    const upper_case = (last_letter == last_letter.toUpperCase());
+    switch(last_letter.toLowerCase()) {
+      case 'a':
+        long_vowel = 'ā';
+        break;
+      case 'e':
+        long_vowel = 'ē';
+        break;
+      case 'i':
+        long_vowel = 'ī';
+        break;
+      case 'æ':
+        long_vowel = 'ǣ';
+        break;
+      case 'u':
+        long_vowel = 'ū';
+        break;
+      case 'o':
+        long_vowel = 'ō';
+        break;
+      case 'y':
+        long_vowel = 'ȳ';
+        break;
+      default:
+        return [false, ""];		
+    }
+    if(long_vowel != '') {
+      return (upper_case) ? [true, long_vowel.toUpperCase()] : [true, long_vowel];
+    }
+  }
+
+  else {
+    let digraph_letter = "";
+    if(key_pressed == 'e' && last_letter.toLowerCase() == 'a') {
+      digraph_letter = digraph(last_letter, 'Æ', 'æ');
+    }
+    else if(key_pressed == 'h' && last_letter.toLowerCase() == 't') {
+      digraph_letter = digraph(last_letter, 'Þ', 'þ');
+    }
+    else if(key_pressed == 'h' && last_letter.toLowerCase() == 'd') {
+      digraph_letter = digraph(last_letter, 'Ð', 'ð');
+    }
+    else if(key_pressed == 'j' && last_letter.toLowerCase() == 'c') {
+      digraph_letter = digraph(last_letter, 'Ċ', 'ċ');
+    }
+    else if(key_pressed == 'j' && last_letter.toLowerCase() == 'g') {
+      digraph_letter = digraph(last_letter, 'Ġ', 'ġ');
+    }
+
+    if(digraph_letter == "") return [false, key_pressed];
+    else return [true, digraph_letter];
+  }
 };

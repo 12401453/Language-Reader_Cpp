@@ -19,3 +19,11 @@
   display: inline-block;
   cursor: pointer;
 }
+
+.lemma_set.tooltip_selected {
+  color: rgb(0 255 34);
+}
+
+.lemma_set_unexplicit.tooltip_selected {
+  color: rgb(0 255 34);
+}
