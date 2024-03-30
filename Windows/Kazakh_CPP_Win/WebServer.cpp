@@ -677,6 +677,9 @@ void WebServer::handlePOSTedData(const char* post_data, SOCKET clientSocket) {
     else if(!strcmp(m_url, "/add_text_OE.php")) {
         bool php_func_success = addTextOldEnglish(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/update_displayWord.php")) {
+        bool php_func_success = updateDisplayWord(post_values, clientSocket);
+    }
 
     std::cout << "m_url: " << m_url << std::endl;
 
@@ -723,6 +726,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/clear_table.php")) return 0;
     else if(!strcmp(url, "/dump_lemmas.php")) return 1;
     else if(!strcmp(url, "/add_text_OE.php")) return 3;
+    else if(!strcmp(url, "/update_displayWord.php")) return 5;
     else return -1;
 }
 /*
@@ -1227,7 +1231,7 @@ bool WebServer::retrieveText(std::string text_id[1], SOCKET clientSocket) {
 
     if (text_id_int == 0) {
         std::ostringstream html;
-        html << "<br><br>";
+        html << "<br><br><div id=\"textbody\"></div>";
 
         std::string content_str = html.str();
         int content_length = content_str.size();
@@ -1614,7 +1618,7 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
     int cookie_pageno = std::stoi(cookies[1]);
 
     if(cookie_textselect == 0) {
-        html << "<br><br>\n";
+        html << "<br><br><div id=\"textbody\"></div>\n";
         return;
     }
 
@@ -3420,4 +3424,113 @@ bool WebServer::addTextOldEnglish(std::string _POST[3], SOCKET clientSocket) {
         std::cout << "Database connection failed on addTextOldEnglish()\n";
         return false;
     }
+}
+
+bool WebServer::updateDisplayWord(std::string _POST[5], SOCKET clientSocket) {
+
+    sqlite3* DB;
+    sqlite3_stmt* statement;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        sqlite3_int64 edit_tokno = std::stol(_POST[0]);
+        int prev_word_eng_id = std::stoi(_POST[1]);
+        int lang_id = std::stoi(_POST[2]);
+        std::string new_wordEngWord = URIDecode(_POST[4]);
+
+        const char* sql_BEGIN = "BEGIN IMMEDIATE";
+        const char* sql_COMMIT = "COMMIT";
+
+        sqlite3_exec(DB, sql_BEGIN, nullptr, nullptr, nullptr);
+
+        const char* sql = "INSERT OR IGNORE INTO word_engine (word, lang_id) VALUES (?, ?)";
+        sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+        sqlite3_bind_text(statement, 1, new_wordEngWord.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(statement, 2, lang_id);
+        std::cout << "INSERT run-code: " << sqlite3_step(statement) << std::endl;
+        sqlite3_finalize(statement);
+
+        sql = "SELECT word_engine_id, first_lemma_id FROM word_engine WHERE lang_id = ? AND word = ?";
+        sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, lang_id);
+        sqlite3_bind_text(statement, 2, new_wordEngWord.c_str(), -1, SQLITE_STATIC);
+        std::cout << "SELECT word_engine_id run-code: " << sqlite3_step(statement) << std::endl;
+        int new_word_eng_id = sqlite3_column_int(statement, 0);
+        int new_first_lemma_id = sqlite3_column_int(statement, 1);
+        sqlite3_finalize(statement);
+
+        sql = "UPDATE display_text SET text_word = ?, word_engine_id = ?, lemma_id = NULL, lemma_meaning_no = NULL WHERE tokno = ?";
+        sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+        sqlite3_bind_text(statement, 1, URIDecode(_POST[3]).c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(statement, 2, new_word_eng_id);
+        sqlite3_bind_int64(statement, 3, edit_tokno);
+        std::cout << "update display_text statement run-code: " << sqlite3_step(statement) << std::endl;
+        sqlite3_finalize(statement);
+
+        std::ostringstream json_response;
+        json_response << "{\"new_word_eng_id\":" << new_word_eng_id << ",\"new_first_lemma_id\":" << new_first_lemma_id << ",\"lemma_tt_data\":[";
+        if(new_first_lemma_id) {
+            sql = "SELECT lemma, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10, pos FROM lemmas WHERE lemma_id = ?";
+            std::string lemma_form = "";
+            std::string lemma_trans = "";
+            short int lemma_pos = 1;
+            
+            sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+            sqlite3_bind_int(statement, 1, new_first_lemma_id);
+            sqlite3_step(statement);
+            const unsigned char* lemma_rawsql = sqlite3_column_text(statement, 0);
+            if (lemma_rawsql != nullptr) {
+                lemma_form = (const char*)lemma_rawsql;
+            }
+            else lemma_form = "";
+
+            lemma_trans = "";
+            //this loop is necessary incase some bastard has decided to leave meaning_no1 blank but recorded meaning_no5 or whatever
+            for (int i = 1; i < 11; i++) {
+                const unsigned char* lemma_trans_rawsql = sqlite3_column_text(statement, i);
+                if (lemma_trans_rawsql != nullptr) {
+                    lemma_trans = (const char*)lemma_trans_rawsql;
+                    break;
+                }
+            }
+            lemma_pos = sqlite3_column_int(statement, 11);
+            sqlite3_finalize(statement);
+
+            json_response << "\"" << htmlspecialchars(lemma_form) << "\",\"" << htmlspecialchars(lemma_trans) << "\"," << lemma_pos;
+        }
+        json_response << "]}";
+
+        std::cout << "updateDisplayWord() json_response: " << json_response.str() << std::endl;
+
+        int content_length = json_response.str().size();
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json_response.str();
+        
+        int length = post_response.str().size() + 1;
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+
+        sql = "SELECT count(rowid) FROM display_text WHERE word_engine_id = ?";
+        sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, prev_word_eng_id);
+        sqlite3_step(statement);
+        
+        if(!sqlite3_column_int(statement, 0)) {
+            sqlite3_finalize(statement);
+            sql = "DELETE FROM word_engine WHERE word_engine_id = ?";
+            sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+            sqlite3_bind_int(statement, 1, prev_word_eng_id);
+            std::cout << "Previous word engine has been deleted with run-code: " << sqlite3_step(statement) << std::endl;
+        }
+
+        std::cout << "count(rowid) WHERE word_engine_id = " << prev_word_eng_id << ": " << sqlite3_column_int(statement, 0) << std::endl;
+        sqlite3_finalize(statement);
+
+        sqlite3_exec(DB, sql_COMMIT, nullptr, nullptr, nullptr);
+
+        sqlite3_close(DB);
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on updateDisplayWord()\n";
+        return false;
+    }   
 }

@@ -64,6 +64,7 @@ private:
     bool retrieveMultiword(std::string _POST[3], SOCKET clientSocket);
     bool clearTable(SOCKET clientSocket);
     bool disregardWord(std::string _POST[2], SOCKET clientSocket);
+    bool updateDisplayWord(std::string _POST[5], SOCKET clientSocket);
 
     bool pullInLemma(std::string _POST[4], SOCKET clientSocket);
     bool retrieveMeanings(std::string _POST[2], SOCKET clientSocket);

@@ -86,12 +86,7 @@ textselector.addEventListener('input', textselect_resize);
 textselector.addEventListener('cookie_selection', textselect_resize);
 
 window.onload = () => {
-   // let cky = document.cookie;
-  //  let textselect_cookie_present = cky.indexOf("text_id=") == -1 ? false : true;
-    
-    
     if(cookie_textselect) {
-  //    let cookie_textselect = cky.slice(cky.indexOf("text_id=")+1, cky.indexOf(";") > 0 ? cky.indexOf(";") : cky.length);
       let textselect = document.getElementById("textselect");
       let text_options = textselect.options;
       let textid_deleted = true;
@@ -105,14 +100,14 @@ window.onload = () => {
         }
       }
       if(textid_deleted == false) {
-        let tt_btns = document.querySelectorAll('.tooltip');
+      /*  let tt_btns = document.querySelectorAll('.tooltip');
         tt_btns.forEach(tt_btn => {
           tt_btn.onclick = showAnnotate;
         });
         document.querySelectorAll('.multiword').forEach(mw_btn => {
             mw_btn.onclick = showMultiwordAnnotate;
-        });
-      }
+        }); */
+      } 
       else console.log("cookie text has been deleted by another client");   
     }
     else console.log("no text_id cookie");

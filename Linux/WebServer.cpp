@@ -1198,7 +1198,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
 
     if(text_id_int == 0) {
        std::ostringstream html;
-       html << "<br><br>";
+       html << "<br><br><div id=\"textbody\"></div>";
 
        std::string content_str = html.str();
        int content_length = content_str.size();
@@ -1582,7 +1582,7 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
     int cookie_pageno = std::stoi(cookies[1]);
 
     if(cookie_textselect == 0) {
-        html << "<br><br>\n";
+        html << "<br><br><div id=\"textbody\"></div>\n";
         return;
     }
 
