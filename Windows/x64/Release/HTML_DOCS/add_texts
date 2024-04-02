@@ -44,7 +44,7 @@
   <div id="deletion" style="visibility: hidden">
   <div id="delete_button">
   <label for="textselect">Text to delete:</label>
-  <select id="textselect" name="textselect" onclick="deleteText()">
+  <select id="textselect" name="textselect" oninput="deleteText()">
   <option value="0"></option>
   <?php ?>
   </select></div>

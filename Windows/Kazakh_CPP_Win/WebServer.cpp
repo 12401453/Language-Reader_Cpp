@@ -93,9 +93,13 @@ void WebServer::onMessageReceived(SOCKET clientSocket, const char* msg, int leng
 
         if(!strcmp(fil_ext, ".css")) {
             content_type = "text/css";
+            sendBinaryFile(url_c_str, clientSocket, content_type);
+            return;
         }
         else if(!strcmp(fil_ext + 1, ".js")) {
             content_type = "application/javascript";
+            sendBinaryFile(url_c_str, clientSocket, content_type);
+            return;
         }
         else if(!strcmp(fil_ext, ".ttf")) {
             content_type = "font/ttf";
@@ -274,7 +278,7 @@ void WebServer::buildGETContent(short int page_type, char* url_c_str, std::strin
         {
             if (page_type > 0 && line.find("<?php") != -1) insertTextSelect(ss_text);
             else if (page_type == 1 && cookies_present && line.find("<?cky") != -1) void_retrieveText(m_cookies, ss_text);
-            else if (page_type == 1 && line.find("<?cky") != -1) ss_text << "<br><br>\n";
+            else if (page_type == 1 && line.find("<?cky") != -1) ss_text << "<br><br><div id=\"textbody\"></div>\n";
 
             //For some reason I do not understand, if you insert a <script> tag to declare the below JS variable outside of the script tag at the bottom, on Chrome Android the server very often will get stuck for absolutely ages on loading the Bookerly font file when you refresh the page, and the javascript engine will freeze for about 5-10seconds, but this never happens on Desktop. Thus I've had to make up another bullshit <?js tag to signal where to insert this C++-generated JS, and the only reason I'm inserting it server-side is because JS string functions are absolute dogshit and compared to my C-string parsing of the cookie text, doing it on the client by parsing the document.cookie string is ungodlily inefficient
             else if (page_type == 1 && cookies_present && line.find("<?js") != -1) ss_text << "let cookie_textselect = " + m_cookies[0] + ";\n";
@@ -1642,7 +1646,7 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
         sqlite3_int64 dt_start = sqlite3_column_int64(statement, 0);
         //if the cookie refers to a deleted text then SQLite will convert the null given by this query of an empty row to 0, which is falsey in C++
         if(!dt_start) {
-            html << "<br><br>\n";
+            html << "<br><br><div id=\"textbody\"></div>\n";
             sqlite3_finalize(statement);
             sqlite3_close(DB);
             return;

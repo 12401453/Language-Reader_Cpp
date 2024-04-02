@@ -81,19 +81,18 @@ const buildRowHTML = (x, html_str_arr) => {
     html_str_arr.push(`<div class="word_cell_meaning_strip"><div class="meaning_no_box"><div class="meaning_no" title="Meaning number">${meaning_no}</div></div><div class="meaning_text">${htmlspecialchars(x.meanings[y])}</div></div>`);
   }
   
-  html_str_arr.push(`</div></div>`);
-
-  //document.getElementById("words_body").appendChild(document.createRange().createContextualFragment(html_text)); 
+  html_str_arr.push(`</div></div>`); 
 };
 
 let lemmas_object = [];
 let filtered_lemmas = [];
+let lang_id = document.getElementById("langselect").value;
 const dumpLemmas = () => {
   showLoadingButton();
   document.getElementById("lemma_searchbox").value = "";
   document.getElementById("meaning_searchbox").value = "";
-  let lang_id = document.getElementById("langselect").value;
-
+  lang_id = document.getElementById("langselect").value;
+  document.getElementById("lemma_searchbox").removeEventListener('beforeinput', oldEnglishInput);
   const httpRequest = (method, url) => {
     let send_data = "lang_id="+lang_id;
 
@@ -107,6 +106,7 @@ const dumpLemmas = () => {
         
         lemmas_object = xhttp.response;
         displayLemmas(filterLemmas(lemmas_object));
+        if(lang_id == 10) document.getElementById("lemma_searchbox").addEventListener('beforeinput', oldEnglishInput);
         removeLoadingButton();
       }
     }; 
@@ -117,7 +117,7 @@ const dumpLemmas = () => {
 
 //this is just a test of using the fetch() API
 const dumpLemmasFetch = () => {
-  let lang_id = document.getElementById("langselect").value;
+  lang_id = document.getElementById("langselect").value;
    // alert(lang_id);
   let send_data = "lang_id="+lang_id;
   const myheaders = new Headers();
@@ -135,6 +135,7 @@ const dumpLemmasFetch = () => {
   .then(response => {
     lemmas_object = response
     displayLemmas(filterLemmas(lemmas_object));
+    if(lang_id == 10) document.getElementById("lemma_searchbox").addEventListener('beforeinput', oldEnglishInput);
     removeLoadingButton();
   })
   .finally(() => {removeLoadingButton()});
@@ -162,26 +163,125 @@ const displayLemmas = (lemmas=lemmas_object) => {
 
 const filterLemmas = (lemmas=lemmas_object) => {
   const meaning_searchbox_value = document.getElementById("meaning_searchbox").value.trim();
-  //return lemmas.filter(obj => obj.lemma_form.startsWith(document.getElementById("lemma_searchbox").value.trim())).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value)));
+  let lemma_searchbox_value_initial = document.getElementById("lemma_searchbox").value.trim();
+  if(lang_id == 10) {
+      lemma_searchbox_value_initial = lemma_searchbox_value_initial.replaceAll('þ', 'ð');
+      if(lemma_searchbox_value_initial.startsWith('ð')) lemma_searchbox_value_initial = 'þ'+lemma_searchbox_value_initial.slice(1);
+  }
+  const lemma_searchbox_value = lemma_searchbox_value_initial;
 
   switch(mw_selector_state) {
     case 0:
       return [[], []];
       break;
     case 1:
-      return [lemmas[0].filter(obj => obj.lemma_form.startsWith(document.getElementById("lemma_searchbox").value.trim())).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value))), []];
+      return [lemmas[0].filter(obj => obj.lemma_form.startsWith(lemma_searchbox_value)).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value))), []];
       break;
     case 2:
-      return [[], lemmas[1].filter(obj => obj.lemma_form.includes(document.getElementById("lemma_searchbox").value.trim())).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value)))];
+      return [[], lemmas[1].filter(obj => obj.lemma_form.includes(lemma_searchbox_value)).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value)))];
       break;
     case 3:
-      return [lemmas[0].filter(obj => obj.lemma_form.startsWith(document.getElementById("lemma_searchbox").value.trim())).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value))), lemmas[1].filter(obj => obj.lemma_form.includes(document.getElementById("lemma_searchbox").value.trim())).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value)))];
+      return [lemmas[0].filter(obj => obj.lemma_form.startsWith(lemma_searchbox_value)).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value))), lemmas[1].filter(obj => obj.lemma_form.includes(lemma_searchbox_value)).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value)))];
       break;
   }
 }
 
-document.getElementById("lemma_searchbox").addEventListener('input', (event) => displayLemmas(filterLemmas(lemmas_object)));
-document.getElementById("meaning_searchbox").addEventListener('input', (event) => displayLemmas(filterLemmas(lemmas_object)));
+document.getElementById("lemma_searchbox").addEventListener('input', () => displayLemmas(filterLemmas(lemmas_object)));
+document.getElementById("meaning_searchbox").addEventListener('input', () => displayLemmas(filterLemmas(lemmas_object)));
 //lemmas_object.filter(obj => obj.lemma_form.startsWith(event.target.value.trim()))
+
+const oldEnglishInput = (event) => {
+
+	const key_pressed = event.data;
+	const textarea = event.target;
+	const selection_start = textarea.selectionStart;
+	const selection_end = textarea.selectionEnd;
+
+	const digraph = (base_letter, replacement_upper, replacement_lower, input_element) => {
+		event.preventDefault();
+		const replacement = (base_letter == base_letter.toUpperCase()) ? replacement_upper : replacement_lower;
+		input_element.value = input_element.value.slice(0, selection_start - 1) + replacement + textarea.value.slice(selection_end);
+		textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+	};
+
+	if(key_pressed == 'w' || key_pressed == 'W' || key_pressed == 'g' || key_pressed == 'G') {
+		event.preventDefault();
+		let new_letter = '';
+
+		switch(key_pressed) {
+			case 'w':
+				new_letter = 'ƿ';
+				break;
+			case 'W':
+				new_letter = 'Ƿ';
+				break;
+			case 'g':
+				new_letter = 'ᵹ';
+				break;
+			case 'G':
+				new_letter = 'Ᵹ';
+				break;
+		}
+		const insertPos = selection_start + 1;
+		textarea.value = textarea.value.slice(0, selection_start) + new_letter + textarea.value.slice(selection_end);
+		textarea.selectionStart = insertPos; textarea.selectionEnd = insertPos;
+	}
+  else if(key_pressed == ":") {
+    let long_vowel = '';
+		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
+		const upper_case = (last_letter == last_letter.toUpperCase());
+		switch(last_letter.toLowerCase()) {
+			case 'a':
+				long_vowel = 'ā';
+				break;
+			case 'e':
+				long_vowel = 'ē';
+				break;
+			case 'i':
+				long_vowel = 'ī';
+				break;
+			case 'æ':
+				long_vowel = 'ǣ';
+				break;
+			case 'u':
+				long_vowel = 'ū';
+				break;
+			case 'o':
+				long_vowel = 'ō';
+				break;
+			case 'y':
+				long_vowel = 'ȳ';
+				break;
+			default:
+				;		
+		}
+		if(long_vowel != '') {
+			event.preventDefault();
+			if(upper_case) long_vowel = long_vowel.toUpperCase();
+			textarea.value = textarea.value.slice(0, selection_start - 1) + long_vowel + textarea.value.slice(selection_end);
+			textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+		}
+  }
+
+	else {
+		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
+		if(key_pressed == 'e' && last_letter.toLowerCase() == 'a') {
+			digraph(last_letter, 'Æ', 'æ', textarea);
+		}
+		else if(key_pressed == 'h' && last_letter.toLowerCase() == 't') {
+			digraph(last_letter, 'Þ', 'þ', textarea);
+		}
+		else if(key_pressed == 'h' && last_letter.toLowerCase() == 'd') {
+			digraph(last_letter, 'Ð', 'ð', textarea);
+		}
+		else if(key_pressed == 'j' && last_letter.toLowerCase() == 'c') {
+			digraph(last_letter, 'Ċ', 'ċ', textarea);
+		}
+		else if(key_pressed == 'j' && last_letter.toLowerCase() == 'g') {
+			digraph(last_letter, 'Ġ', 'ġ', textarea);
+		}
+	}
+  textarea.dispatchEvent(new Event('input')); //needed to trigger the displayLemmas() function
+};
 
 dumpLemmas();
