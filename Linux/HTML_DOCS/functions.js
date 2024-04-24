@@ -15,41 +15,6 @@ function tt_type() {
 }
 
 let lang_id = 0;
-/*let Wk_langname = "Polish";
-
-const setWkLangName = () => {
-  switch(lang_id) {
-    case(1):
-        Wk_langname = "Russian";
-        break;
-    case(2):
-        Wk_langname = "Kazakh";
-        break;
-    case(3):
-        Wk_langname = "Polish";
-        break;
-    case(4):
-        Wk_langname = "Bulgarian";
-        break;
-    case(6):
-        Wk_langname = "Swedish";
-        break;
-    case(7):
-        Wk_langname = "Turkish";
-        break;
-    case(8):
-        Wk_langname = "Danish";
-        break;
-    case(9):
-        Wk_langname = "French";
-        break;
-    case(10):
-        Wk_langname = "German";
-        break;
-    default:
-        Wk_langname = "Polish";
-  }
-}; */
 let dict = Object.create(null);
 function setLangId() {
   let textselect_value = document.getElementById('textselect').value;
@@ -83,6 +48,9 @@ function setLangId() {
 }
 
 function selectText() {
+  if(displayWordEditor.edit_mode) {
+    displayWordEditor.stopEditing();
+  }
   if(display_word != null) delAnnotate();
   setLangId();  //not async safe, needs to change
 
@@ -110,15 +78,15 @@ function selectText() {
         if(xhttp.readyState == 4) {
           para1.innerHTML = xhttp.responseText;
          
-          
+          /*
           let tt_btns = document.querySelectorAll('.tooltip');
-
           tt_btns.forEach(tt_btn => {
             tt_btn.onclick = showAnnotate;
-          });
+          }); */
+          document.getElementById("textbody").addEventListener('click', showAnnotate);
 
           document.querySelectorAll('.multiword').forEach(mw => {
-            mw.onclick = showMultiwordAnnotate;
+            mw.addEventListener('click', showMultiwordAnnotate);
             mw.addEventListener('mouseover', underlineMultiwords);
             mw.addEventListener('mouseout', removeUnderlineMultiwords);
           });
@@ -126,6 +94,7 @@ function selectText() {
           if(tooltips_shown) {
             lemmaTooltip();
           }
+          document.getElementById("textselect").blur();
           loadingbutton.remove();
           
 
@@ -152,6 +121,9 @@ const removeLoadingButton = () => {
 };
 
 function selectText_splitup(dt_start, dt_end, page_cur) {
+  if(displayWordEditor.edit_mode) {
+    displayWordEditor.stopEditing();
+  }
   if(display_word != null) delAnnotate();
 
   let highlight_pagenos = document.querySelectorAll('.current_pageno');
@@ -183,14 +155,16 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
         if(xhttp.readyState == 4) {
           textbody.innerHTML = xhttp.responseText;
       
-          let tt_btns = document.querySelectorAll('.tooltip');
+          /*let tt_btns = document.querySelectorAll('.tooltip');
 
           tt_btns.forEach(tt_btn => {
             tt_btn.onclick = showAnnotate;
-          });
+          }); */
+          document.getElementById("textbody").addEventListener('click', showAnnotate);
 
           document.querySelectorAll('.multiword').forEach(mw => {
-            mw.onclick = showMultiwordAnnotate;
+            //mw.onclick = showMultiwordAnnotate;
+            mw.addEventListener('click', showMultiwordAnnotate);
             mw.addEventListener('mouseover', underlineMultiwords);
             mw.addEventListener('mouseout', removeUnderlineMultiwords);
           });
@@ -722,8 +696,16 @@ const disRegard = function () {
 
 const lemmaRecord = function () {
   if(document.getElementById("lemma_textarea").value.trim() != "" || meanings[lemma_meaning_no] != undefined) {
-    meanings[lemma_meaning_no] = document.getElementById("lemma_textarea").value;
+    meanings[lemma_meaning_no] = document.getElementById("lemma_textarea").value.trim();
   }
+
+  let skip = true;
+  for(let lemma_meaning_no in meanings) {
+    if(meanings[lemma_meaning_no].trim() != "") {
+      skip = false;
+    }
+  }
+  if(skip) return;
   
   let clicked_lemma_meaning_no = lemma_meaning_no;
   let meanings_length = Object.keys(meanings).length;
@@ -736,49 +718,44 @@ const lemmaRecord = function () {
   const lemma_form = encodeURIComponent(lemma_form_trimmed);
   
   let count = 1;
+
   for (let lemma_meaning_no in meanings) {
     let lemma_meaning = meanings[lemma_meaning_no];
-    
     const httpRequest = (method, url) => {
+      lemma_meaning = encodeURIComponent(lemma_meaning);
 
-    lemma_meaning = encodeURIComponent(lemma_meaning);
+      let send_data = "word_engine_id=" + word_engine_id + "&lemma_form=" + lemma_form + "&lemma_meaning=" + lemma_meaning + "&lemma_meaning_no=" + lemma_meaning_no + "&lang_id=" + lang_id + "&tokno_current=" + tokno_current + "&pos=" + pos +"&clicked_lemma_meaning_no=" + clicked_lemma_meaning_no;
 
-    let send_data = "word_engine_id=" + word_engine_id + "&lemma_form=" + lemma_form + "&lemma_meaning=" + lemma_meaning + "&lemma_meaning_no=" + lemma_meaning_no + "&lang_id=" + lang_id + "&tokno_current=" + tokno_current + "&pos=" + pos +"&clicked_lemma_meaning_no=" + clicked_lemma_meaning_no;
+      const xhttp = new XMLHttpRequest();
+      xhttp.open(method, url, true);
 
-    const xhttp = new XMLHttpRequest();
-    xhttp.open(method, url, true);
+      xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
-    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-
-    xhttp.onload = () => {
-      console.log("sent");
-      // console.log(xhttp.responseText);
-      if (xhttp.readyState == 4) {
-        console.log("Lemma updated");      
-       
-        document.querySelector('[data-tokno="'+tokno_current+'"]').classList.add("lemma_set");
-        let dataselectorstring = '[data-word_engine_id="' + word_engine_id + '"]';
-        let current_words = document.querySelectorAll(dataselectorstring);
-        current_words.forEach(current_word => {
-          current_word.classList.add("lemma_set_unexplicit");
-        });
-        console.log("meanings_lengths: ", meanings_length); //remove
-        console.log("count: ", count); //remove
-        if(tooltips_shown == true && count == meanings_length) {
-          lemmaRecordTooltipUpdate(current_words); //this being repeated for every meaning{} sometimes causes an issue with double tooltips; the lemma_record.php scripts are fired off without waiting for the previous one to return. possibly should get length of the meanings{} array and only run this on the final iteration (DONE)
+      xhttp.onload = () => {
+        console.log("sent");
+        // console.log(xhttp.responseText);
+        if (xhttp.readyState == 4) {
+          console.log("Lemma updated");      
+        
+          document.querySelector('[data-tokno="'+tokno_current+'"]').classList.add("lemma_set");
+          let dataselectorstring = '[data-word_engine_id="' + word_engine_id + '"]';
+          let current_words = document.querySelectorAll(dataselectorstring);
+          current_words.forEach(current_word => {
+            current_word.classList.add("lemma_set_unexplicit");
+          });
+          console.log("meanings_lengths: ", meanings_length); //remove
+          console.log("count: ", count); //remove
+          if(tooltips_shown == true && count == meanings_length) {
+            lemmaRecordTooltipUpdate(current_words); //this being repeated for every meaning{} sometimes causes an issue with double tooltips; the lemma_record.php scripts are fired off without waiting for the previous one to return. possibly should get length of the meanings{} array and only run this on the final iteration (DONE)
+          }
+          count++;
         }
-        count++;
       }
+      xhttp.send(send_data);
     }
-    xhttp.send(send_data);
-  }
 
-  httpRequest("POST", "lemma_record.php");
+    httpRequest("POST", "lemma_record.php");
   }
-  /* document.getElementById('annot_box').remove();
-  display_word.classList.add("tooltip");
-  display_word.classList.remove("tooltip_selected");
-  meanings = {}; */
   delAnnotate();
 };
 
@@ -970,9 +947,11 @@ let annotation_mode = 0;
 function showAnnotate(event) {
   if(window.innerWidth < 769) return;
 
+  if(event.target.classList.contains("tooltip") == false || event.target.classList.contains("multiword") || event.target.classList.contains("tooltip_selected") || event.target.classList.contains("mw_selectable") || displayWordEditor.edit_mode) return;
+
   if(display_word != null) delAnnotate();
   display_word = event.target;
-  display_word.onclick = "";
+  //display_word.onclick = "";
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
   tokno_current = display_word.dataset.tokno;
@@ -1043,8 +1022,8 @@ const fetchLemmaData = function (box_present = true) {
           document.getElementById('delete_lemma_button').style.display = "";
         }
         
-        document.getElementById('delete_lemma_button').onclick = lemmaDelete;
-        document.getElementById('disregard_button').onclick = disRegard;
+        document.getElementById('delete_lemma_button').onclick = lemmaDelete;  
+        document.getElementById('edit_button').onclick = displayWordEditor.startEditing;
         toggleSave(true, lemmaRecord);
         //document.getElementById('save_button').onclick = lemmaRecord;
         document.getElementById('meaning_leftarrow').onclick = switchMeaning;
@@ -1117,13 +1096,15 @@ const recordMultiword = function () {
         });
         console.log("mw_meanings_lengths: ", mw_meanings_length); //remove
         console.log("count: ", count); //remove
-        document.querySelectorAll('.multiword').forEach(multiword => {
+
+        document.querySelectorAll(`[data-multiword="${new_mw_count}"`).forEach(multiword => {
+          multiword.addEventListener('click', showMultiwordAnnotate);
           multiword.addEventListener('mouseover', underlineMultiwords);
           multiword.addEventListener('mouseout', removeUnderlineMultiwords);
         });
-        if(tooltips_shown == true) {
+        /*if(tooltips_shown == true) {
           //lemmaRecordTooltipUpdate(current_words);
-        }
+        } */
         delAnnotate();
       }
     }
@@ -1168,7 +1149,8 @@ const deleteMultiword = function () {
         document.querySelectorAll(dataselectorstring).forEach(prev_mw => {
           prev_mw.removeAttribute('data-multiword');
           prev_mw.classList.remove("multiword");
-          prev_mw.onclick = showAnnotate;
+          //prev_mw.onclick = showAnnotate;
+          prev_mw.removeEventListener('click', showMultiwordAnnotate);
         });
 
       }
@@ -1339,9 +1321,10 @@ const selectMultiword = (event) => {
 
 const showMultiwordAnnotate = (event) => {
   if(window.innerWidth < 769) return;
+  if(event.target.classList.contains("tooltip_selected") || event.target.classList.contains("mw_selectable") || displayWordEditor.edit_mode) return;
   if(display_word != null) delAnnotate();
   display_word = event.target;
-  display_word.onclick = "";
+  //display_word.onclick = "";
   display_word.classList.add("tooltip_selected");
   display_word.classList.remove("tooltip");
   tokno_current = display_word.dataset.tokno;
@@ -1443,6 +1426,7 @@ const fetchMultiwordData = function (box_present = true) {
             multiword_indices[current_mw.dataset.tokno] = current_mw.dataset.word_engine_id;
             current_mw.classList.add("mw_current_select");
             current_mw.style.borderBottom = "";
+            current_mw.removeEventListener('click', showMultiwordAnnotate);
             current_mw.removeEventListener('mouseover', underlineMultiwords);
             current_mw.removeEventListener('mouseout', removeUnderlineMultiwords);
           });
@@ -1459,7 +1443,8 @@ const fetchMultiwordData = function (box_present = true) {
           //the adjacent_toknos could include words from the next page which will make the querySelector return null
           if(wrd != null && (wrd.dataset.multiword == undefined || wrd.dataset.multiword == current_mw_number)) {
             wrd.classList.add("mw_selectable");
-            wrd.onclick = selectMultiword; 
+            //wrd.onclick = selectMultiword;
+            wrd.addEventListener('click', selectMultiword);
           }
         }
 
@@ -1521,12 +1506,16 @@ const reactivateArrows = (meaning_no, max_meaning_no) => {
 };
 
 const displayAnnotBox = function () {
-  let annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="disregard_button" title="Make this word unannotatable and delete it from the WordEngine">Disregard</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag" spellcheck="false"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
-  document.getElementById('spoofspan').after(annot_box);
+  const annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="edit_button" title="Edit current text-word (UNFINISHED DO NOT USE)">Edit</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag" spellcheck="false"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
+  //document.getElementById('spoofspan').after(annot_box);
 
   if(lang_id == 10) {
-    document.getElementById("lemma_tag").addEventListener('beforeinput', oldEnglishInput);
+    annot_box.getElementById("lemma_tag").addEventListener('beforeinput', oldEnglishInput);
   }
+  if(display_word.dataset.multiword !== undefined) {
+    annot_box.getElementById("edit_button").style.visibility = "hidden";
+  }
+  document.getElementById('spoofspan').after(annot_box);
 };
 
 const delAnnotate = function (total = true) {
@@ -1535,8 +1524,9 @@ const delAnnotate = function (total = true) {
     let annot_box = document.getElementById('annot_box');
     display_word.classList.add("tooltip");
     display_word.classList.remove("tooltip_selected");
-    display_word.onclick = showAnnotate;
+    //display_word.onclick = showAnnotate;
     display_word = null;
+    //tokno_current and word_engine_id are not set to zero by delAnnotate() because certain AJAX requests which require these values can run after delAnnotate() (e.g. lemmaRecordTooltipUpdate, which runs after the lemmaRecord AJAX request resolves), or code to add/remove event-listeners from elements with data-attributes of these numbers is only run after AJAX requests return, whereas delAnnotate() is often run immediately to prevent the poor user-experience of having the annotation-box hang around for the brief period during which the network-request completes (though on localhost on a modern computer with an SSD this is always sub 30ms)
     annot_box.remove();
   }
 
@@ -1551,10 +1541,11 @@ const delAnnotate = function (total = true) {
 
   document.querySelectorAll('.mw_selectable').forEach(mws => {
     mws.classList.remove("mw_selectable", "mw_current_select");
-    mws.onclick = showAnnotate;
+    mws.removeEventListener('click', selectMultiword);
   });
   document.querySelectorAll('.multiword').forEach(mw => {
-    mw.onclick = showMultiwordAnnotate;
+    //mw.onclick = showMultiwordAnnotate;
+    mw.addEventListener('click', showMultiwordAnnotate);
     mw.addEventListener('mouseover', underlineMultiwords);
     mw.addEventListener('mouseout', removeUnderlineMultiwords);
   });
@@ -1645,7 +1636,7 @@ const differentiateAnnotations = function () {
   }); */
 
 const keyboard_tt = (event) => {
-  if(display_word != null) return;
+  if(display_word != null || displayWordEditor.edit_mode) return;
   if(event.key == "T") {
     if(document.getElementById("tt_toggle").checked == false) document.getElementById("tt_toggle").checked = true;
     else document.getElementById("tt_toggle").checked = false;
@@ -1672,11 +1663,13 @@ const underlineMultiwords = function (event) {(document.querySelectorAll('[data-
 const removeUnderlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px dotted rgb(0, 255, 186, 0.5)";})); };
 
 document.querySelectorAll('.multiword').forEach(multiword => {
-  multiword.onclick = showMultiwordAnnotate;
+  //multiword.onclick = showMultiwordAnnotate;
+  multiword.addEventListener('click', showMultiwordAnnotate);
   multiword.addEventListener('mouseover', underlineMultiwords);
   multiword.addEventListener('mouseout', removeUnderlineMultiwords);
 });
 
+if(document.getElementById("textbody") !== null) document.getElementById("textbody").addEventListener('click', showAnnotate);
 
 const ttPosition = function () {
   const viewport_width = window.visualViewport.width;
@@ -1779,8 +1772,8 @@ const oldEnglishInput = (event) => {
 		textarea.value = textarea.value.slice(0, selection_start) + new_letter + textarea.value.slice(selection_end);
 		textarea.selectionStart = insertPos; textarea.selectionEnd = insertPos;
 	}
-    else if(key_pressed == ":") {
-        let long_vowel = '';
+  else if(key_pressed == ":") {
+    let long_vowel = '';
 		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
 		const upper_case = (last_letter == last_letter.toUpperCase());
 		switch(last_letter.toLowerCase()) {
@@ -1814,7 +1807,7 @@ const oldEnglishInput = (event) => {
 			textarea.value = textarea.value.slice(0, selection_start - 1) + long_vowel + textarea.value.slice(selection_end);
 			textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
 		}
-    }
+  }
 
 	else {
 		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
@@ -1836,3 +1829,310 @@ const oldEnglishInput = (event) => {
 	}
   setLemmaTagSize();
 };
+
+
+
+
+
+class DisplayWordEditor {
+    
+  edit_mode = false;
+  wordElement = null;
+  wordContent = "";
+  originalWordContent = "";
+  cursor_position = 0;
+
+  //class methods have to be arrow functions to ensure that 'this' is always bound to their parent class-instance, otherwise when calling these methods from an eventListener the 'this' gets bound instead to the element which received the event
+  startEditing = () => {
+    this.wordElement = display_word;
+    if(this.wordElement.dataset.multiword !== undefined) {
+      this.wordElement = null;
+      return;
+    }
+    delAnnotate();
+    this.edit_mode = true;
+    this.wordElement.classList.remove("tooltip");
+    this.wordElement.classList.add("tooltip_selected");
+    document.getElementById("dict_searchbox").disabled = true;
+
+    this.wordElement.classList.add("edit-displayWord");
+    this.wordContent = this.wordElement.firstChild.textContent;
+    this.originalWordContent = this.wordContent;    
+    this.cursor_position = this.wordContent.length;
+
+    this.flashLetter();
+    window.addEventListener('keydown', this.moveCursor);
+    window.addEventListener('keydown', this.saveEdit);
+    window.addEventListener('dblclick', this.saveEdit);
+  };
+
+  stopEditing = () => {
+    
+    this.edit_mode = false;
+    document.getElementById("dict_searchbox").disabled = false;
+    this.wordContent = "";
+    this.originalWordContent = "";
+    this.cursor_position = 0;
+
+    window.removeEventListener('keydown', this.moveCursor);
+    window.removeEventListener('keydown', this.saveEdit);
+    window.removeEventListener('dblclick', this.saveEdit);
+    
+    this.unflashLetter();
+    this.flashBorder(false);
+
+    this.wordElement.classList.remove("edit-displayWord");
+    this.wordElement.classList.add("tooltip");
+    this.wordElement.classList.remove("tooltip_selected");
+    this.wordElement = null;
+    
+    
+  };
+
+  saveEdit = (event) => {
+    if((event.type == 'dblclick' && event.target.classList.contains("edit-displayWord") == false) || (event.type == 'keydown' && event.key == 'Enter')) {
+      if(this.wordContent.trim() == "") return;
+      if(this.wordContent == this.originalWordContent) {
+        this.stopEditing();
+        return;
+      }
+      else {
+        this.updateDisplayWord(this.getWordEngForm(this.wordContent));
+        //this.stopEditing(); //needs to move to updateDisplayWord() because I need access to this.wordElement upon completion of the request
+      }
+    }
+  };
+
+  updateDisplayWord = (new_wordEngWord) => {
+    const xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "update_displayWord.php", true)
+    xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhttp.responseType = 'json';
+    let post_data = "edit_tokno="+tokno_current+"&current_word_eng_id="+word_engine_id+"&lang_id="+lang_id+"&new_displayWord="+encodeURIComponent(this.wordContent.trim())+"&new_wordEngWord="+encodeURIComponent(new_wordEngWord.trim());
+    
+    xhttp.onreadystatechange = () => {     
+      if(xhttp.readyState == 4) {
+        const json_response = xhttp.response;
+        this.wordElement.dataset.word_engine_id = json_response.new_word_eng_id;
+        const new_first_lemma_id = json_response.new_first_lemma_id;
+        
+        if(tooltips_shown && this.wordElement.classList.contains("lemma_set_unexplicit")) {
+          this.wordElement.lastChild.remove();
+        };
+        this.wordElement.classList.remove("lemma_set", "lemma_set_unexplicit");
+        //only for when tooltips_shown and when the word has lemma_set_unexplicit class 
+        if(new_first_lemma_id != 0) {
+          this.wordElement.classList.add("lemma_set_unexplicit");
+          if(tooltips_shown) {
+            const lemma_tt_box = document.createRange().createContextualFragment('<span class="lemma_tt" onclick="event.stopPropagation()"><span id="tt_top"><div class="lemma_tag_tt">'+json_response.lemma_tt_data[0]+'</div><span id="pos_tag_box_tt">'+tt_pos_arr[json_response.lemma_tt_data[2]]+'</span></span><span id="tt_mid"><div id="tt_meaning">'+json_response.lemma_tt_data[1]+'</div></span><span id="tt_bottom"></span></span>');
+
+            this.wordElement.append(lemma_tt_box);
+          }
+        }
+        this.stopEditing();
+      }
+    }
+    xhttp.send(post_data);
+
+    //console.log("updateDisplayWord() called with post_data: ", post_data);
+  };
+
+  moveCursor = (event) => {
+    if(event.type == 'keydown') {
+      if(event.key == 'Enter' || event.key == ' ' || event.key == 'Tab' || event.key == 'Spacebar') {
+        event.preventDefault();
+        return;
+      }
+      else {
+        if(event.key == 'Delete' && this.cursor_position < this.wordContent.length) {
+          this.unflashLetter();
+          this.wordContent = this.wordContent.slice(0, this.cursor_position)+this.wordContent.slice(this.cursor_position + 1);
+          this.flashLetter();
+        }
+        else if(event.key == 'Backspace' && this.cursor_position > 0) {
+          
+          this.unflashLetter();
+          this.wordContent = this.wordContent.slice(0, this.cursor_position - 1)+this.wordContent.slice(this.cursor_position);
+          this.cursor_position--;
+          this.flashLetter();
+        }
+        else if(event.key == 'ArrowLeft' && this.cursor_position > 0) {
+          this.unflashLetter();
+          this.cursor_position--;
+          this.flashLetter();
+        }
+        else if(event.key == 'ArrowRight') {
+          if(this.cursor_position == this.wordContent.length) return;
+          this.unflashLetter();
+          this.cursor_position++;
+          this.flashLetter();
+        }
+        else if(this.makeRegex().test(event.key)) {
+          //console.log(event.key);
+          let character = event.key
+          if(lang_id == 10) {
+              const OE_array = this.oldEnglishify(character);
+              if(OE_array[0] == true) window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Backspace'}));
+              character = OE_array[1];
+          }
+          if(character == "") return;
+          this.insertChar(character);
+        }
+      }
+      if(this.cursor_position == 0) this.flashBorder(true);
+      else this.flashBorder(false);
+    }
+  };
+
+  insertChar = (character) => {
+    this.unflashLetter();
+    this.wordContent = this.wordContent.slice(0, this.cursor_position)+character+this.wordContent.slice(this.cursor_position);
+    this.cursor_position++;
+    this.flashLetter();
+  };
+
+  flashBorder = (on) => {
+    if(on == true) this.wordElement.style.animation = "border-left-flash 0.9s steps(1, jump-start) infinite";
+    else this.wordElement.style.animation = "";
+  };
+
+  flashLetter = () => {
+    if(this.cursor_position == 0) {
+      this.wordElement.firstChild.remove();
+      this.wordElement.prepend(this.wordContent.slice(this.cursor_position, this.wordContent.length));
+    }
+    else {
+      const flashingLetterNode = document.createRange().createContextualFragment("<span id=\"edit-letter\">"+this.wordContent.slice(this.cursor_position - 1, this.cursor_position)+"</span>");
+      
+      if(this.cursor_position == 1) {
+        this.wordElement.firstChild.remove();
+        this.wordElement.prepend(flashingLetterNode);
+        this.wordElement.firstChild.after(this.wordContent.slice(this.cursor_position, this.wordContent.length));
+      }
+      else {
+        this.wordElement.firstChild.textContent = this.wordContent.slice(0, this.cursor_position - 1);        
+        this.wordElement.firstChild.after(flashingLetterNode);
+        
+          if(this.wordContent.length - this.cursor_position > 0) {
+            this.wordElement.childNodes[1].after(this.wordContent.slice(this.cursor_position, this.wordContent.length));
+          }
+      }
+    }
+  };
+
+  unflashLetter = () => {
+    let newWordContent = "";
+    Array.from(this.wordElement.childNodes).forEach(childNode => {
+      if(childNode.className != "lemma_tt") {
+        newWordContent += childNode.textContent;
+        childNode.remove();
+      }
+    });
+    this.wordElement.prepend(newWordContent);
+  };
+
+  oldEnglishify = (key_pressed) => {
+    console.log("oldEnglishify() called");
+    const last_letter = this.wordContent.slice(this.cursor_position -1, this.cursor_position);
+  
+    const digraph = (base_letter, replacement_upper, replacement_lower) => {
+      return (base_letter == base_letter.toUpperCase()) ? replacement_upper : replacement_lower;
+    };
+  
+    if(key_pressed == 'w' || key_pressed == 'W' || key_pressed == 'g' || key_pressed == 'G') {
+      let new_letter = '';
+  
+      switch(key_pressed) {
+        case 'w':
+          new_letter = 'ƿ';
+          break;
+        case 'W':
+          new_letter = 'Ƿ';
+          break;
+        case 'g':
+          new_letter = 'ᵹ';
+          break;
+        case 'G':
+          new_letter = 'Ᵹ';
+          break;
+      }
+      return [false, new_letter];
+    }
+    else if(key_pressed == ":") {
+      let long_vowel = '';
+      const upper_case = (last_letter == last_letter.toUpperCase());
+      switch(last_letter.toLowerCase()) {
+        case 'a':
+          long_vowel = 'ā';
+          break;
+        case 'e':
+          long_vowel = 'ē';
+          break;
+        case 'i':
+          long_vowel = 'ī';
+          break;
+        case 'æ':
+          long_vowel = 'ǣ';
+          break;
+        case 'u':
+          long_vowel = 'ū';
+          break;
+        case 'o':
+          long_vowel = 'ō';
+          break;
+        case 'y':
+          long_vowel = 'ȳ';
+          break;
+        default:
+          return [false, ""];		
+      }
+      if(long_vowel != '') {
+        return (upper_case) ? [true, long_vowel.toUpperCase()] : [true, long_vowel];
+      }
+    }
+  
+    else {
+      let digraph_letter = "";
+      if(key_pressed == 'e' && last_letter.toLowerCase() == 'a') {
+        digraph_letter = digraph(last_letter, 'Æ', 'æ');
+      }
+      else if(key_pressed == 'h' && last_letter.toLowerCase() == 't') {
+        digraph_letter = digraph(last_letter, 'Þ', 'þ');
+      }
+      else if(key_pressed == 'h' && last_letter.toLowerCase() == 'd') {
+        digraph_letter = digraph(last_letter, 'Ð', 'ð');
+      }
+      else if(key_pressed == 'j' && last_letter.toLowerCase() == 'c') {
+        digraph_letter = digraph(last_letter, 'Ċ', 'ċ');
+      }
+      else if(key_pressed == 'j' && last_letter.toLowerCase() == 'g') {
+        digraph_letter = digraph(last_letter, 'Ġ', 'ġ');
+      }
+  
+      if(digraph_letter == "") return [false, key_pressed];
+      else return [true, digraph_letter];
+    }
+  };
+
+  makeRegex = () => {
+    if(lang_id == 10) return new RegExp(/^(\p{L}|:)$/u);
+    else return new RegExp(/^\p{L}$/u);
+  };
+
+  makeLocale = () => {
+    if(lang_id == 7) return "tr";
+    else return "en-US";
+  };
+
+  getWordEngForm = (display_word_form) => {
+    let word_eng_form = "";
+    if(lang_id == 10) {
+      word_eng_form = display_word_form.toLowerCase().replaceAll('þ', 'ð');
+      if(word_eng_form.startsWith('ð')) word_eng_form = 'þ'+word_eng_form.slice(1);
+      return word_eng_form;
+    }
+    else return display_word_form.toLocaleLowerCase(this.makeLocale());
+  };
+
+}
+const displayWordEditor = new DisplayWordEditor();

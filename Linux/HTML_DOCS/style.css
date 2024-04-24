@@ -306,7 +306,7 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
   display: inline-block;
   color: rgb(255 115 205);
   cursor: pointer;
-  }
+}
 .mw_selectable:hover {
   border-bottom: 2px solid rgb(0 255 186);
 }
@@ -614,4 +614,30 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
 .toplink-buttons.current:hover {
   background-color: #040a16;
   color: #cbd9f4;
+}
+
+#edit-letter {
+  animation: cursor-flash 0.9s steps(1, jump-start) infinite;
+  /*border-bottom: 2px solid red; */
+  border-right: 1px solid #172136;
+}
+@keyframes cursor-flash {
+  /*50% { color: black; }
+  100% { color: inherit; } */
+  50% { border-right: 1px solid red; }
+  100% { border-right: inherit; }
+}
+.edit-displayWord {
+  border-left: 1px solid #172136;
+  border-right: 1px solid #172136;
+  border-bottom: 2px dotted red;
+  /*animation: border-flash 0.9s steps(1, jump-start) infinite;*/
+}
+@keyframes border-left-flash {
+  50% { 
+    border-left: 1px solid red;
+  }
+  100% { 
+    border-left: 1px solid #172136;
+  }
 }

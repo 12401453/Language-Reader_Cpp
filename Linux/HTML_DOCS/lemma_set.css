@@ -12,9 +12,10 @@
   cursor: pointer;
 }
 
-.tooltip_selected {
-  position: relative;
-  display: inline-block;
-  color: rgb(255 115 205);
-  cursor: pointer;
-  }
+.lemma_set.tooltip_selected {
+  color: rgb(0 255 34);
+}
+
+.lemma_set_unexplicit.tooltip_selected {
+  color: rgb(0 255 34);
+}

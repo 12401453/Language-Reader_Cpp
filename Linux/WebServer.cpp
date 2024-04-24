@@ -90,9 +90,13 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
 
         if(!strcmp(fil_ext, ".css")) {
             content_type = "text/css";
+            sendBinaryFile(url_c_str, clientSocket, content_type);
+            return;
         }
         else if(!strcmp(fil_ext + 1, ".js")) {
             content_type = "application/javascript";
+            sendBinaryFile(url_c_str, clientSocket, content_type);
+            return;
         }
         else if(!strcmp(fil_ext, ".ttf")) {
             content_type = "font/ttf";
@@ -267,7 +271,7 @@ int WebServer::checkHeaderEnd(const char* msg) {
         {   
             if(page_type > 0 && line.find("<?php") != -1) insertTextSelect(ss_text);
             else if(page_type == 1 && cookies_present && line.find("<?cky") != -1) void_retrieveText(m_cookies, ss_text); 
-            else if(page_type == 1 && line.find("<?cky") != -1) ss_text << "<br><br>\n";
+            else if(page_type == 1 && line.find("<?cky") != -1) ss_text << "<br><br><div id=\"textbody\"></div>\n";
             
             //For some reason I do not understand, if you insert a <script> tag to declare the below JS variable outside of the script tag at the bottom, on Chrome Android the server very often will get stuck for absolutely ages on loading the Bookerly font file when you refresh the page, and the javascript engine will freeze for about 5-10seconds, but this never happens on Desktop. Thus I've had to make up another bullshit <?js tag to signal where to insert this C++-generated JS, and the only reason I'm inserting it server-side is because JS string functions are absolute dogshit and compared to my C-string parsing of the cookie text, doing it on the client by parsing the document.cookie string is ungodlily inefficient
             else if(page_type == 1 && cookies_present && line.find("<?js") != -1) ss_text << "let cookie_textselect = " + m_cookies[0] + ";\n";
@@ -660,6 +664,9 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     else if(!strcmp(m_url, "/add_text_OE.php")) {
         bool php_func_success = addTextOldEnglish(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/update_displayWord.php")) {
+        bool php_func_success = updateDisplayWord(post_values, clientSocket);
+    }
 
     std::cout << "m_url: " << m_url << std::endl;
     
@@ -705,6 +712,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/clear_table.php")) return 0;
     else if(!strcmp(url, "/dump_lemmas.php")) return 1;
     else if(!strcmp(url, "/add_text_OE.php")) return 3;
+    else if(!strcmp(url, "/update_displayWord.php")) return 5;
     else return -1;
 }
 /*
@@ -1606,7 +1614,7 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
         sqlite3_int64 dt_start = sqlite3_column_int64(statement, 0);
         //if the cookie refers to a deleted text then SQLite will convert the null given by this query of an empty row to 0, which is falsey in C++
         if(!dt_start) {
-            html << "<br><br>\n";
+            html << "<br><br><div id=\"textbody\"></div>\n";
             sqlite3_finalize(statement);
             sqlite3_close(DB);
             return;
@@ -3391,6 +3399,115 @@ bool WebServer::addTextOldEnglish(std::string _POST[3], int clientSocket) {
     }
     else {
         std::cout << "Database connection failed on addTextOldEnglish()\n";
+        return false;
+    }   
+}
+
+bool WebServer::updateDisplayWord(std::string _POST[5], int clientSocket) {
+
+    sqlite3* DB;
+    sqlite3_stmt* statement;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        sqlite3_int64 edit_tokno = std::stol(_POST[0]);
+        int prev_word_eng_id = std::stoi(_POST[1]);
+        int lang_id = std::stoi(_POST[2]);
+        std::string new_wordEngWord = URIDecode(_POST[4]);
+
+        const char* sql_BEGIN = "BEGIN IMMEDIATE";
+        const char* sql_COMMIT = "COMMIT";
+
+        sqlite3_exec(DB, sql_BEGIN, nullptr, nullptr, nullptr);
+
+        const char* sql = "INSERT OR IGNORE INTO word_engine (word, lang_id) VALUES (?, ?)";
+        sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+        sqlite3_bind_text(statement, 1, new_wordEngWord.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(statement, 2, lang_id);
+        std::cout << "INSERT run-code: " << sqlite3_step(statement) << std::endl;
+        sqlite3_finalize(statement);
+
+        sql = "SELECT word_engine_id, first_lemma_id FROM word_engine WHERE lang_id = ? AND word = ?";
+        sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, lang_id);
+        sqlite3_bind_text(statement, 2, new_wordEngWord.c_str(), -1, SQLITE_STATIC);
+        std::cout << "SELECT word_engine_id run-code: " << sqlite3_step(statement) << std::endl;
+        int new_word_eng_id = sqlite3_column_int(statement, 0);
+        int new_first_lemma_id = sqlite3_column_int(statement, 1);
+        sqlite3_finalize(statement);
+
+        sql = "UPDATE display_text SET text_word = ?, word_engine_id = ?, lemma_id = NULL, lemma_meaning_no = NULL WHERE tokno = ?";
+        sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+        sqlite3_bind_text(statement, 1, URIDecode(_POST[3]).c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(statement, 2, new_word_eng_id);
+        sqlite3_bind_int64(statement, 3, edit_tokno);
+        std::cout << "update display_text statement run-code: " << sqlite3_step(statement) << std::endl;
+        sqlite3_finalize(statement);
+
+        std::ostringstream json_response;
+        json_response << "{\"new_word_eng_id\":" << new_word_eng_id << ",\"new_first_lemma_id\":" << new_first_lemma_id << ",\"lemma_tt_data\":[";
+        if(new_first_lemma_id) {
+            sql = "SELECT lemma, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10, pos FROM lemmas WHERE lemma_id = ?";
+            std::string lemma_form = "";
+            std::string lemma_trans = "";
+            short int lemma_pos = 1;
+
+            sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+            sqlite3_bind_int(statement, 1, new_first_lemma_id);
+            sqlite3_step(statement);
+            const unsigned char* lemma_rawsql = sqlite3_column_text(statement, 0);
+            if (lemma_rawsql != nullptr) {
+                lemma_form = (const char*)lemma_rawsql;
+            }
+            else lemma_form = "";
+
+            lemma_trans = "";
+            //this loop is necessary incase some bastard has decided to leave meaning_no1 blank but recorded meaning_no5 or whatever
+            for (int i = 1; i < 11; i++) {
+                const unsigned char* lemma_trans_rawsql = sqlite3_column_text(statement, i);
+                if (lemma_trans_rawsql != nullptr) {
+                    lemma_trans = (const char*)lemma_trans_rawsql;
+                    break;
+                }
+            }
+            lemma_pos = sqlite3_column_int(statement, 11);
+            sqlite3_finalize(statement);
+
+            json_response << "\"" << htmlspecialchars(lemma_form) << "\",\"" << htmlspecialchars(lemma_trans) << "\"," << lemma_pos;
+        }
+        json_response << "]}";
+
+        std::cout << "updateDisplayWord() json_response: " << json_response.str() << std::endl;
+
+        int content_length = json_response.str().size();
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json_response.str();
+
+        int length = post_response.str().size() + 1;
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+
+        sql = "SELECT count(rowid) FROM display_text WHERE word_engine_id = ?";
+        sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, prev_word_eng_id);
+        sqlite3_step(statement);
+
+        if(!sqlite3_column_int(statement, 0)) {
+            sqlite3_finalize(statement);
+            sql = "DELETE FROM word_engine WHERE word_engine_id = ?";
+            sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
+            sqlite3_bind_int(statement, 1, prev_word_eng_id);
+            std::cout << "Previous word engine has been deleted with run-code: " << sqlite3_step(statement) << std::endl;
+        }
+
+        std::cout << "count(rowid) WHERE word_engine_id = " << prev_word_eng_id << ": " << sqlite3_column_int(statement, 0) << std::endl;
+        sqlite3_finalize(statement);
+
+        sqlite3_exec(DB, sql_COMMIT, nullptr, nullptr, nullptr);
+
+        sqlite3_close(DB);
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on updateDisplayWord()\n";
         return false;
     }   
 }

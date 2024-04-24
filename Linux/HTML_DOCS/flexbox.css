@@ -100,7 +100,7 @@
 
 }
 
-#disregard_button {
+#edit_button {
   height: fit-content;
   width: 76px;
   box-sizing: border-box; /*this makes the padding-property behave more like the margin-property and takes the padding off of the width-property so the total width of the #right_body box is still 100% of its parent div */
@@ -121,7 +121,7 @@
   border-top: none;
   cursor: default;
 }
-#disregard_button:hover {
+#edit_button:hover {
   background-color: #312626;
   color: #cbd9f4;
 }

@@ -63,6 +63,7 @@ class WebServer : public TcpListener {
         bool retrieveMultiword(std::string _POST[3], int clientSocket);
         bool clearTable(int clientSocket);
         bool disregardWord(std::string _POST[2], int clientSocket);
+        bool updateDisplayWord(std::string _POST[5], int clientSocket);
 
         bool pullInLemma(std::string _POST[4], int clientSocket);
         bool retrieveMeanings(std::string _POST[2], int clientSocket);
