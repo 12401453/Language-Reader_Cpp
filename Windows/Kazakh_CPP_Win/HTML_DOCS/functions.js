@@ -1668,7 +1668,8 @@ document.querySelectorAll('.multiword').forEach(multiword => {
   multiword.addEventListener('mouseover', underlineMultiwords);
   multiword.addEventListener('mouseout', removeUnderlineMultiwords);
 });
-document.getElementById("textbody").addEventListener('click', showAnnotate);
+
+if(document.getElementById("textbody") !== null) document.getElementById("textbody").addEventListener('click', showAnnotate);
 
 const ttPosition = function () {
   const viewport_width = window.visualViewport.width;

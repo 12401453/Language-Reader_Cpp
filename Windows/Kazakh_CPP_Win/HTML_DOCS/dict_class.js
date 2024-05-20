@@ -127,11 +127,11 @@ class Dictionary {
         1: [2,1],
         2: [3,4,2],
         3: [1,2],
-        4: [1,2],
+        4: [1,2,5],
         5: [5,1,2],
         6: [1,2],
         7: [1,2],
-        8: [1,2],
+        8: [1,2,5],
         10: [6,2],
     };
 
@@ -406,7 +406,7 @@ class Dictionary {
             });
             return text.trim();
         };
-        const extractHeaderText = (node_list) => {
+        /*const extractHeaderText = (node_list) => {
             let text = "";
             let span_inserted = false;
             node_list.forEach( (node, i) => {
@@ -429,7 +429,38 @@ class Dictionary {
             });
             text += '</span>';
             return text;
+        }; */
+        const extractHeaderText = (node_list) => {
+            let text = "";
+            node_list.forEach( (node) => {
+                if(node.nodeType == 1 && node.nodeName == "SPAN" && node.className != "headword_attributes" && node.className != "headword" && node.className != "headword_spelling") {
+                    text += '<span class="PONS_title_info">';
+                    const elem = document.createElement("div");
+                    elem.append(document.createTextNode(node.textContent.trim()));
+                    text += elem.innerHTML;
+                    text += '</span>';
+                }
+                else if(node.nodeType == 1 && node.nodeName == "SPAN" && node.className == "headword_attributes") {
+                    text += "<span title=\"" + node.title + "\">" + node.textContent + "</span>";
+                }
+                else if(node.className == "headword") {
+                    const children_nodes = node.childNodes;
+                    for(let i = 0; i <children_nodes.length; i++){
+                        if(children_nodes[i].nodeType == 3) {
+                            text += children_nodes[i].textContent;
+                            break;
+                        }
+                    }
+                }
+                else if(node.nodeType == 3) {
+                    text += node.textContent;     
+                }
+            });
+            return text;
         };
+
+
+
         const extractH3Text = (node_list) => {
             if(node_list.length < 2) return {}; //sometimes the <h3> nodes can be just plain text so get skipped, but in these cases nothing interesting is said anyway
             let text = '<span class="PONS_title_info">';
@@ -709,9 +740,11 @@ class Dictionary {
             let txt = "";
             for(const child of element.childNodes) {
                 if(child.nodeName == "DIV" && child.id.startsWith("elliwrap")) txt += child.textContent;
-                else if(child.nodeName == "SPAN" && child.style.top == "-3px") txt += "<sup>" + child.textContent + "</sup>";
-                else if(child.nodeName != "DFN" && child.nodeName != "DIV") txt += child.textContent;
-                
+                else if(child.nodeName == "SPAN" && child.style.top == "-3px") txt += "<sup>" + child.textContent + "</sup>";  
+                else if(child.textContent.trim() == "Unverified" && child.style.backgroundColor == "red") {
+                    txt += "<span style=\"color:red;\"><i>unverified</i></span>";
+                }
+                else if(child.nodeName != "DFN" && child.nodeName != "DIV") txt += child.textContent;                
             }
             return txt.trim();
         }

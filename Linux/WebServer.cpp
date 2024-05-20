@@ -1854,6 +1854,7 @@ void WebServer::sendBinaryFile(char* url_c_str, int clientSocket, const std::str
     else
     {
         std::cout << "This file was not opened successfully." << std::endl;
+        sendToClient(clientSocket, "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n", 46);
         return;
     }
     
