@@ -448,7 +448,6 @@ class Dictionary {
                     for(let i = 0; i <children_nodes.length; i++){
                         if(children_nodes[i].nodeType == 3) {
                             text += children_nodes[i].textContent;
-                            break;
                         }
                     }
                 }
@@ -456,17 +455,22 @@ class Dictionary {
                     text += node.textContent;     
                 }
             });
-            return text;
+            return text.trim();
         };
 
 
 
         const extractH3Text = (node_list) => {
-            if(node_list.length < 2) return {}; //sometimes the <h3> nodes can be just plain text so get skipped, but in these cases nothing interesting is said anyway
+            if(node_list.length < 2) {
+                if(node_list.length == 0) return {};
+                const h3_text = node_list[0].textContent.trim();
+                if(h3_text == "") return {};
+                else return '<span class="PONS_title_info">'+h3_text+'</span>';
+            }
             let text = '<span class="PONS_title_info">';
             let span_inserted = false;
             node_list.forEach( (node, i) => {
-                if(node.className == 'info') {
+                if(node.className == 'info' || node.className == 'style') {
                     text = text.concat('<abbr>').concat(node.textContent.trim()).concat('</abbr>');
                     text += " ";
                 }
@@ -482,6 +486,10 @@ class Dictionary {
 
         if(this.m_lang_id == 4) {
             let results_sections = PONS_page.querySelectorAll(".results");
+            if(results_sections[0] == undefined) {
+                this.noResultsFound("No results found");
+                return;
+            }
             let entry_sections = results_sections[0].querySelectorAll(".entry");
             entry_sections.forEach((entry, i) => {
                 this.dict_result_PONS[i] = {h2_text: {},};
@@ -516,6 +524,27 @@ class Dictionary {
                 });
 
             });
+            if(entry_sections.length == 0) {
+                    const dict_body = document.getElementById("dict_body");
+                    dict_body.innerHTML = "";
+                    dict_body.style.display = "flex";
+
+                    const dl_sections = results_sections[0].querySelectorAll("dl");
+                    dl_sections.forEach(dl_section => {
+                        const entries_left = dl_section.querySelectorAll(".dt-inner > .source");
+                        const entries_right = dl_section.querySelectorAll(".dd-inner > .target");
+                
+                        for (let i = 0; i < entries_left.length; i++)
+                        {
+                            const entry_left = extractText(entries_left[i].childNodes);
+                            const entry_right = extractText(entries_right[i].childNodes);
+                            
+                            //this is a one-dimensional result set with no headers so I can't be arsed to fit it into my dict_result_PONS object
+                            dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+entry_left+'</div><div class="dict_cell right">'+entry_right+'</div></div>'));
+                        }
+                    });
+                    return;
+                };
             this.unPackPONSResult();
             return;
         }
@@ -527,7 +556,7 @@ class Dictionary {
         if(rom_lngth == 0) {
             let results_sections = PONS_page.querySelectorAll(".results");
             let results_lngth = results_sections.length;
-            if(results_lngth == 0) {
+            if(results_lngth == 0 || (results_sections.length == 1 && results_sections[0].parentNode.classList.contains("catalog-browse"))) {
                 this.noResultsFound();
                 return;
             }
@@ -743,6 +772,9 @@ class Dictionary {
                 else if(child.nodeName == "SPAN" && child.style.top == "-3px") txt += "<sup>" + child.textContent + "</sup>";  
                 else if(child.textContent.trim() == "Unverified" && child.style.backgroundColor == "red") {
                     txt += "<span style=\"color:red;\"><i>unverified</i></span>";
+                }
+                else if(child.nodeName == "SUP") {
+                    txt += "[<i>" + child.textContent + "</i>]"; //for the Dat. or Akk. superscripts indicating the case of 'sich' and such
                 }
                 else if(child.nodeName != "DFN" && child.nodeName != "DIV") txt += child.textContent;                
             }

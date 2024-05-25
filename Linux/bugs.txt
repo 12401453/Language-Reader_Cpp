@@ -1,13 +1,3 @@
 1.) Updating a lemma-meaning does not change the tooltip for other different-formed versions of that lemma in the same text (need to change updateLemmaTooltip() to look for same lemma_ids, which is not really possible without more database lookups because I purposefully do not store lemma_id's as data-attributes in the HTML)
 
-
-3.) PONS Bulgarian scraper ignores additional head-entries if the search-term throws up more than one
-4.) PONS Bulgarian scraper can sometimes resort to a google-translate style thing which causes an error in my parser; I need to check for and handle it
-5.) PONS Bulgarian scraper fails silently when searching for "така че" even though it does give a German definition. Also разделя, така наречен
-6.) Bulgarian plurals (e.g. <-та> on the entry for кранче, or връх <върхъ̀т, върховѐ, zählb: въ̀рха >) are omitted by my scraper
-
-7.) Add this to the scrapeDictCC extractText function: 
-else if(child.InnerText == "Unverified" && HasStyleValues(child.GetAttributeValue("style", ""), "background-color", "red"))
-{
-    txt += "<span style=\"color:red;\"><em>unverified</em></span>";
-}
+7.) Searching for English words on the PONS German dictionary usually fails if they are normal full entries, so the structure of that type of page must be different, but searching for German words on the PONS Polish or whatever dictionaries just give normal German -> Polish results, so this is not really a problem because it's not meant for looking up English words and anyway you can do that with the dict.cc one
