@@ -254,6 +254,10 @@ class Dictionary {
 
     scrapeSozdik(response_text) {
         const sozdik_result = JSON.parse(response_text);
+        if(sozdik_result.message == "Human check required") {
+            this.noResultsFound("sozdik.kz authentication has failed)");
+            return;
+        }
         let dict_body = document.getElementById("dict_body");
     
         const parser = new DOMParser();
@@ -470,8 +474,8 @@ class Dictionary {
             let text = '<span class="PONS_title_info">';
             let span_inserted = false;
             node_list.forEach( (node, i) => {
-                if(node.className == 'info' || node.className == 'style') {
-                    text = text.concat('<abbr>').concat(node.textContent.trim()).concat('</abbr>');
+                if(node.className == 'info' || node.className == 'style' || node.className == 'reflection') {
+                    text = text.concat('<abbr style="color:#cbd9f4be;">').concat(node.textContent.trim()).concat('</abbr>');
                     text += " ";
                 }
                 else {
@@ -485,6 +489,7 @@ class Dictionary {
         };
 
         if(this.m_lang_id == 4) {
+            //I've given up building the dict_results_PONS object for Bulgarian because the structure of the website-data precludes its saving in a structure that conforms to how the unPackPONSResult() function has to work
             let results_sections = PONS_page.querySelectorAll(".results");
             if(results_sections[0] == undefined) {
                 this.noResultsFound("No results found");
@@ -492,35 +497,56 @@ class Dictionary {
             }
             let entry_sections = results_sections[0].querySelectorAll(".entry");
             entry_sections.forEach((entry, i) => {
-                this.dict_result_PONS[i] = {h2_text: {},};
-                this.dict_result_PONS[i].h2_text = extractHeaderText(entry.querySelector("h2").childNodes);
+                //this.dict_result_PONS[i] = {h2_text: {},};
+                //this.dict_result_PONS[i].h2_text = extractHeaderText(entry.querySelector("h2").childNodes);
+
+                //dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+extractHeaderText(entry.querySelector("h2").childNodes)+'</div></div>'));
                 
                 entry.querySelectorAll(".translations").forEach((block, j) => {
+
+                    const previous_sibling = block.previousElementSibling;
+                    if(previous_sibling != null && previous_sibling.classList.contains("rom"))
+                    {
+                        const h2_header_node = previous_sibling.querySelector("h2");
+                        if(h2_header_node != null) dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+extractHeaderText(h2_header_node.childNodes)+'</div></div>'));
+                    }
+
                     if(block.querySelector("h3").textContent.trim() == "Wendungen:") {
-                        this.dict_result_PONS[i].wendungen = {};
+                        //this.dict_result_PONS[i].wendungen = {};
+
+                        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+'Wendungen'+'</div></div>'));
+
                         const entries_pl = block.querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
                         const entries_eng = block.querySelectorAll(".dd-inner > .target");
                         const entries_lngth = entries_pl.length;
                         for(let k = 0; k < entries_lngth; k++) {                      
                             const pl_entry = extractText(entries_pl[k].childNodes);
                             const eng_entry = extractText(entries_eng[k].childNodes);
-                            this.dict_result_PONS[i].wendungen[k] = [pl_entry, eng_entry];
+                            //this.dict_result_PONS[i].wendungen[k] = [pl_entry, eng_entry];
+
+                            dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+pl_entry+'</div><div class="dict_cell right">'+eng_entry+'</div></div>'));
                         }
                     }
 
                     else {
-                        this.dict_result_PONS[i][j] = {h3_text: {},}
-                        this.dict_result_PONS[i][j].h3_text = extractH3Text(block.querySelector("h3").childNodes);
+                        //this.dict_result_PONS[i][j] = {h3_text: {},}
+                        //this.dict_result_PONS[i][j].h3_text = extractH3Text(block.querySelector("h3").childNodes);
+
+                        const h3_text = extractH3Text(block.querySelector("h3").childNodes);
+
+                        if(typeof(h3_text) == "string") dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+h3_text+'</div></div>'));
+
                         const entries_pl = block.querySelectorAll(".dt-inner > .source"); //the > means get only the first child with specified class instead of further grandchildren
                         const entries_eng = block.querySelectorAll(".dd-inner > .target");
                         const entries_lngth = entries_pl.length;
                         for(let k = 0; k < entries_lngth; k++) {                      
                             const pl_entry = extractText(entries_pl[k].childNodes);
                             const eng_entry = extractText(entries_eng[k].childNodes);
-                            this.dict_result_PONS[i][j][k] = [pl_entry, eng_entry];
+                            //this.dict_result_PONS[i][j][k] = [pl_entry, eng_entry];
+
+                            dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+pl_entry+'</div><div class="dict_cell right">'+eng_entry+'</div></div>'));
                         }
                     }
-
                 });
 
             });
@@ -539,13 +565,12 @@ class Dictionary {
                             const entry_left = extractText(entries_left[i].childNodes);
                             const entry_right = extractText(entries_right[i].childNodes);
                             
-                            //this is a one-dimensional result set with no headers so I can't be arsed to fit it into my dict_result_PONS object
                             dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+entry_left+'</div><div class="dict_cell right">'+entry_right+'</div></div>'));
                         }
                     });
                     return;
                 };
-            this.unPackPONSResult();
+            //this.unPackPONSResult();
             return;
         }
     
