@@ -1,3 +1,8 @@
 1.) Updating a lemma-meaning does not change the tooltip for other different-formed versions of that lemma in the same text (need to change updateLemmaTooltip() to look for same lemma_ids, which is not really possible without more database lookups because I purposefully do not store lemma_id's as data-attributes in the HTML)
 
+
+2.) there's some dodgy shit going on with the deleteLemma() functionality where when you delete a lemma on a word-form which already has another default-lemma then the lemma you delete off it gets deleted entirely even though it is assigned to other word-forms also with more than one possible lemma-assignment (happened when I wrongly added an "I"="you plural" lemmatisation to 'deres'; this lemma was assigned to "eder" whose default lemmatisation is "ed"="oath"; when I deleted the "I" off of 'deres' it completely deleted the lemma and the occurrences of 'eder' reverted to being default-annotated as "ed")
+
+3.) the multiword-annotation is blocked by fullstops in the writing of Danish dates ("19. juli"), which might indicate that a better approach would be a dumb 50-words either side rather than also blocking on Unicode sentence-boundaries.
+
 7.) Searching for English words on the PONS German dictionary usually fails if they are normal full entries, so the structure of that type of page must be different, but searching for German words on the PONS Polish or whatever dictionaries just give normal German -> Polish results, so this is not really a problem because it's not meant for looking up English words and anyway you can do that with the dict.cc one

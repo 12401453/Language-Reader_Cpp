@@ -688,7 +688,7 @@ class Dictionary {
     }
 
     dict_result_Wk = Object.create(null);
-    scrapeWiktionary = (response_text) => {
+    /*scrapeWiktionary = (response_text) => {
         this.dict_result_Wk = {};
 
         const parser = new DOMParser();
@@ -734,6 +734,94 @@ class Dictionary {
                         else if (pos.includes("Contraction")) { pos_index = 17; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
                         /*else if (pos.includes("Noun")) pos_index = 18;
                         else if (pos.includes("Noun")) pos_index = 19; */
+               /*     }
+
+                    if (el.nodeName == "OL") {
+                        let definition_array = new Array();
+
+                        let el1 = el.firstElementChild;
+                        while (el1 != null) {
+                            let def = "";
+
+                            el1.childNodes.forEach(node => {
+                                if (node.nodeName == 'DL' || node.className == "nyms-toggle" || node.nodeName == 'UL' || node.className == "HQToggle" || node.nodeName == 'OL') { ; }
+                                else if (node.className == "use-with-mention") {
+                                    def += "[" + node.textContent + "]";
+                                }
+                                else {
+                                    def += node.textContent;
+                                }
+                            });
+                            def = def.trim();
+                            if (def != "") definition_array.push(def);
+                            el1 = el1.nextElementSibling;
+                        }
+                        if (this.dict_result_Wk[pos] == undefined) {
+                            this.dict_result_Wk[pos] = definition_array;
+                        }
+                        else {
+                            this.dict_result_Wk[pos + String(pos_counters[pos_index])] = definition_array;
+                        }
+                    }
+
+                }
+                else {
+                    langFlag = false;
+                }
+                el = el.nextElementSibling;
+            }
+            console.log(pos_counters);
+            this.unPackWikResult(this.dict_result_Wk);
+        }
+    }; */
+
+    scrapeWiktionary = (response_text) => {
+        this.dict_result_Wk = {};
+
+        const parser = new DOMParser();
+        const Wk_page = parser.parseFromString(response_text, "text/html");
+        const wk_langName = this.lang_name.split(' ').join('_'); //multi-word language names in Wiktionary are joined by underscores for the purposes of element-id
+
+        if (Wk_page.getElementById(wk_langName) == null) {
+            this.noResultsFound("No " + this.lang_name + " definitions found");
+            return;
+        }
+        else {
+            let pos = "";
+            let langFlag = true;
+            let el = Wk_page.getElementById(wk_langName).parentNode.nextElementSibling;
+            console.log(this.lang_name + " Dictionary Entries Found:");
+
+            let pos_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            let pos_index = 0;
+            while (el && langFlag) {
+
+                if (el.className != "mw-heading mw-heading2") {
+                    
+                    if ((el.className == "mw-heading mw-heading4" || el.className == "mw-heading mw-heading3") && el.firstElementChild.tagName.startsWith("H")) {
+                        
+                        pos = el.firstElementChild.textContent; //can be h3 or h4
+                        if (pos.includes("Noun")) { pos_index = 0; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Verb")) { pos_index = 1; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Adverb")) { pos_index = 2; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Adjective")) { pos_index = 3; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Conjunction")) { pos_index = 4; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Preposition")) { pos_index = 5; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Interjection")) { pos_index = 6; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Particle")) { pos_index = 7; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Determiner")) { pos_index = 8; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Pronoun")) { pos_index = 9; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Participle")) { pos_index = 10; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Postposition")) { pos_index = 11; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Letter")) { pos_index = 12; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Predicative")) { pos_index = 13; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Prefix")) { pos_index = 14; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Numeral")) { pos_index = 15; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Article")) { pos_index = 16; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        else if (pos.includes("Contraction")) { pos_index = 17; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
+                        /*else if (pos.includes("Noun")) pos_index = 18;
+                        else if (pos.includes("Noun")) pos_index = 19; */
+                    
                     }
 
                     if (el.nodeName == "OL") {
