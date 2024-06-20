@@ -19,6 +19,7 @@ class CurlFetcher {
                 curl_easy_setopt(curl, CURLOPT_URL, m_dict_url);
                 curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
                 curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+                curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L); //timeout after ten seconds (possibly a bit low)
 
                 if(!m_curl_cookies.empty()) {
                     curl_easy_setopt(curl, CURLOPT_COOKIE, m_curl_cookies.c_str());
@@ -31,8 +32,14 @@ class CurlFetcher {
                 /* Perform the request, res will get the return code */
                 res = curl_easy_perform(curl);
                 /* Check for errors */
-                if(res != CURLE_OK) {
-                fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+                if(res != CURLE_OK) {  
+                    std::string curl_error_msg = curl_easy_strerror(res);
+                    std::cout << "curl_easy_perform() failed: " << curl_error_msg << '\n'; //use std::cout so it gets switched off by the `silent` flag
+                    
+                    //m_get_html remains empty if the request times out or fails for any other reason
+                    //if(curl_error_msg == "Timeout was reached") m_get_html = "Request timeout";
+                    if(res == CURLE_OPERATION_TIMEDOUT) m_get_html = "Request timeout";
+                    else m_get_html = "curl failure"; //these messages are for telling javascript what to do so I keep them short
                 }
 
                 curl_easy_cleanup(curl);

@@ -204,7 +204,15 @@ class Dictionary {
             xhttp.onreadystatechange = () => { 
                 if (xhttp.readyState == 4) {
                     console.log("curl complete");
-                    this.dictResultParse(xhttp.responseText, dict_type);
+                    if(xhttp.responseText == "Request timeout") {
+                        this.noResultsFound("Dictionary request took more than ten seconds so it was aborted");
+                        return;
+                    }
+                    else if(xhttp.responseText == "curl failure") {
+                        this.noResultsFound("Dictionary request has failed");
+                        return;
+                    }
+                    else this.dictResultParse(xhttp.responseText, dict_type);
                 }
             }; 
             xhttp.send(send_data);
