@@ -1,0 +1,10 @@
+The live searchbox-prompts are fetched with requests https://ordnet.dk/ws/ddo/livesearch?text=fr&size=20 , where I think size= is the number of candidates to return
+
+The main result page is returned from a url of the form https://ordnet.dk/ddo/ordbog?query=<search_term>;; if there's more than one result for the same-formed lemma then you can find all the listed possible result-pages underneath an element with the getElementById('search-panel').querySelector('#opslagsordBox_expanded').querySelector('.searchResultBox').getElementsByTagName('DIV'); The currently-displayed result with have a class of "searchMatch" on the <a> child of its <div>. The HTML for the other results can be retrieved by just cURLing the href="" attribute of the <a> tags in the non-displayed div-entries, though care must be taken not to re-inspect this opslagsord-box of those pages or we'd get into an infinite-loop.  If length of the returned HTMLCollection == 1 then do nothing (this element is invisible but it still exists for some reason so is caught by the above expression).
+
+if(document.getElementsByClassName("nomatch").length > 0) then there is no result; if there's a `Måske mente du:`-box then the hyperlinks to near-matches are contained under a document.getElementById("more-alike-list-short")
+
+The main result is all contained in a document.querySelector(".artikel"), but within that things aren't quite straightforwardly hierarchical:
+
+Topline result is document.querySelector(".artikel > .definitionBoxTop");
+then word is .querySelector(".match"); with first textNode as the main word then if there's a .querySelector(".super") that should be wrapped in <sup> tags to superscript it
