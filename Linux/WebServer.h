@@ -34,6 +34,9 @@ class WebServer : public TcpListener {
         int c_strFind(const char* haystack, const char* needle);
         int c_strFindNearest(const char* haystack, const char* needle1, const char* needle2);
 
+        int safeStrToInt(const std::string &string_number, int default_result=1);
+        sqlite_int64 safeStrToInt64(const std::string &string_number, sqlite3_int64 default_result=1);
+
         void buildGETContent(short int page_type, char* url_c_str, std::string &content, bool cookies_present);
         void insertTextSelect(std::ostringstream &html);
         void insertLangSelect(std::ostringstream &html);

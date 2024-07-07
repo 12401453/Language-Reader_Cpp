@@ -573,9 +573,9 @@ const pullInLemma = function (can_skip = true) {
       if (xhttp.readyState == 4) {
         let json_response = xhttp.response;
         console.log(json_response);
-        lemma_id = json_response.lemma_id;
+        lemma_id = Number(json_response.lemma_id);
         meanings = Object.create(null);
-        if(lemma_id != null) {
+        if(lemma_id != 0) {
           
           let new_lemma_textarea_content = json_response.lemma_textarea_content;
           if(new_lemma_textarea_content != "") {

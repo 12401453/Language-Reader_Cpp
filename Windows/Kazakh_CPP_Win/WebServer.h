@@ -40,6 +40,9 @@ private:
     void insertLangSelect(std::ostringstream &html);
     void sendBinaryFile(char* url_c_str, SOCKET clientSocket, const std::string &content_type);
 
+    int safeStrToInt(const std::string &string_number, int default_result=1);
+    sqlite_int64 safeStrToInt64(const std::string &string_number, sqlite3_int64 default_result=1);
+
     int checkHeaderEnd(const char* msg);
     void buildPOSTedData(const char* msg, bool headers_present, int length);
     void setURL(const char* msg);

@@ -85,6 +85,8 @@
         "span": "cpp",
         "stdfloat": "cpp",
         "bitset": "cpp",
-        "forward_list": "cpp"
+        "forward_list": "cpp",
+        "shared_mutex": "cpp",
+        "text_encoding": "cpp"
     }
 }
