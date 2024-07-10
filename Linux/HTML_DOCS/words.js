@@ -105,6 +105,8 @@ const dumpLemmas = () => {
       if(xhttp.readyState == 4) {
         
         lemmas_object = xhttp.response;
+        shuffleArray(lemmas_object[0]);
+        shuffleArray(lemmas_object[1]);
         displayLemmas(filterLemmas(lemmas_object));
         if(lang_id == 10) document.getElementById("lemma_searchbox").addEventListener('beforeinput', oldEnglishInput);
         removeLoadingButton();
@@ -149,11 +151,10 @@ const displayLemmas = (lemmas=lemmas_object) => {
 
   for(let i = 0; i < 2; i++) {
     for(let x of lemmas[i]) {
-      
-      if(pos_selector_states[x.pos - 1] == true) {
+      if(lemma_count < 501) {
         buildRowHTML(x, html_str_arr);
-        lemma_count++;
-      }   
+      }
+      lemma_count++;      
     }
   }
   const html_str = html_str_arr.join("");
@@ -170,21 +171,36 @@ const filterLemmas = (lemmas=lemmas_object) => {
   }
   const lemma_searchbox_value = lemma_searchbox_value_initial;
 
+  const filterSingleLemmas = (lemma_obj_half) => {
+    return lemma_obj_half.filter(lemma => pos_selector_states[lemma.pos - 1] == true).filter(lemma => lemma.lemma_form.startsWith(lemma_searchbox_value)).filter(lemma => Object.values(lemma.meanings).some(meaning => meaning.includes(meaning_searchbox_value)));
+  }
+  const filterMultiwordLemmas = (lemma_obj_half) => {
+    return lemma_obj_half.filter(lemma => pos_selector_states[lemma.pos - 1] == true).filter(lemma => lemma.lemma_form.includes(lemma_searchbox_value)).filter(lemma => Object.values(lemma.meanings).some(meaning => meaning.includes(meaning_searchbox_value)));
+  }
+
   switch(mw_selector_state) {
     case 0:
       return [[], []];
       break;
     case 1:
-      return [lemmas[0].filter(obj => obj.lemma_form.startsWith(lemma_searchbox_value)).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value))), []];
+      return [filterSingleLemmas(lemmas[0]), []];
       break;
     case 2:
-      return [[], lemmas[1].filter(obj => obj.lemma_form.includes(lemma_searchbox_value)).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value)))];
+      return [[], filterMultiwordLemmas(lemmas[1])];
       break;
     case 3:
-      return [lemmas[0].filter(obj => obj.lemma_form.startsWith(lemma_searchbox_value)).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value))), lemmas[1].filter(obj => obj.lemma_form.includes(lemma_searchbox_value)).filter(obj => Object.values(obj.meanings).some(meaning => meaning.includes(meaning_searchbox_value)))];
+      return [filterSingleLemmas(lemmas[0]), filterMultiwordLemmas(lemmas[1])];
       break;
   }
-}
+};
+
+const shuffleArray = (arr) => {
+  const arr_length = arr.length;
+  for (let i = 0; i < arr_length; i++) {
+    const j = Math.floor(Math.random() * arr.length);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+};
 
 document.getElementById("lemma_searchbox").addEventListener('input', () => displayLemmas(filterLemmas(lemmas_object)));
 document.getElementById("meaning_searchbox").addEventListener('input', () => displayLemmas(filterLemmas(lemmas_object)));

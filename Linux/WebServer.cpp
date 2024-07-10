@@ -2661,6 +2661,7 @@ bool WebServer::pullInMultiword(std::string _POST[2], int clientSocket) {
         
         sqlite3_stmt* statement;
 
+        int lang_id = safeStrToInt(_POST[1]);
         //there can be at most 10 words in a multiword-phrase so I can use int[10] instead of std::vector;
         int word_eng_ids[10] {0,0,0,0,0,0,0,0,0,0};
 
@@ -2695,14 +2696,15 @@ bool WebServer::pullInMultiword(std::string _POST[2], int clientSocket) {
         for(; null_count < 11; null_count++) {
             sql_text_oss << "word_eng_id" << null_count << " = 0 AND ";
         }
-        sql_text_oss << "lang_id = " << _POST[1];
+        sql_text_oss << "lang_id = ?";
         
      
         //you cannot copy C-strings to variables like this:
         /* const char* sql_text = sql_text_oss.str().c_str(); */
-        //you have to use strcpy() or in this case just don't assign it to a separate variable at all as it's unneccessary; when you use equals you are basically saying "construct a C-string out of the bytes of this pointer"
+        //you have to use strcpy() or in this case just don't assign it to a separate variable at all as it's unneccessary; when you use equals you are basically saying "construct a C-string out of the bytes of this memory-address-number"
 
         sqlite3_prepare_v2(DB, sql_text_oss.str().c_str(), -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, lang_id);
         sqlite3_step(statement);
         int multiword_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
