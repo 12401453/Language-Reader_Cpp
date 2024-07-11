@@ -73,6 +73,7 @@ private:
     bool retrieveMeanings(std::string _POST[2], SOCKET clientSocket);
     bool pullInMultiword(std::string _POST[2], SOCKET clientSocket);
     bool retrieveMultiwordMeanings(std::string _POST[2], SOCKET clientSocket);
+    bool pullInMultiwordByForm(std::string _POST[2], SOCKET clientSocket);
 
     bool curlLookup(std::string _POST[1], SOCKET clientSocket);
 

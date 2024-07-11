@@ -1709,31 +1709,27 @@ const ttPosition = function () {
 window.addEventListener("resize", ttPosition);
 
 
+function pullInMultiwordByForm(mw_length, candidate_mw_lemma_form) {
+  let send_data = "mw_length="+mw_length+"&mw_lemma_form="+encodeURIComponent(candidate_mw_lemma_form)+"&lang_id="+lang_id;
 
-//shitty and not used
-function dictLookupOrdbog(word) {
-  const pars = new DOMParser();
-  let send_data = "url=https://ordnet.dk/ddo/ordbog?query="+encodeURIComponent(word);
-  const httpRequest = (method, url) => {
   
-      const xhttp = new XMLHttpRequest();
-      xhttp.open(method, url, true);
-      xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-      xhttp.responseType = 'text';
-      xhttp.onreadystatechange = () => {
-  
-        if (xhttp.readyState == 4) {
-          let response_page = pars.parseFromString(xhttp.responseText, "text/html");
-          response_page.getElementById("content-betydninger").querySelectorAll(".definition").forEach(def => {console.log(def.textContent.trim());});
-        }
-  
+  const xhttp = new XMLHttpRequest();
+  xhttp.open("POST", "pull_mw_by_form.php", true);
+  xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  xhttp.responseType = 'json';
+  xhttp.onreadystatechange = () => {
+
+    if (xhttp.readyState == 4) {
+      const pos = xhttp.response.pos; //I've omitted the quotes round the numbers in the JSON-response so I reckon it should come through as an int type already
+      const multiword_id = xhttp.response.multiword_id;
+      const multiword_textarea_content = xhttp.response.multiword_textarea_content;
+      if(multiword_id != 0) {
+        console.log(xhttp.response);
       }
-  
-      xhttp.send(send_data);
-  };
-  
-  httpRequest("POST", "curl_lookup.php");
-  
+    }
+
+  }
+  xhttp.send(send_data);  
 }
 
 const oldEnglishInput = (event) => {
