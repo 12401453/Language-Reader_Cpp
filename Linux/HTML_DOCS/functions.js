@@ -445,7 +445,8 @@ const changePoS = function () {
       pullInFunc = pullInLemma;
       break;
     case 2:
-      pullInFunc = (boolean) => {};
+      //pullInFunc = (boolean) => {}; 
+      pullInFunc = pullInMultiwordByForm;
       break;
     default:
       pullInFunc = pullInLemma;
@@ -492,6 +493,7 @@ const changePoS = function () {
       pullInFunc(false);
       break;
   }
+  pos_initial = pos;
 };
 
 const selectPoS = function () {
@@ -553,6 +555,7 @@ const pullInLemma = function (can_skip = true) {
 /*  if(lang_id == 5 && pos == 1) {
     lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
   } */
+  lemma_form_tag_initial = lemma_form;//TESTING
 
   document.getElementById('save_button').onclick = "";
   const httpRequest = (method, url) => {
@@ -1226,48 +1229,50 @@ const switchMultiwordMeaningAJAX = function() {
 };
 
 const pullInMultiword = function(can_skip = true, word_eng_ids) {
-  
-  /* let multiword_lemma_form = document.getElementById('lemma_tag').value.trim();
-   if(multiword_lemma_form == multiword_tag_initial && can_skip) {
-     return;
-   } */
  
- 
-   const httpRequest = (method, url) => {
-     let send_data = "word_eng_ids="+word_eng_ids+"&lang_id="+lang_id;
-     const xhttp = new XMLHttpRequest();
-     xhttp.open(method, url, true);
-     xhttp.responseType = 'json';
-     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-     xhttp.onload = () => {
-       if(xhttp.readyState == 4) {
-         let json_response = xhttp.response;
- 
-         multiword_id = Number(json_response.multiword_id);
-         if(multiword_id == 0) return;
-         let multiword_tag_content = json_response.multiword_tag_content;
-         let multiword_textarea_content = json_response.multiword_textarea_content;
-         pos = Number(json_response.pos);
-         multiword_meaning_no = 1;
-         
-         multiword_meanings = Object.create(null);
-         multiword_meanings[multiword_meaning_no] = multiword_textarea_content;
- 
-         document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
-         document.getElementById("number").innerHTML = multiword_meaning_no;
-         reactivateArrows(multiword_meaning_no, 5);
-         document.getElementById('lemma_tag').value = multiword_tag_content;
-         setLemmaTagSize();
-         document.getElementById('lemma_textarea').value = multiword_textarea_content;
- 
-       }
-     }
-     xhttp.send(send_data);
-   }
- 
-   httpRequest("POST", "pull_multiword.php");
- 
- };
+  const httpRequest = (method, url) => {
+    let send_data = "word_eng_ids="+word_eng_ids+"&lang_id="+lang_id;
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.responseType = 'json';
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.onload = () => {
+      if(xhttp.readyState == 4) {
+        let json_response = xhttp.response;
+
+        multiword_id = Number(json_response.multiword_id);
+        
+        if(multiword_id == 0) {
+          //Add in call to pullInMultiwordByForm here to ensure that it runs once to check that you havent selected the lemma-form of a multiword which has only previously been recorded in an inflected form
+          pullInMultiwordByForm();
+          //lemma_form_tag_initial gets set by the above function
+          return;
+        }
+        let multiword_tag_content = json_response.multiword_tag_content;
+        let multiword_textarea_content = json_response.multiword_textarea_content;
+        pos = Number(json_response.pos);
+        pos_initial = pos;
+        multiword_meaning_no = 1;
+        
+        multiword_meanings = Object.create(null);
+        multiword_meanings[multiword_meaning_no] = multiword_textarea_content;
+
+        document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
+        document.getElementById("number").innerHTML = multiword_meaning_no;
+        reactivateArrows(multiword_meaning_no, 5);
+        document.getElementById('lemma_tag').value = multiword_tag_content;
+        lemma_form_tag_initial = multiword_tag_content;
+        setLemmaTagSize();
+        document.getElementById('lemma_textarea').value = multiword_textarea_content;
+
+      }
+    }
+    xhttp.send(send_data);
+  }
+
+  httpRequest("POST", "pull_multiword.php");
+
+};
 
 const toggleSave = (on, recordFunc) => {
   if(on == false) {
@@ -1411,6 +1416,7 @@ const fetchMultiwordData = function (box_present = true) {
         let json_response = xhttp.response;
         let multiword_tag_content = json_response.multiword_tag_content;
         if(multiword_tag_content == "") multiword_tag_content = display_word.firstChild.textContent.trim();
+        lemma_form_tag_initial = multiword_tag_content;
         let multiword_textarea_content = json_response.multiword_textarea_content;
 
         //multiword_tag_initial = multiword_tag_content;
@@ -1418,6 +1424,7 @@ const fetchMultiwordData = function (box_present = true) {
         multiword_meaning_no = Number(json_response.multiword_meaning_no);
         multiword_id = Number(json_response.multiword_id);
         pos = Number(json_response.pos);
+        pos_initial = pos;
         let adjacent_toknos = json_response.adjacent_toknos;
         //console.log(adjacent_toknos);
 
@@ -1477,6 +1484,7 @@ const fetchMultiwordData = function (box_present = true) {
         document.getElementById('meaning_leftarrow').onclick = switchMultiwordMeanings;
         document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
         document.getElementById('lemma_tag').onblur = "";
+        document.getElementById('lemma_tag').onblur = pullInMultiwordByForm;
 
         document.getElementById("lemma_tag").addEventListener("keydown", dict.lookUpMouseSelection);
       }
@@ -1709,28 +1717,54 @@ const ttPosition = function () {
 window.addEventListener("resize", ttPosition);
 
 
-function pullInMultiwordByForm(mw_length, candidate_mw_lemma_form) {
-  let send_data = "mw_length="+mw_length+"&mw_lemma_form="+encodeURIComponent(candidate_mw_lemma_form)+"&lang_id="+lang_id;
+const pullInMultiwordByForm = (can_skip = true) => {
+  const candidate_mw_lemma_form = document.getElementById('lemma_tag').value.trim();
+  const mw_length = Object.keys(multiword_indices).length;
 
-  
+  if(candidate_mw_lemma_form == lemma_form_tag_initial && can_skip) return;
+
+  let send_data = "mw_length="+mw_length+"&mw_lemma_form="+encodeURIComponent(candidate_mw_lemma_form)+"&lang_id="+lang_id;
+  if(pos == pos_initial) {
+    send_data += "&pos=0";
+  }
+  else {
+    send_data += "&pos=" + pos;
+  }
+ 
   const xhttp = new XMLHttpRequest();
   xhttp.open("POST", "pull_mw_by_form.php", true);
   xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
   xhttp.responseType = 'json';
+  
   xhttp.onreadystatechange = () => {
-
     if (xhttp.readyState == 4) {
-      const pos = xhttp.response.pos; //I've omitted the quotes round the numbers in the JSON-response so I reckon it should come through as an int type already
-      const multiword_id = xhttp.response.multiword_id;
-      const multiword_textarea_content = xhttp.response.multiword_textarea_content;
-      if(multiword_id != 0) {
-        console.log(xhttp.response);
-      }
-    }
+      lemma_form_tag_initial = candidate_mw_lemma_form;
 
+      const returned_multiword_id = xhttp.response.multiword_id;
+
+      
+      if(returned_multiword_id == 0) {
+        return;
+      }
+      multiword_id = returned_multiword_id;
+      console.log(xhttp.response);
+      pos = xhttp.response.pos; //I've omitted the quotes round the numbers in the JSON-response so I reckon it should come through as an int type already
+      pos_initial = pos;
+      const multiword_textarea_content = xhttp.response.multiword_textarea_content;
+      
+      multiword_meaning_no = 1;      
+      multiword_meanings = Object.create(null);
+      multiword_meanings[multiword_meaning_no] = multiword_textarea_content;
+
+      document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
+      document.getElementById("number").innerHTML = multiword_meaning_no;
+      reactivateArrows(multiword_meaning_no, 5);
+      document.getElementById('lemma_textarea').value = multiword_textarea_content;
+
+    }
   }
   xhttp.send(send_data);  
-}
+};
 
 const oldEnglishInput = (event) => {
 

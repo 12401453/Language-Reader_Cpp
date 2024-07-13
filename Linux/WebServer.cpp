@@ -711,7 +711,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/delete_multiword.php")) return 4;
     else if(!strcmp(url, "/update_MW_translations.php")) return 3;
     else if(!strcmp(url, "/pull_multiword.php")) return 2;
-    else if(!strcmp(url, "/pull_mw_by_form.php")) return 3;
+    else if(!strcmp(url, "/pull_mw_by_form.php")) return 4;
     else if(!strcmp(url, "/curl_lookup.php")) return 1;
     else if(!strcmp(url, "/disregard_word.php")) return 2;
     else if(!strcmp(url, "/clear_table.php")) return 0;
@@ -2751,7 +2751,7 @@ bool WebServer::pullInMultiword(std::string _POST[2], int clientSocket) {
     }
 }
 
-bool WebServer::pullInMultiwordByForm(std::string _POST[3], int clientSocket) {
+bool WebServer::pullInMultiwordByForm(std::string _POST[4], int clientSocket) {
     sqlite3* DB;
     if(!sqlite3_open(m_DB_path, &DB)) {
         sqlite3_stmt* statement1;
@@ -2759,6 +2759,7 @@ bool WebServer::pullInMultiwordByForm(std::string _POST[3], int clientSocket) {
         int multiword_length = safeStrToInt(_POST[0]);
         std::string candidate_mw_lemma_form = URIDecode(_POST[1]);
         int lang_id = safeStrToInt(_POST[2]);
+        int requested_pos = safeStrToInt(_POST[3]);
 
         std::cout << "Target MW length: " << multiword_length << "\nMW lemma-form to check for: " << candidate_mw_lemma_form << "\nLang ID: " << lang_id << "\n";
         
@@ -2767,10 +2768,20 @@ bool WebServer::pullInMultiwordByForm(std::string _POST[3], int clientSocket) {
         int target_pos = 0;
         bool target_mw_of_correct_length_exists = false;
 
-        const char* sql_text = "SELECT multiword_id, eng_trans1, pos FROM multiword_lemmas WHERE lang_id = ? AND multiword_lemma_form = ?";
-        sqlite3_prepare_v2(DB, sql_text, -1, &statement1, NULL);
-        sqlite3_bind_int(statement1, 1, lang_id);
-        sqlite3_bind_text(statement1, 2, candidate_mw_lemma_form.c_str(), -1, SQLITE_STATIC);
+        if(requested_pos == 0) {
+            const char* sql_text = "SELECT multiword_id, eng_trans1, pos FROM multiword_lemmas WHERE lang_id = ? AND multiword_lemma_form = ? ORDER BY multiword_id";
+            sqlite3_prepare_v2(DB, sql_text, -1, &statement1, NULL);
+            sqlite3_bind_int(statement1, 1, lang_id);
+            sqlite3_bind_text(statement1, 2, candidate_mw_lemma_form.c_str(), -1, SQLITE_STATIC);
+        }
+        else {
+            const char* sql_text = "SELECT multiword_id, eng_trans1, pos FROM multiword_lemmas WHERE lang_id = ? AND multiword_lemma_form = ? AND pos = ?";
+            sqlite3_prepare_v2(DB, sql_text, -1, &statement1, NULL);
+            sqlite3_bind_int(statement1, 1, lang_id);
+            sqlite3_bind_text(statement1, 2, candidate_mw_lemma_form.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_int(statement1, 3, requested_pos);
+        }
+
         sqlite3_step(statement1);
         target_multiword_id = sqlite3_column_int(statement1, 0);
         if(target_multiword_id) {

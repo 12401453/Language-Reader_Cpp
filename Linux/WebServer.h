@@ -72,7 +72,7 @@ class WebServer : public TcpListener {
         bool retrieveMeanings(std::string _POST[2], int clientSocket);
         bool pullInMultiword(std::string _POST[2], int clientSocket);
         bool retrieveMultiwordMeanings(std::string _POST[2], int clientSocket);
-        bool pullInMultiwordByForm(std::string _POST[2], int clientSocket);
+        bool pullInMultiwordByForm(std::string _POST[4], int clientSocket);
 
         bool curlLookup(std::string _POST[1], int clientSocket);
         bool curlLookup_sozdik(std::string _POST[1], int clientSocket);
