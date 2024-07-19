@@ -3005,6 +3005,204 @@ bool WebServer::recordMultiword(std::string _POST[8], int clientSocket) {
     }
 }
 
+//currently broken
+bool WebServer::recordMultiwordNew(std::string _POST[8], int clientSocket) {
+    sqlite3* DB;
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+        sqlite3_stmt* statement;
+
+        int word_eng_ids[10] {0,0,0,0,0,0,0,0,0,0};
+        std::string word_engine_id_str = "";
+        short int word_count = 0;
+        for(auto i = _POST[0].begin(), nd=_POST[0].end(); i < nd && word_count < 10; i++) {
+            char c = (*i);
+            if(c == ',') {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_eng_ids[word_count] = word_engine_id;
+                word_count++;
+                word_engine_id_str = "";
+                continue;
+            }
+            word_engine_id_str += c;
+            if(nd - 1 == i) {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_eng_ids[word_count] = word_engine_id;
+                word_count++;
+            }
+        }
+        word_count = 0;
+        sqlite3_int64 toknos[10] {0,0,0,0,0,0,0,0,0,0};
+        std::string tokno_str = "";
+        for(auto i = _POST[1].begin(), nd=_POST[1].end(); i < nd && word_count < 10; i++) {
+            char c = (*i);
+            if(c == ',') {
+                sqlite3_int64 tokno = std::stol(tokno_str);
+                toknos[word_count] = tokno;
+                word_count++;
+                tokno_str = "";
+                continue;
+            }
+            tokno_str += c;
+            if(nd - 1 == i) {
+                sqlite3_int64 tokno = std::stol(tokno_str);
+                toknos[word_count] = tokno;
+                word_count++;
+            }
+        }
+
+        std::string multiword_lemma_form = URIDecode(_POST[2]);
+        std::cout << "MW lemma form: "<< multiword_lemma_form << std::endl;
+        std::string multiword_lemma_meaning = URIDecode(_POST[3]);
+        std::cout << "MW lemma meaning: " << multiword_lemma_meaning << std::endl;
+        short int multiword_meaning_no = safeStrToInt(_POST[4]);
+        short int pos = std::stoi(_POST[5]);
+        int lang_id = std::stoi(_POST[6]);
+        sqlite3_int64 anchor_tokno = std::stol(_POST[7]);
+
+        const char *sql_BEGIN = "BEGIN IMMEDIATE";
+        const char *sql_COMMIT = "COMMIT";
+              
+        sqlite3_prepare_v2(DB, sql_BEGIN, -1, &statement, NULL);
+        sqlite3_step(statement);
+        sqlite3_finalize(statement);
+
+//////////////////////////////////READ SHIT//////////////////////////////////////
+
+        const char* sql_text = "SELECT multiword_id FROM multiword_lemmas WHERE multiword_lemma_form = ? AND pos = ? AND lang_id = ?";
+        sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_text(statement, 1, multiword_lemma_form.c_str(), -1, SQLITE_STATIC); //SQLITE_TRANSIENT
+        sqlite3_bind_int(statement, 2, pos);
+        sqlite3_bind_int(statement, 3, lang_id);
+        sqlite3_step(statement);
+        sqlite_int64 multiword_id = sqlite3_column_int64(statement, 0);
+        sqlite3_finalize(statement);
+
+        sql_text = "SELECT multiword_count FROM display_text WHERE tokno = ?";
+        sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int64(statement, 1, anchor_tokno);
+        sqlite3_step(statement);
+        int multiword_count = sqlite3_column_int(statement, 0);
+        sqlite3_finalize(statement);
+        bool existing_multiword_count = true;
+        if(!multiword_count) {
+            sql_text = "SELECT MAX(multiword_count) AS max_count FROM display_text";
+            sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_step(statement);
+            multiword_count = sqlite3_column_int(statement, 0) + 1;
+            sqlite3_finalize(statement);
+            existing_multiword_count = false;
+        }
+
+        if(!multiword_id) {
+            sql_text = "SELECT MAX(multiword_id) FROM multiword_lemmas";
+            sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_step(statement);
+            sqlite3_int64 new_multiword_id = sqlite3_column_int(statement, 0) + 1;
+            sqlite3_finalize(statement);
+
+//////////////////////////////////////////////WRITE SHIT////////////////////////////////////////////
+
+            std::string sql_text_str = "INSERT INTO multiword_lemmas (multiword_id, multiword_lemma_form, eng_trans"+std::to_string(multiword_meaning_no)+", pos, lang_id) VALUES (?, ?, ?, ?)";
+            sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+            sqlite3_bind_int64(statement, 1, new_multiword_id);
+            sqlite3_bind_text(statement, 2, multiword_lemma_form.c_str(), -1, SQLITE_STATIC); //SQLITE_TRANSIENT
+            sqlite3_bind_text(statement, 3, multiword_lemma_meaning.c_str(), -1, SQLITE_STATIC); 
+            sqlite3_bind_int(statement, 4, pos);
+            sqlite3_bind_int(statement, 5, lang_id);
+            sqlite3_step(statement);
+            sqlite3_finalize(statement);
+
+            multiword_id = new_multiword_id;
+        }
+        else {
+            std::string sql_text_str = "UPDATE multiword_lemmas SET eng_trans"+std::to_string(multiword_meaning_no)+" = ? WHERE multiword_id = ?";
+            std::cout << sql_text_str << std::endl;
+            sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
+            std::cout << "MW lemma meaning: " << multiword_lemma_meaning << std::endl;
+            sqlite3_bind_text(statement, 1, multiword_lemma_meaning.c_str(), -1, SQLITE_STATIC); //SQLITE_TRANSIENT
+            sqlite3_bind_int64(statement, 2, multiword_id);
+            std::cout << "update meaning run code: " << sqlite3_step(statement) << std::endl;
+            sqlite3_finalize(statement);
+        }
+
+        
+
+        
+
+        if(existing_multiword_count) { //If the anchor-word (clicked-on word) already has a multiword-annotation, get rid of it first incase any of its constituent words have changed.
+            sql_text = "UPDATE display_text SET multiword_id = NULL, multiword_meaning_no = NULL, multiword_count = NULL WHERE multiword_count = ?";
+            sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+            sqlite3_bind_int(statement, 1, multiword_count);
+            sqlite3_step(statement);
+            sqlite3_finalize(statement);
+        }
+        
+        sql_text = "UPDATE display_text SET multiword_id = ?, multiword_count = ? WHERE tokno = ?";
+        sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int64(statement, 1, multiword_id);            
+        sqlite3_bind_int(statement, 2, multiword_count);
+        for(short int i = 0; i < word_count; i++) {
+            sqlite3_bind_int64(statement, 3, toknos[i]);
+            sqlite3_step(statement);
+            sqlite3_reset(statement); //this should retain the bindings; we only need to change tokno so no need to rebind the others
+        }
+        sqlite3_finalize(statement);
+
+        sql_text = "UPDATE display_text SET multiword_meaning_no = ? WHERE multiword_count = ?"; //this could be incorporated into the above statement to see if its faster
+        sqlite3_prepare(DB, sql_text, -1, &statement, NULL);
+        sqlite3_bind_int(statement, 1, multiword_meaning_no);
+        sqlite3_bind_int(statement, 2, multiword_count);
+        sqlite3_step(statement);
+        sqlite3_finalize(statement);
+        
+        std::ostringstream sql_text_oss;
+        sql_text_oss << "INSERT OR IGNORE INTO multiwords (multiword_id, ";
+        for(short int i = 0; i < word_count; i++) {
+            sql_text_oss << "word_eng_id" << (i + 1) << ", ";
+        }
+        sql_text_oss << "lang_id) VALUES (";
+        for(short int i = 0; i < word_count+2; i++) {
+            sql_text_oss << "?";
+            if(i < word_count + 1) {
+                sql_text_oss << ", ";
+            }
+        }
+        sql_text_oss << ")";
+        //std::cout << sql_text_oss.str() << std::endl;
+        sqlite3_prepare_v2(DB, sql_text_oss.str().c_str(), -1, &statement, NULL);
+        sqlite3_bind_int64(statement, 1, multiword_id);
+        for(short int i = 0; i < word_count; i++) {
+            sqlite3_bind_int(statement, i+2, word_eng_ids[i]);
+        }
+        sqlite3_bind_int(statement, word_count+2, lang_id);
+
+        std::cout << "INSERT multiwords run code: " << sqlite3_step(statement) << std::endl;
+        sqlite3_finalize(statement);
+
+        
+        sqlite3_exec(DB, sql_COMMIT, nullptr, nullptr, nullptr);
+        sqlite3_close(DB);
+
+        std::string responseText = std::to_string(multiword_count) + "," + std::to_string(multiword_id);
+        int content_length = responseText.size(); //should be done with maths not strings obviously
+
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << responseText;
+
+        int length = post_response.str().size() + 1;
+
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+
+     
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed on recordMultiword()" << std::endl; 
+        return false;
+    }
+}
+
 bool WebServer::updateMultiwordTranslations(std::string _POST[3], int clientSocket) {
 
     sqlite3* DB;

@@ -1,3 +1,6 @@
+#dict_hidden_box {
+    display: none;
+}
 
 #dict_outline {
     display: flex;
@@ -165,7 +168,7 @@
     opacity: 100%;
 }
 
-#dict_close {
+#dict_minimise {
     height: 76%;
     width: 11%;
     background-color: inherit;
@@ -177,10 +180,10 @@
     justify-content: center;
     align-items: center;
 }
-#dict_close:hover {
+#dict_minimise:hover {
     background-color: #172136;
 }
-#dict_close:hover #minimise{
+#dict_minimise:hover #minimise{
     background-color: #cbd9f4;
 }
 
@@ -188,6 +191,10 @@
     background-color: rgb(141 147 157);
     height: 16%;
     width: 46%;
+}
+
+#dict_close {
+    display: none;
 }
 
 #dict_select {
