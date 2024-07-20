@@ -1775,30 +1775,17 @@ const removePoSMenu = () => {
   });        
 };
 const setPoSEventListenersClosedMenu = () => {
-  let event_name = '';
-  if('ontouchstart' in window) {
-    event_name = 'touchstart';
-  }
-  else {
-    event_name = 'click';
-  }
   const pos_tag_box = document.getElementById('pos_tag_box');
   pos_tag_box.removeEventListener('click', changePoS);
   pos_tag_box.removeEventListener('touchstart', changePoS); //remove both events to be on the safeside incase someone has changed their screen-width
-  pos_tag_box.addEventListener(event_name, selectPoS);
+  pos_tag_box.addEventListener('click', selectPoS);
+  pos_tag_box.addEventListener('touchstart', selectPoS);
 };
-const setPoSEventListenersOpenedMenu = () => {
-  let event_name = '';
-  if('ontouchstart' in window) {
-    event_name = 'touchstart';
-  }
-  else {
-    event_name = 'click';
-  }
+const setPoSEventListenersOpenedMenu = (event_type) => {
   const pos_tag_box = document.getElementById('pos_tag_box');
   pos_tag_box.removeEventListener('click', selectPoS);
   pos_tag_box.removeEventListener('touchstart', selectPoS);
-  pos_tag_box.addEventListener(event_name, changePoS);
+  pos_tag_box.addEventListener(event_type, changePoS); //we need to prevent changePoS from firing due to the click-event which happens after you release the touch-event
 };
 
 

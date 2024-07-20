@@ -59,6 +59,7 @@ private:
     bool retrieveEngword(std::string _POST[3], SOCKET clientSocket);
     bool recordLemma(std::string _POST[8], SOCKET clientSocket);
     bool deleteLemma(std::string _POST[3], SOCKET clientSocket);
+    bool recordMultiwordOld(std::string _POST[8], SOCKET clientSocket);
     bool recordMultiword(std::string _POST[8], SOCKET clientSocket);
     bool deleteMultiword(std::string _POST[4], SOCKET clientSocket);
     bool updateMultiwordTranslations(std::string _POST[3], SOCKET clientSocket);
@@ -73,7 +74,7 @@ private:
     bool retrieveMeanings(std::string _POST[2], SOCKET clientSocket);
     bool pullInMultiword(std::string _POST[2], SOCKET clientSocket);
     bool retrieveMultiwordMeanings(std::string _POST[2], SOCKET clientSocket);
-    bool pullInMultiwordByForm(std::string _POST[2], SOCKET clientSocket);
+    bool pullInMultiwordByForm(std::string _POST[4], SOCKET clientSocket);
 
     bool curlLookup(std::string _POST[1], SOCKET clientSocket);
 
