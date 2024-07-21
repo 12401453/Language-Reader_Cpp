@@ -143,14 +143,16 @@ class Dictionary {
 
     display() {
         let logo_url = this.logos[this.dict_type].logo_url;
-        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_close"><div id="minimise"></div></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox" spellcheck="false"></textarea><img id="dict_logo" src="'+logo_url+' draggable="false"></img></div></div>');
+        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_minimise"><div id="minimise"></div></div><div id="dict_close"><svg id="red_cross" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z"/></svg></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox" spellcheck="false"></textarea><img id="dict_logo" src="'+logo_url+' draggable="false"></img></div></div><div id="dict_hidden_box"><div id="dict_hidden_text">Dict</div></div>');
         document.getElementById("spoofspan2").after(dict_html);
         document.getElementById("dict_searchbox").addEventListener("keydown", this.submit);
-        document.getElementById("dict_close").addEventListener('click', () => {
+        document.getElementById("dict_minimise").addEventListener('click', () => {
             let dict_body = document.getElementById("dict_body");
             if(dict_body.style.display == "flex") dict_body.style.display = "none";
             else dict_body.style.display = "flex";
         });
+        document.getElementById("dict_hidden_box").addEventListener('click', this.open_smallscreen_dict);
+        document.getElementById("dict_close").addEventListener('click', this.close_smallscreen_dict);
         document.getElementById("dict_logo").addEventListener('click', this.switchDict);
         if(this.m_lang_id == 10) {
             document.getElementById("dict_searchbox").addEventListener("beforeinput", this.dictOldEnglishInput);
@@ -159,8 +161,19 @@ class Dictionary {
     }
     remove() {
         document.getElementById("dict_outline").remove();
+        document.getElementById("dict_hidden_box").remove();
         console.log("remove() called");
         this.bool_displayed = false;
+    }
+    close_smallscreen_dict() {
+        document.getElementById("dict_outline").style.display = "none";
+        document.getElementById("dict_hidden_box").style.display = "flex";
+    }
+    open_smallscreen_dict() {
+        document.getElementById("dict_outline").style.display = "flex";
+        document.getElementById("dict_hidden_box").style.display = "none";
+        document.getElementById("dict_searchbox").focus();
+
     }
 
     submit = (event) => {

@@ -399,6 +399,10 @@ const ques_pos_tt = '<span id="pos_tag_ques_tt" class="pos_tag_tt" title="interr
 
 const tt_pos_arr = {1: noun_pos_tt, 2: verb_pos_tt, 3: adj_pos_tt, 4: adverb_pos_tt, 5: prep_pos_tt, 6: conj_pos_tt, 7: part_pos_tt, 8: ques_pos_tt,};
 
+const smallscreen_annot_box_html = '<div id="annot_box"><div id="annot_topbar"><div id="close_button"><svg id="red_cross" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z"/></svg></div><span id="edit_button" title="Edit current text-word">Edit</span><span id="pos_tag_box"><span id="pos_tag_adj" class="pos_tag" title="adjective">adject.</span></span></div><div id="lemma_tag_row"><textarea id="lemma_tag" spellcheck="false">uigennemtrængelig</textarea></div><div id="annot"><div id="right_column"><div id="left_column"><span id="lemma_box" class="box">Lemma</span><span id="multiword_box" class="box">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off">impenetrable</textarea><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow">&lt;</div><div id="meaning_no">Meaning <span id="number">1</span></div><div id="meaning_rightarrow" class="nav_arrow">&gt;</div></div></div><div id="right_footer"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div>';
+
+const fullscreen_annot_box_html = '<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="edit_button" title="Edit current text-word">Edit</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag" spellcheck="false"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>';
+
 function choosePoS(pos_number) {
   let pos_html = noun_pos;
   switch(pos_number) {
@@ -445,7 +449,8 @@ const changePoS = function () {
       pullInFunc = pullInLemma;
       break;
     case 2:
-      pullInFunc = (boolean) => {};
+      //pullInFunc = (boolean) => {}; 
+      pullInFunc = pullInMultiwordByForm;
       break;
     default:
       pullInFunc = pullInLemma;
@@ -492,6 +497,7 @@ const changePoS = function () {
       pullInFunc(false);
       break;
   }
+  pos_initial = pos;
 };
 
 const selectPoS = function () {
@@ -553,6 +559,7 @@ const pullInLemma = function (can_skip = true) {
 /*  if(lang_id == 5 && pos == 1) {
     lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
   } */
+  lemma_form_tag_initial = lemma_form;//TESTING
 
   document.getElementById('save_button').onclick = "";
   const httpRequest = (method, url) => {
@@ -843,7 +850,7 @@ const lemmaTooltip = function () {
     xhttp.onload = () => {
       if(xhttp.readyState == 4) {
         tooltips_shown = true;
-        json_lemma_transes = xhttp.response;
+        const json_lemma_transes = xhttp.response;
        // console.log(json_lemma_transes);
         if(json_lemma_transes == null) {
          document.getElementById("tt_toggle").disabled = false;
@@ -851,7 +858,7 @@ const lemmaTooltip = function () {
         }
         let i = 0;
         lemma_set_words.forEach(lemma_set_word => {
-          json_pos = Number(json_lemma_transes[i].pos);
+          const json_pos = Number(json_lemma_transes[i].pos);
 
           let lemma_tt_box = '<span class="lemma_tt" onclick="event.stopPropagation()"><span id="tt_top"><div class="lemma_tag_tt">'+json_lemma_transes[i].lemma_form+'</div><span id="pos_tag_box_tt">'+tt_pos_arr[json_pos]+'</span></span><span id="tt_mid"><div id="tt_meaning">'+json_lemma_transes[i].lemma_trans+'</div></span><span id="tt_bottom"></span></span>';
 
@@ -898,14 +905,14 @@ const lemmaRecordTooltipUpdate = function (current_words) {
     xhttp.onload = () => {
       if (xhttp.readyState == 4) {
         tooltips_shown = true;
-        json_lemma_transes = xhttp.response;
+        const json_lemma_transes = xhttp.response;
        // console.log(json_lemma_transes);
         if (json_lemma_transes == null) {
           return;
         }
         let i = 0;
         current_words.forEach(current_word => {
-          json_pos = Number(json_lemma_transes[i].pos);
+          const json_pos = Number(json_lemma_transes[i].pos);
 
           let lemma_tt_box = '<span class="lemma_tt" onclick="event.stopPropagation()"><span id="tt_top"><div class="lemma_tag_tt">' + json_lemma_transes[i].lemma_form + '</div><span id="pos_tag_box_tt">' + tt_pos_arr[json_pos] + '</span></span><span id="tt_mid"><div id="tt_meaning">' + json_lemma_transes[i].lemma_trans + '</div></span><span id="tt_bottom"></span></span>';
 
@@ -1226,48 +1233,50 @@ const switchMultiwordMeaningAJAX = function() {
 };
 
 const pullInMultiword = function(can_skip = true, word_eng_ids) {
-  
-  /* let multiword_lemma_form = document.getElementById('lemma_tag').value.trim();
-   if(multiword_lemma_form == multiword_tag_initial && can_skip) {
-     return;
-   } */
  
- 
-   const httpRequest = (method, url) => {
-     let send_data = "word_eng_ids="+word_eng_ids+"&lang_id="+lang_id;
-     const xhttp = new XMLHttpRequest();
-     xhttp.open(method, url, true);
-     xhttp.responseType = 'json';
-     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-     xhttp.onload = () => {
-       if(xhttp.readyState == 4) {
-         let json_response = xhttp.response;
- 
-         multiword_id = Number(json_response.multiword_id);
-         if(multiword_id == 0) return;
-         let multiword_tag_content = json_response.multiword_tag_content;
-         let multiword_textarea_content = json_response.multiword_textarea_content;
-         pos = Number(json_response.pos);
-         multiword_meaning_no = 1;
-         
-         multiword_meanings = Object.create(null);
-         multiword_meanings[multiword_meaning_no] = multiword_textarea_content;
- 
-         document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
-         document.getElementById("number").innerHTML = multiword_meaning_no;
-         reactivateArrows(multiword_meaning_no, 5);
-         document.getElementById('lemma_tag').value = multiword_tag_content;
-         setLemmaTagSize();
-         document.getElementById('lemma_textarea').value = multiword_textarea_content;
- 
-       }
-     }
-     xhttp.send(send_data);
-   }
- 
-   httpRequest("POST", "pull_multiword.php");
- 
- };
+  const httpRequest = (method, url) => {
+    let send_data = "word_eng_ids="+word_eng_ids+"&lang_id="+lang_id;
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.responseType = 'json';
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.onload = () => {
+      if(xhttp.readyState == 4) {
+        let json_response = xhttp.response;
+
+        multiword_id = Number(json_response.multiword_id);
+        
+        if(multiword_id == 0) {
+          //Add in call to pullInMultiwordByForm here to ensure that it runs once to check that you havent selected the lemma-form of a multiword which has only previously been recorded in an inflected form
+          pullInMultiwordByForm();
+          //lemma_form_tag_initial gets set by the above function
+          return;
+        }
+        let multiword_tag_content = json_response.multiword_tag_content;
+        let multiword_textarea_content = json_response.multiword_textarea_content;
+        pos = Number(json_response.pos);
+        pos_initial = pos;
+        multiword_meaning_no = 1;
+        
+        multiword_meanings = Object.create(null);
+        multiword_meanings[multiword_meaning_no] = multiword_textarea_content;
+
+        document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
+        document.getElementById("number").innerHTML = multiword_meaning_no;
+        reactivateArrows(multiword_meaning_no, 5);
+        document.getElementById('lemma_tag').value = multiword_tag_content;
+        lemma_form_tag_initial = multiword_tag_content;
+        setLemmaTagSize();
+        document.getElementById('lemma_textarea').value = multiword_textarea_content;
+
+      }
+    }
+    xhttp.send(send_data);
+  }
+
+  httpRequest("POST", "pull_multiword.php");
+
+};
 
 const toggleSave = (on, recordFunc) => {
   if(on == false) {
@@ -1411,6 +1420,7 @@ const fetchMultiwordData = function (box_present = true) {
         let json_response = xhttp.response;
         let multiword_tag_content = json_response.multiword_tag_content;
         if(multiword_tag_content == "") multiword_tag_content = display_word.firstChild.textContent.trim();
+        lemma_form_tag_initial = multiword_tag_content;
         let multiword_textarea_content = json_response.multiword_textarea_content;
 
         //multiword_tag_initial = multiword_tag_content;
@@ -1418,6 +1428,7 @@ const fetchMultiwordData = function (box_present = true) {
         multiword_meaning_no = Number(json_response.multiword_meaning_no);
         multiword_id = Number(json_response.multiword_id);
         pos = Number(json_response.pos);
+        pos_initial = pos;
         let adjacent_toknos = json_response.adjacent_toknos;
         //console.log(adjacent_toknos);
 
@@ -1477,6 +1488,7 @@ const fetchMultiwordData = function (box_present = true) {
         document.getElementById('meaning_leftarrow').onclick = switchMultiwordMeanings;
         document.getElementById('meaning_rightarrow').onclick = switchMultiwordMeanings;
         document.getElementById('lemma_tag').onblur = "";
+        document.getElementById('lemma_tag').onblur = pullInMultiwordByForm;
 
         document.getElementById("lemma_tag").addEventListener("keydown", dict.lookUpMouseSelection);
       }
@@ -1506,8 +1518,7 @@ const reactivateArrows = (meaning_no, max_meaning_no) => {
 };
 
 const displayAnnotBox = function () {
-  const annot_box = document.createRange().createContextualFragment('<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="edit_button" title="Edit current text-word (UNFINISHED DO NOT USE)">Edit</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag" spellcheck="false"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>');
-  //document.getElementById('spoofspan').after(annot_box);
+  const annot_box = document.createRange().createContextualFragment(/*'<div id="annot_box"><div id="annot_topbar" ondblclick="makeDraggable()"><span id="close_button" onclick="delAnnotate()">Close</span><span id="edit_button" title="Edit current text-word">Edit</span></div><div id="annot"><div id="left_column"><span id="lemma_box" class="box">Lemma translation</span><span id="multiword_box" class="box">Multiword</span><span id="context_box" class="box" title="not yet implemented">Context translation</span><span id="morph_box" class="box" title="not yet implemented">Morphology</span><span id="accent_box" class="box" title="not yet implemented">Accentology</span></div><div id="right_column"><div id="right_header"><textarea id="lemma_tag" spellcheck="false"></textarea></div><div id="right_body"><textarea id="lemma_textarea" autocomplete="off"></textarea></div><div id="right_footer"><span id="pos_tag_box"></span><div id="meaning_no_box"><div id="meaning_leftarrow" class="nav_arrow"><</div><div id="meaning_no">Meaning <span id="number"></span></div><div id="meaning_rightarrow" class="nav_arrow">></div></div><div id="save_and_delete_box"><div id="save_button">Save</div><div id="delete_lemma_button">Delete</div></div></div></div></div></div>'*/fullscreen_annot_box_html);
 
   if(lang_id == 10) {
     annot_box.getElementById("lemma_tag").addEventListener('beforeinput', oldEnglishInput);
@@ -1709,28 +1720,83 @@ const ttPosition = function () {
 window.addEventListener("resize", ttPosition);
 
 
-function pullInMultiwordByForm(mw_length, candidate_mw_lemma_form) {
-  let send_data = "mw_length="+mw_length+"&mw_lemma_form="+encodeURIComponent(candidate_mw_lemma_form)+"&lang_id="+lang_id;
+const pullInMultiwordByForm = (can_skip = true) => {
+  const candidate_mw_lemma_form = document.getElementById('lemma_tag').value.trim();
+  const mw_length = Object.keys(multiword_indices).length;
 
-  
+  if(candidate_mw_lemma_form == lemma_form_tag_initial && can_skip) return;
+
+  let send_data = "mw_length="+mw_length+"&mw_lemma_form="+encodeURIComponent(candidate_mw_lemma_form)+"&lang_id="+lang_id;
+  if(pos == pos_initial) {
+    send_data += "&pos=0";
+  }
+  else {
+    send_data += "&pos=" + pos;
+  }
+ 
   const xhttp = new XMLHttpRequest();
   xhttp.open("POST", "pull_mw_by_form.php", true);
   xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
   xhttp.responseType = 'json';
+  
   xhttp.onreadystatechange = () => {
-
     if (xhttp.readyState == 4) {
-      const pos = xhttp.response.pos; //I've omitted the quotes round the numbers in the JSON-response so I reckon it should come through as an int type already
-      const multiword_id = xhttp.response.multiword_id;
-      const multiword_textarea_content = xhttp.response.multiword_textarea_content;
-      if(multiword_id != 0) {
-        console.log(xhttp.response);
-      }
-    }
+      lemma_form_tag_initial = candidate_mw_lemma_form;
 
+      const returned_multiword_id = xhttp.response.multiword_id;
+
+      
+      if(returned_multiword_id == 0) {
+        return;
+      }
+      multiword_id = returned_multiword_id;
+      console.log(xhttp.response);
+      pos = xhttp.response.pos; //I've omitted the quotes round the numbers in the JSON-response so I reckon it should come through as an int type already
+      pos_initial = pos;
+      const multiword_textarea_content = xhttp.response.multiword_textarea_content;
+      
+      multiword_meaning_no = 1;      
+      multiword_meanings = Object.create(null);
+      multiword_meanings[multiword_meaning_no] = multiword_textarea_content;
+
+      document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
+      document.getElementById("number").innerHTML = multiword_meaning_no;
+      reactivateArrows(multiword_meaning_no, 5);
+      document.getElementById('lemma_textarea').value = multiword_textarea_content;
+
+    }
   }
   xhttp.send(send_data);  
-}
+};
+
+const removePoSMenu = () => {
+  document.querySelectorAll('.pos_tag_select').forEach(pos_select => {
+    pos_select.remove();
+  });        
+};
+const setPoSEventListenersClosedMenu = () => {
+  const pos_tag_box = document.getElementById('pos_tag_box');
+  pos_tag_box.removeEventListener('click', changePoS);
+  pos_tag_box.removeEventListener('touchstart', changePoS); //remove both events to be on the safeside incase someone has changed their screen-width
+  pos_tag_box.addEventListener('click', selectPoS);
+  pos_tag_box.addEventListener('touchstart', selectPoS);
+};
+const setPoSEventListenersOpenedMenu = (event_type) => {
+  const pos_tag_box = document.getElementById('pos_tag_box');
+  pos_tag_box.removeEventListener('click', selectPoS);
+  pos_tag_box.removeEventListener('touchstart', selectPoS);
+  pos_tag_box.addEventListener(event_type, changePoS); //we need to prevent changePoS from firing due to the click-event which happens after you release the touch-event
+};
+
+
+
+
+
+
+
+
+
+
 
 const oldEnglishInput = (event) => {
 

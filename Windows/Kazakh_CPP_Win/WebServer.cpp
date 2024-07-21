@@ -2918,7 +2918,7 @@ bool WebServer::recordMultiwordOld(std::string _POST[8], SOCKET clientSocket) {
 
         sql_text = "SELECT multiword_id FROM multiword_lemmas WHERE multiword_lemma_form = ? AND pos = ? AND lang_id = ?";
         sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        sqlite3_bind_text(statement, 1, multiword_lemma_form.c_str(), -1, SQL_STATIC); //SQLITE_TRANSIENT
+        sqlite3_bind_text(statement, 1, multiword_lemma_form.c_str(), -1, SQLITE_STATIC); //SQLITE_TRANSIENT
         sqlite3_bind_int(statement, 2, pos);
         sqlite3_bind_int(statement, 3, lang_id);
         sqlite3_step(statement);

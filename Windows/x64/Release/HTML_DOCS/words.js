@@ -162,9 +162,25 @@ const displayLemmas = (lemmas=lemmas_object) => {
   document.getElementById("left_top_title").textContent = `Lemmas (${lemma_count})`;
 };
 
+const includesWordThatStartsWith = (haystack_string, needle_string) => {
+  if(needle_string == "") return true;
+  return haystack_string.split(" ").some(haystack_chunk => haystack_chunk.startsWith(needle_string));
+};
+
+const spaceBoundarySearch = (haystack_string, needle_string) => {  
+  haystack_string = haystack_string.trim().replaceAll(/\s+/g, " ");
+  if(haystack_string.startsWith(needle_string)) return true;
+  let space_index = haystack_string.indexOf(" ");
+  while(space_index != -1) {
+    if(haystack_string.startsWith(needle_string, space_index + 1)) return true;
+    space_index = haystack_string.indexOf(" ", space_index + 1); 
+  }
+  return false;
+};
+
 const filterLemmas = (lemmas=lemmas_object) => {
-  const meaning_searchbox_value = document.getElementById("meaning_searchbox").value.trim();
-  let lemma_searchbox_value_initial = document.getElementById("lemma_searchbox").value.trim();
+  const meaning_searchbox_value = document.getElementById("meaning_searchbox").value.trim().replaceAll(/\s+/g, " ");
+  let lemma_searchbox_value_initial = document.getElementById("lemma_searchbox").value.trim().replaceAll(/\s+/g, " ");
   if(lang_id == 10) {
       lemma_searchbox_value_initial = lemma_searchbox_value_initial.replaceAll('þ', 'ð');
       if(lemma_searchbox_value_initial.startsWith('ð')) lemma_searchbox_value_initial = 'þ'+lemma_searchbox_value_initial.slice(1);
@@ -172,10 +188,10 @@ const filterLemmas = (lemmas=lemmas_object) => {
   const lemma_searchbox_value = lemma_searchbox_value_initial;
 
   const filterSingleLemmas = (lemma_obj_half) => {
-    return lemma_obj_half.filter(lemma => pos_selector_states[lemma.pos - 1] == true).filter(lemma => lemma.lemma_form.startsWith(lemma_searchbox_value)).filter(lemma => Object.values(lemma.meanings).some(meaning => meaning.includes(meaning_searchbox_value)));
+    return lemma_obj_half.filter(lemma => pos_selector_states[lemma.pos - 1] == true).filter(lemma => lemma.lemma_form.startsWith(lemma_searchbox_value)).filter(lemma => Object.values(lemma.meanings).some(meaning => spaceBoundarySearch(meaning, meaning_searchbox_value)));
   }
   const filterMultiwordLemmas = (lemma_obj_half) => {
-    return lemma_obj_half.filter(lemma => pos_selector_states[lemma.pos - 1] == true).filter(lemma => lemma.lemma_form.includes(lemma_searchbox_value)).filter(lemma => Object.values(lemma.meanings).some(meaning => meaning.includes(meaning_searchbox_value)));
+    return lemma_obj_half.filter(lemma => pos_selector_states[lemma.pos - 1] == true).filter(lemma => spaceBoundarySearch(lemma.lemma_form, lemma_searchbox_value)).filter(lemma => Object.values(lemma.meanings).some(meaning => spaceBoundarySearch(meaning, meaning_searchbox_value)));
   }
 
   switch(mw_selector_state) {

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+               @font-face {font-family: Calibri; src: url('calibri.ttf'); }
+   @font-face {font-family: Bookerly; src: url('Bookerly.ttf'); }
+   @font-face {font-family: IBM_Plex_Sans; src: url('IBMPlexSans-Regular.ttf'); }
+   @font-face {font-family: Liberation_Serif; src: url('LiberationSerif-Regular.ttf'); }
+
+        </style>
+        <link rel="stylesheet" href="flexbox_smallscreens.css" type="text/css">
+    </head>
+<body>
+
+    <div id="annot_box">
+        <div id="annot_topbar">
+            <div id="close_button"><svg id="red_cross" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z"/></svg></div>
+            <span id="edit_button" title="Edit current text-word">Edit</span>
+            <span id="pos_tag_box">
+                <span id="pos_tag_adj" class="pos_tag" title="adjective">adject.</span>
+            </span>
+        </div>
+        <div id="lemma_tag_row"><textarea id="lemma_tag" spellcheck="false">uigennemtrængelig</textarea></div>
+        <div id="annot">
+            <div id="right_column">
+                <div id="left_column">
+                    <span id="lemma_box" class="box">Lemma</span>
+                    <span id="multiword_box" class="box">Multiword</span>
+                    <span id="context_box" class="box" title="not yet implemented">Context translation</span>
+                    <span id="morph_box" class="box" title="not yet implemented">Morphology</span>
+                    <span id="accent_box" class="box" title="not yet implemented">Accentology</span>
+                </div>
+                <div id="right_body">
+                    <textarea id="lemma_textarea" autocomplete="off">impenetrable</textarea>
+                    <div id="meaning_no_box">
+                        <div id="meaning_leftarrow" class="nav_arrow">&lt;</div>
+                        <div id="meaning_no">Meaning <span id="number">1</span></div>
+                        <div id="meaning_rightarrow" class="nav_arrow">&gt;</div>
+                    </div>    
+                </div>
+                <div id="right_footer">
+                    <div id="save_button">Save</div>
+                    <div id="delete_lemma_button">Delete</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   <!-- <div id="annot_box">
+        <div id="annot_topbar">
+            <span id="close_button">Close</span><span id="edit_button" title="Edit current text-word (UNFINISHED DO NOT USE)">Edit</span>
+        </div>
+        <div id="annot">
+            <div id="left_column">
+                <span id="lemma_box" class="box">Lemma translation</span>
+                <span id="multiword_box" class="box">Multiword</span>
+                <span id="context_box" class="box" title="not yet implemented">Context translation</span>
+                <span id="morph_box" class="box" title="not yet implemented">Morphology</span>
+                <span id="accent_box" class="box" title="not yet implemented">Accentology</span>
+            </div>
+            <div id="right_column">
+                <div id="right_header">
+                    <textarea id="lemma_tag" spellcheck="false">uigennemtrængelig</textarea>
+                </div>
+                <div id="right_body">
+                    <textarea id="lemma_textarea" autocomplete="off">impenetrable</textarea>
+                </div>
+                <div id="right_footer">
+                    <span id="pos_tag_box">
+                        <span id="pos_tag_adj" class="pos_tag" title="adjective">adject.</span>
+                    </span>
+                    <div id="meaning_no_box">
+                        <div id="meaning_leftarrow" class="nav_arrow">&lt;</div>
+                        <div id="meaning_no">Meaning <span id="number">1</span></div>
+                        <div id="meaning_rightarrow" class="nav_arrow">&gt;</div>
+                    </div>
+                    <div id="save_and_delete_box">
+                        <div id="save_button">Save</div>
+                        <div id="delete_lemma_button">Delete</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+
+    <span id="spoofspan2"><span id="hidden_lemma_tag">uigennemtrængelig</span></span>
+</body>
+<script>
+    const setLemmaTagSize = function () {
+        let lemma_tag = document.getElementById('lemma_tag');
+        let hidden_lemma_tag = document.getElementById('hidden_lemma_tag');
+
+        hidden_lemma_tag.textContent = lemma_tag.value;
+
+        let new_width = hidden_lemma_tag.offsetWidth+"px";
+        let new_height = hidden_lemma_tag.offsetHeight+"px";
+        lemma_tag.style.width = new_width;
+        lemma_tag.style.height = new_height;
+    };
+
+    document.getElementById('lemma_tag').oninput = setLemmaTagSize;
+
+    setTimeout(setLemmaTagSize, 400);
+
+    const noun_pos = '<span id="pos_tag_noun" class="pos_tag">noun</span>';
+    const verb_pos = '<span id="pos_tag_verb" class="pos_tag">verb</span>';
+    const adj_pos = '<span id="pos_tag_adj" class="pos_tag" title="adjective">adject.</span>';
+    const adverb_pos = '<span id="pos_tag_adverb" class="pos_tag">adverb</span>';
+    const prep_pos = '<span id="pos_tag_prep" class="pos_tag" title="preposition">prep.</span>';
+    const conj_pos = '<span id="pos_tag_conj" class="pos_tag" title="conjunction">conj.</span>';
+    const part_pos = '<span id="pos_tag_part" class="pos_tag" title="particle/interjection">part.</span>';
+    const ques_pos = '<span id="pos_tag_ques" class="pos_tag" title="interrogative">ques.</span>';
+
+
+    let pos = 3;
+    let pos_initial = 3;
+    let annotation_mode = 1;
+
+    const removePoSMenu = () => {
+        document.querySelectorAll('.pos_tag_select').forEach(pos_select => {
+            pos_select.remove();
+        });        
+    };
+
+    const pullInLemma = () => {};
+    const pullInMultiwordByForm = () => {};
+
+    const changePoS = (event) => {
+        if(event.handled === true) {
+            console.log(`changePoS called by ${event.type} but discarded since we already handled it`);
+            return;
+        }
+        event.preventDefault(); //needed to stop focus()ing the textarea on mobile when you tap options which appear over the top of it
+        let pullInFunc = () => {};
+        switch(annotation_mode){
+            case 1:
+            pullInFunc = pullInLemma;
+            break;
+            case 2:
+            //pullInFunc = (boolean) => {}; 
+            pullInFunc = pullInMultiwordByForm;
+            break;
+            default:
+            pullInFunc = pullInLemma;
+        }
+        switch (event.target.id) {
+            case "noun_pos":
+            document.getElementById('pos_tag_box').innerHTML = noun_pos;
+            pos = 1;
+            pullInFunc(false);
+            break;
+            case "verb_pos":
+            document.getElementById('pos_tag_box').innerHTML = verb_pos;
+            pos = 2;
+            pullInFunc(false);
+            break;
+            case "adj_pos":
+            document.getElementById('pos_tag_box').innerHTML = adj_pos;
+            pos = 3;
+            pullInFunc(false);
+            break;  
+            case "adverb_pos":
+            document.getElementById('pos_tag_box').innerHTML = adverb_pos;
+            pos = 4;
+            pullInFunc(false);
+            break;
+            case "prep_pos":
+            document.getElementById('pos_tag_box').innerHTML = prep_pos;
+            pos = 5;
+            pullInFunc(false);
+            break;
+            case "conj_pos":
+            document.getElementById('pos_tag_box').innerHTML = conj_pos;
+            pos = 6;
+            pullInFunc(false);
+            break;  
+            case "part_pos":
+            document.getElementById('pos_tag_box').innerHTML = part_pos;
+            pos = 7;
+            pullInFunc(false);
+            break;
+            case "ques_pos":
+            document.getElementById('pos_tag_box').innerHTML = ques_pos;
+            pos = 8;
+            pullInFunc(false);
+            break;
+        }
+        pos_initial = pos;
+        
+        setPoSEventListenersClosedMenu();
+        removePoSMenu();
+        console.log(`changePoS called by ${event.type} and handled`);
+        event.handled = true; //the Event object lets you just add an extra property like this, 'handled' is not a built-in property
+    };
+
+    const selectPoS = (event) => {
+        if(event.target.className != "pos_tag" || event.handled === true) {
+            console.log(`selectPoS called by ${event.type} but discarded because we already handled it`);
+            return;
+        }
+
+        let frag = document.createRange().createContextualFragment('<span id="noun_pos" class="pos_tag_select">noun</span><span id="verb_pos" class="pos_tag_select">verb</span><span id="adj_pos" class="pos_tag_select" title="adjective">adject.</span><span id="adverb_pos" class="pos_tag_select">adverb</span><span id="prep_pos" class="pos_tag_select" title="preposition">prep.</span><span id="conj_pos" class="pos_tag_select" title="conjunction">conj.</span><span id="part_pos" class="pos_tag_select" title="particle/interjection">part.</span><span id="ques_pos" class="pos_tag_select" title="interrogative">ques.</span>');
+
+        frag.children[pos - 1].remove();
+
+        document.getElementById(event.target.id).after(frag);
+
+        setPoSEventListenersOpenedMenu(event.type);
+        event.handled = true; //the Event object lets you just add an extra property like this, 'handled' is not a built-in property
+        console.log(`selectPoS called by ${event.type} and handled`);
+    };
+
+    const setPoSEventListenersClosedMenu = () => {
+        const pos_tag_box = document.getElementById('pos_tag_box');
+        pos_tag_box.removeEventListener('click', changePoS);
+        pos_tag_box.removeEventListener('touchstart', changePoS); //remove both events to be on the safeside incase someone has changed their screen-width
+        pos_tag_box.addEventListener('click', selectPoS);
+        pos_tag_box.addEventListener('touchstart', selectPoS);
+    };
+    const setPoSEventListenersOpenedMenu = (event_type) => {
+        const pos_tag_box = document.getElementById('pos_tag_box');
+        pos_tag_box.removeEventListener('click', selectPoS);
+        pos_tag_box.removeEventListener('touchstart', selectPoS);
+        pos_tag_box.addEventListener(event_type, changePoS); //we need to prevent changePoS from firing due to the click-event which happens after you release the touch-event
+    };
+
+    setPoSEventListenersClosedMenu();
+
+    document.querySelectorAll(".box").forEach(box => box.addEventListener('click', (event) => event.target.classList.toggle("current_box")));
+
+</script>
+
+
+
+
+
+</html>
