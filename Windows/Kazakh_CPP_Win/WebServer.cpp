@@ -3789,6 +3789,7 @@ bool WebServer::updateDisplayWord(std::string _POST[5], SOCKET clientSocket) {
         sqlite3_int64 edit_tokno = std::stol(_POST[0]);
         int prev_word_eng_id = std::stoi(_POST[1]);
         int lang_id = std::stoi(_POST[2]);
+        std::string new_displayTextWord = URIDecode(_POST[3]);
         std::string new_wordEngWord = URIDecode(_POST[4]);
 
         const char* sql_BEGIN = "BEGIN IMMEDIATE";
@@ -3814,7 +3815,7 @@ bool WebServer::updateDisplayWord(std::string _POST[5], SOCKET clientSocket) {
 
         sql = "UPDATE display_text SET text_word = ?, word_engine_id = ?, lemma_id = NULL, lemma_meaning_no = NULL WHERE tokno = ?";
         sqlite3_prepare_v2(DB, sql, -1, &statement, NULL);
-        sqlite3_bind_text(statement, 1, URIDecode(_POST[3]).c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(statement, 1, new_displayTextWord.c_str(), -1, SQLITE_STATIC);
         sqlite3_bind_int(statement, 2, new_word_eng_id);
         sqlite3_bind_int64(statement, 3, edit_tokno);
         std::cout << "update display_text statement run-code: " << sqlite3_step(statement) << std::endl;

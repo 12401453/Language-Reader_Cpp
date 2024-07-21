@@ -178,12 +178,20 @@ const spaceBoundarySearch = (haystack_string, needle_string) => {
   return false;
 };
 
+const normaliseOEChunk = (chunk) => {
+  chunk = chunk.replaceAll('þ', 'ð');
+  if(chunk.startsWith('ð')) chunk = 'þ'+ chunk.slice(1);
+  return chunk;
+};
+
 const filterLemmas = (lemmas=lemmas_object) => {
   const meaning_searchbox_value = document.getElementById("meaning_searchbox").value.trim().replaceAll(/\s+/g, " ");
   let lemma_searchbox_value_initial = document.getElementById("lemma_searchbox").value.trim().replaceAll(/\s+/g, " ");
   if(lang_id == 10) {
-      lemma_searchbox_value_initial = lemma_searchbox_value_initial.replaceAll('þ', 'ð');
-      if(lemma_searchbox_value_initial.startsWith('ð')) lemma_searchbox_value_initial = 'þ'+lemma_searchbox_value_initial.slice(1);
+      //const normalised_OE_chunks = lemma_searchbox_value_initial.split(" ").map(chunk => normaliseOEChunk(chunk));
+      normalised_OE_string = "";
+      lemma_searchbox_value_initial.split(" ").forEach(chunk => normalised_OE_string += normaliseOEChunk(chunk) + ' ');
+      lemma_searchbox_value_initial = normalised_OE_string.trim();
   }
   const lemma_searchbox_value = lemma_searchbox_value_initial;
 
