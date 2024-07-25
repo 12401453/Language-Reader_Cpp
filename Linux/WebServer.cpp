@@ -2474,7 +2474,7 @@ bool WebServer::clearTable(int clientSocket) {
         sqlite3_step(statement);
         sqlite3_finalize(statement);
 
-        const char* sql_text = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_meaning_no INTEGER, lemma_id INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER, multiword_count INTEGER);CREATE INDEX mw_count_index ON display_text(multiword_count) WHERE multiword_count IS NOT NULL";
+        const char* sql_text = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_meaning_no INTEGER, lemma_id INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER, multiword_count INTEGER);CREATE INDEX mw_count_index ON display_text(multiword_count) WHERE multiword_count IS NOT NULL;CREATE INDEX lemma_id_index ON display_text(lemma_id) WHERE lemma_id IS NOT NULL";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
         sql_text = "DROP TABLE IF EXISTS word_engine;CREATE TABLE word_engine (word_engine_id INTEGER PRIMARY KEY, word TEXT, lang_id INTEGER, first_lemma_id INTEGER, UNIQUE(word, lang_id))";
@@ -2498,7 +2498,7 @@ bool WebServer::clearTable(int clientSocket) {
         sql_text = "DROP TABLE IF EXISTS context_trans;CREATE TABLE context_trans (dt_start INTEGER, dt_end INTEGER, eng_trans TEXT, UNIQUE(dt_start, dt_end))";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
-        sql_text = "INSERT INTO languages (lang_id, lang_name) VALUES (8, 'Danish'), (7, 'Turkish'), (1, 'Russian'), (2, 'Kazakh'), (3, 'Polish'), (4, 'Bulgarian'), (6, 'Swedish')";
+        sql_text = "INSERT INTO languages (lang_id, lang_name) VALUES (8, 'Danish'), (7, 'Turkish'), (1, 'Russian'), (2, 'Kazakh'), (3, 'Polish'), (4, 'Bulgarian'), (6, 'Swedish'), (5, 'German'), (10, 'Old English')";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
         sqlite3_prepare_v2(DB, sql_COMMIT, -1, &statement, NULL);
