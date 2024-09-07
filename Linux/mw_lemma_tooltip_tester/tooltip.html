@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8" />
+<link href="tooltip_prevs.css" rel="stylesheet" type="text/css">
+<link href="style.css" rel="stylesheet" type="text/css">
+<link href="flexbox.css" rel="stylesheet" type="text/css">
+
+
+<body style="background-color: #172136">
+
+<span class="tooltip" style="font-family: Bookerly">Word
+<span class="mw_tt" data-mw_active="0" onclick="event.stopPropagation()"><span class="appendages append_inact append_act" id="append1">L</span>    <span class="appendages append_inact" id="append2">M</span><span id="tt_top"><div class="lemma_tag_tt">vъžĺübĺenьnъjь</div><span id="pos_tag_box_tt"><span id="pos_tag_conj_tt" class="pos_tag_tt" title="conjunction"></span></span></span><span id="tt_mid"><div id="tt_meaning">in love, enamoured with</div></span><span id="tt_bottom"></span></span>
+<span>
+
+
+
+
+</body>
+<script>
+
+
+const selectMulti = function (event) {
+    event.target.parentNode.style.transition = "width 1s, transform 1s";
+
+    event.target.parentNode.querySelectorAll(".appendages").forEach(appendage => {
+        appendage.classList.remove("append_act");
+    });
+    event.target.classList.add("append_act");
+    let pos_from_right_edge = window.visualViewport.width - event.target.parentNode.getBoundingClientRect().right;
+    let right_overflow = pos_from_right_edge - 82; //correct offset is 70 but increased to prevent scrollbars appearing during transition
+    
+    if(event.target.id == "append2") {
+        console.log(right_overflow);
+        event.target.parentNode.style.width = "250px";
+        if(right_overflow < 0) {        
+            event.target.parentNode.style.transform = `translateX(${right_overflow}px)`; 
+        }
+        event.target.parentNode.dataset.mw_active = "1";
+        
+        //replace with xhttp.response data
+        event.target.parentNode.querySelector('.lemma_tag_tt').innerHTML = "i stedet for"; 
+        event.target.parentNode.querySelector('#tt_meaning').innerHTML = "instead of [at + infin. = of doing sth.]"; 
+    }  
+    else {
+        event.target.parentNode.style.width = "170px";
+        event.target.parentNode.style.transform = "translateX(0px)";
+        event.target.parentNode.dataset.mw_active = "0";
+        
+        //replace with xhttp.response data
+        event.target.parentNode.querySelector('.lemma_tag_tt').innerHTML = "vъžĺübĺenьnъjь"; //remove after testing
+        event.target.parentNode.querySelector('#tt_meaning').innerHTML = "in love, enamoured with";
+    }
+    
+    setTimeout(function () { event.target.parentNode.style.transition = ""; }, 1000);
+};
+document.querySelectorAll(".appendages").forEach(appendage => {
+        appendage.addEventListener('click', selectMulti);
+});
+
+
+const move_mwTT = function () {
+    console.log("mwTT fired");
+    document.querySelectorAll('.mw_tt').forEach(mw_tooltip => {
+        if(mw_tooltip.dataset.mw_active != "1") return;
+        mw_tooltip.style.transform = "translateX(0px)";
+        let pos_from_right_edge = window.visualViewport.width - mw_tooltip.getBoundingClientRect().right;
+        console.log(`pos from right edge before translation: ${pos_from_right_edge}`);
+        let right_overflow = pos_from_right_edge - 12;
+        if(right_overflow < 0) {        
+            mw_tooltip.style.transform = `translateX(${right_overflow}px)`;
+        } 
+    });
+};
+
+window.addEventListener('resize', move_mwTT);
+
+
+
+
+
+</script>
+
+
+</html> 

@@ -1,0 +1,306 @@
+
+.tooltip {
+position: relative;
+display: inline-block;
+/*color: rgb(252, 119, 119); */
+color: #cbd9f4;
+cursor: pointer;
+border-bottom: 2px solid rgb(23, 33, 54, 0);
+
+left: 50%;
+margin-top: 300px;
+}
+
+.tooltip:hover {
+  color: rgb(255 115 205);
+}
+
+.multiword {
+  border-bottom: 2px dotted rgb(0 255 186 / 50%);
+}
+
+
+.lemma_set, .lemma_set_unexplicit {
+  color: rgb(0 255 186);
+
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+.lemma_set:hover, .lemma_set_unexplicit:hover {
+  color: rgb(0 255 34);
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip_selected {
+  position: relative;
+  display: inline-block;
+  color: rgb(255 115 205);
+  cursor: pointer;
+  }
+
+
+
+
+
+#editbtn {
+
+  color: rgb(0, 255, 34);
+  border: 1px solid rgb(0, 255, 34);
+}
+
+#delbtn {
+  color: red;
+  border: 1px solid red;
+}
+
+
+.tooltip_opt {
+
+  width: 60px;
+  border-style: solid;
+  padding: 2px;
+  border-radius: 2px;
+  background-color: #071022;
+  color: #cbd9f4;
+  font-family: Calibri;
+  position:relative;
+  font-size: 17px;
+  cursor: pointer;
+  background-color: #172136;
+ 
+}
+
+
+.tooltip:hover .lemma_tt, .tooltip:hover .mw_tt {
+  visibility: visible;
+} 
+
+.tooltip_opt:hover {
+  background-color: #040a16;
+} 
+
+
+.tooltip .lemma_tt, .tooltip_selected .lemma_tt, .tooltip .mw_tt, .tooltip_selected .mw_tt {
+
+    visibility: visible;
+    min-width: 170px;
+    width: 170px;
+    max-width: 240px;
+
+    height: fit-content;
+    background-color: #071022;
+    color: #cbd9f4;
+    text-align: center;
+    border-radius: 6px;
+    border: solid 1px black;
+
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -85px;
+  
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    flex-grow: 0;
+    cursor: default;
+
+   /* transition: width 1s, transform 1s; */
+  
+  }
+
+  #tt_top {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+.lemma_tag_tt {
+  height:fit-content;
+  width: fit-content;
+ /* min-height: 20px; */
+  
+
+  outline: none;
+  overflow: hidden;
+
+  box-sizing: border-box;
+
+  font-size: 15px;
+  font-family: Bookerly;
+  color: #cbd9f4;
+
+  border-bottom-right-radius: 6px;
+  border-top-left-radius: 5px;
+  padding: 5px;
+  background-color: #040a16;
+  border: 1px solid black;
+  border-left: none;
+  border-top: none;
+
+  resize: none;
+}
+
+#tt_mid {
+   display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: stretch;
+    padding: 5px;
+    flex-grow: 1;
+}
+
+#tt_meaning {
+  background-color: #040a16;
+
+  padding: 4px;
+  flex: 1;
+  color: #cbd9f4;
+  border-radius: 4px;
+  border: 1px solid black;;
+
+  font-family: 'IBM_PLEX_SANS';
+  font-size: 15px;
+  text-align: center;
+  white-space: normal;
+  
+  min-height: 10px;
+
+  max-height: 200px;
+  overflow-y: auto;
+  
+  box-sizing: border-box;
+
+  resize: none; /* these two are for if I make it into a <textarea> one day */
+  outline: none;
+}
+
+
+  #tt_bottom {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: flex-start;
+  }
+
+#pos_tag_box_tt {
+  height:fit-content;
+  width: fit-content;
+  cursor: default;;
+
+  font-size: 9px;
+  font-family: IBM_Plex_Sans;
+  color: black;
+
+  display: flex;
+  flex-flow: column-reverse nowrap;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  margin-left: 10px;
+
+
+
+  /* border-bottom: none;
+  border-right: none;
+  border-left: none; */
+}
+
+
+
+.pos_tag_tt {
+
+  padding-left: 4px;
+  padding-right: 4px;
+  user-select: none;
+  width: 9px;
+  height: 15px;
+  border-bottom-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-left: 1px solid black;
+  border-bottom: 1px solid black;
+}
+
+
+
+#pos_tag_verb_tt {
+  background-color: #4dac0d;
+}
+
+#pos_tag_adj_tt {
+  background-color: #fc7f03;
+}
+
+#pos_tag_noun_tt {
+  background-color: #9cac0d;
+}
+
+#pos_tag_adverb_tt {
+  background-color: #e32f1a;
+}
+
+#pos_tag_prep_tt {
+  background-color: #0d9cac;
+}
+
+#pos_tag_conj_tt {
+  background-color: #0dac62;
+}
+
+#pos_tag_part_tt {
+  background-color: #ac0d9c;
+}
+#pos_tag_ques_tt {
+  background-color: hsl(345, 100%, 70%);
+}
+
+
+.appendages {
+  /*background-color: #6495ed94;*/
+
+  position: absolute;
+  font-family: Calibri;
+  right: 100%;
+
+  border-top: 1px solid black;
+  border-left: 1px solid black;
+  border-bottom: 1px solid black;
+  border-right: 1px solid black;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  box-sizing: border-box;
+  width: 25px;
+  height: 25px;
+  user-select: none;
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+  text-align: center;
+}
+
+#append1 {
+  top: 2%;
+}
+#append2 {
+  top: 20px;
+}
+.append_inact {
+  background-color: /* #8c64ed59;*/ #403876;
+  color: #cbd9f482;
+  z-index: 0;
+}
+.append_act {
+  background-color: /*#8c64edad;*/ #664fb2;
+  color: #cbd9f4;
+  z-index: 1;
+}
+.append_inact:hover {
+  background-color: /*#8c64edad;*/ #664fb2;
+  color: #cbd9f4;
+}

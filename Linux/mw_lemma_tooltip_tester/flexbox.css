@@ -1,0 +1,547 @@
+   @font-face {font-family: Calibri; src: url('calibri.ttf'); }
+   @font-face {font-family: Bookerly; src: url('Bookerly.ttf'); }
+   @font-face {font-family: IBM_Plex_Sans; src: url('IBMPlexSans-Regular.ttf'); }
+   @font-face {font-family: Liberation_Serif; src: url('LiberationSerif-Regular.ttf'); }
+
+
+
+
+
+.box {
+
+  background-color: #172136;
+  margin-top: 2%;
+  margin-bottom: 2%;
+  margin-left: 2%;
+  flex: 1;
+  border-radius: 4px;
+  padding: 2px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+
+  font-family: Calibri;
+  color:  rgb(0 255 34 / 41%);
+  font-size: 18px;
+  cursor: default;
+}
+
+.box:hover {
+  background-color: #040a16 !important;
+}
+
+#lemma_box {
+  color:  rgb(0, 255, 34);
+  background-color: #040a16;
+}
+
+#annot_box {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+  height: 280px;
+  width: 500px;
+  min-height: 260px;
+  min-width: 424px;
+
+  position: fixed;
+  bottom: 1px;
+  left: 1px;
+  z-index: 2;
+}
+
+#annot_topbar {
+  height: 30px;
+  width: 100%;
+  border-left: 2px solid black;
+  border-right: 2px solid black;
+  border-top: 2px solid black;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  background-color: #040a16;
+  display: flex;
+  flex-flow: row-reverse nowrap;
+  justify-content: space-between;
+  user-select: none;
+}
+
+#close_button {
+  height: fit-content;
+  width: 76px;
+  box-sizing: border-box; /*this makes the padding-property behave more like the margin-property and takes the padding off of the width-property so the total width of the #right_body box is still 100% of its parent div */
+
+  font-size: 15px;
+  font-family: 'Calibri';
+  border-bottom-left-radius: 3px;
+  border-top-right-radius: 3px;
+  text-align: center;
+  color: rgb(141 147 157);
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right: 9px;
+  padding-left: 9px;
+  background-color: #580000;
+  border: 1px solid black;
+  border-right: none;
+  border-top: none;
+  cursor: default;
+}
+#close_button:hover {
+  background-color: #9e0000;
+  color: #cbd9f4;
+
+}
+
+#disregard_button {
+  height: fit-content;
+  width: 76px;
+  box-sizing: border-box; /*this makes the padding-property behave more like the margin-property and takes the padding off of the width-property so the total width of the #right_body box is still 100% of its parent div */
+
+  font-size: 15px;
+  font-family: 'Calibri';
+  border-bottom-right-radius: 3px;
+  border-top-left-radius: 3px;
+  text-align: center;
+  color: rgb(141 147 157);
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right: 9px;
+  padding-left: 9px;;
+  background-color: #3a1111;
+  border: 1px solid black;
+  border-left: none;
+  border-top: none;
+  cursor: default;
+}
+#disregard_button:hover {
+  background-color: #312626;
+  color: #cbd9f4;
+}
+#acronym_button {
+  height: fit-content;
+  width: fit-content;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right: 9px;
+  padding-left: 9px;
+  font-size: 15px;
+  font-family: 'Calibri';
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  text-align: center;
+  color: black;
+  background-color: #585700;
+  border: 1px solid black;
+  /* border-right: none; */
+  border-top: none;
+  cursor: default;
+}
+/*
+#annot {
+
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  white-space: normal;
+  background-color: #071022 ;
+  color: #cbd9f4;
+  height: 250px;
+  width: 500px;
+  border-radius: 6px;
+  border: solid 2px black;
+
+  resize: both;
+  min-width: 424px;
+  min-height: 235px;
+  overflow: hidden;
+
+  position: fixed;
+  z-index: 2;
+  bottom: 0;
+  left: 0;
+} */
+
+#annot {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  white-space: normal;
+  background-color: #071022;
+  color: #cbd9f4;
+  height: 250px;
+  width: 100%;
+  border-radius: 6px;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border: solid 2px black;
+  min-width: 424px;
+  min-height: 235px;
+  overflow: hidden;
+  z-index: 2;
+
+}
+
+#left_column {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  align-content: stretch;
+  direction: ltr;
+
+  background-color: #071022 ;
+  color: #cbd9f4;
+  height: 100%;
+  width: 25%;
+  border-radius: 6px;
+  border-bottom-right-radius: 0px;
+}
+
+#right_column {
+
+  background-color: #071022 ;
+  color: #cbd9f4;
+  height: 100%;
+  width: 75%;
+  border-radius: 6px;
+  border-bottom-left-radius: 0px;
+
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  direction: ltr;
+
+}
+#right_header {
+
+  width: 100%;
+  height: 36px;
+
+  border-top-right-radius: 6px;
+
+  display: flex;
+  flex-flow: row-reverse nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  flex-grow: 0;
+}
+
+#hidden_lemma_tag {
+
+  height:fit-content;
+  width: fit-content;
+  min-height: 20px;
+  max-height: 25px;
+ /* min-width: 67px; */
+  outline: none;
+  overflow: hidden;
+
+  font-size: 19px;
+  font-family: Bookerly;
+  color: red;
+  visibility: hidden;
+
+  border-bottom-left-radius: 6px;
+  padding-top: 5px;
+  padding-right: 7px; /* extra side-padding is needed on the span compared to the textarea because the textarea wraps to the next line due to some differences in inherent padding or something if the side-padding is 5px on both */
+  padding-bottom: 5px;
+  padding-left: 7px;
+  background-color: #040a16;
+  border: 1px solid black;
+  border-right: none;
+  border-top: none;
+}
+#lemma_tag {
+  outline: none;
+  overflow: hidden;
+
+  box-sizing: border-box;
+
+  font-size: 19px;
+  font-family: Bookerly;
+  color: #cbd9f4;
+
+  border-bottom-left-radius: 6px;
+  padding: 5px;
+  background-color: #040a16;
+  border: 1px solid black;
+  border-right: none;
+  border-top: none;
+
+  resize: none;
+}
+
+
+#right_body {
+  display: flex;
+
+  width: 100%;
+  height: 70%;
+  flex-grow: 1;
+
+  padding-top: 9px;
+  padding-right: 3%;
+  padding-bottom: 9px;
+  padding-left: 3%;
+  box-sizing: border-box; /*this makes the padding-property behave more like the margin-property and takes the padding off of the width-property so the total width of the #right_body box is still 100% of its parent div */
+
+}
+
+#right_footer {
+
+  width: 100%;
+  height: 36px;
+
+  border-bottom-right-radius: 6px;
+
+  display: flex;
+  flex-flow: row-reverse nowrap;
+  justify-content: flex-start;
+  align-items: flex-end;
+  user-select: none;
+  flex-grow: 0;
+}
+
+#meaning_no_box {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  
+  height:fit-content;
+  width: fit-content;
+  min-height: 13px;
+  min-width: 155px;
+
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+
+  background-color: #040a16;
+  border: 1px solid black;
+  border-bottom: none;
+}
+
+#meaning_leftarrow {
+  border-right: 1px solid black;
+  width: 20%;
+
+  border-top-left-radius: 5px; /* 1px less than the parent box because of the border */
+
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  font-weight: 900;
+}
+
+#meaning_no {
+  height:fit-content;
+  width: fit-content;
+  min-width: 60%;
+
+  padding: 4px;
+  cursor: default;
+
+  font-size: 17px;
+  font-family: IBM_Plex_Sans;
+  color: #cbd9f4;
+  text-align: center;
+/*
+  border-top-left-radius: 6px;
+  padding: 4px;
+  background-color: #040a16;
+  border: 1px solid black;
+  border-bottom: none; */
+}
+
+#meaning_rightarrow {
+  border-left: 1px solid black;
+  width: 20%;
+
+  border-top-right-radius: 5px; /* 1px less than the parent box because of the border */
+
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  font-weight: 900;
+}
+
+#pos_tag_box {
+  height:fit-content;
+  width: fit-content;
+  cursor: default;
+ 
+  min-width: 55px;
+
+  font-size: 14px;
+  font-family: IBM_Plex_Sans;
+  color: black;
+
+  display: flex;
+  flex-flow: column-reverse nowrap;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+ 
+  /* border-bottom: none;
+  border-right: none;
+  border-left: none; */
+}
+
+
+
+.pos_tag {
+  border-top: 1px solid black;
+  padding-left: 4px;
+  padding-right: 4px;
+  min-width: 55px;
+  border-left: 1px solid black;
+  user-select: none;
+}
+
+.pos_tag_select {
+  border-top: 1px solid black;
+  padding-left: 4px;
+  padding-right: 4px;
+  min-width: 55px;
+  border-left: 1px solid black;
+  color: #cbd9f4;
+  background-color: #071022;
+}
+
+.pos_tag_select:hover {
+  background-color: #040a16;
+}
+
+
+#pos_tag_verb {
+  background-color: #4dac0d;
+}
+
+#pos_tag_adj {
+  background-color: #fc7f03;
+}
+
+#pos_tag_noun {
+  background-color: #9cac0d;
+}
+
+#pos_tag_adverb {
+  background-color: #e32f1a;
+}
+
+#pos_tag_prep {
+  background-color: #0d9cac;
+}
+
+#pos_tag_conj {
+  background-color: #0dac62;
+}
+
+#pos_tag_part {
+  background-color: #ac0d9c;
+}
+
+#pos_tag_ques {
+  background-color: hsl(345, 100%, 70%);
+}
+
+.nav_arrow {
+  cursor: default;
+  color: grey;
+  font-family: Liberation_Serif;
+}
+.nav_arrow:hover {
+  background-color:#172136;
+  color: white;
+}
+
+.nav_arrow_deactiv {
+  cursor: default;
+  color: grey;
+  font-family: Liberation_Serif;
+}
+
+#lemma_textarea {
+   background-color: #040a16;
+
+   padding: 4px;
+   flex: 1;
+   color: #cbd9f4;
+   border-radius: 4px;
+   border: none;
+
+   font-family: 'IBM_PLEX_SANS';
+
+   size: inherit;
+   min-height: 112px;
+   resize: none;
+}
+
+#lemma_textarea:focus {
+  outline: black;
+  border: 2px solid black;
+  padding: 2px;
+}
+
+#save_and_delete_box {
+  display: flex;
+  flex-flow: row-reverse nowrap;
+  justify-content: space-around;
+  align-items: flex-end;
+  user-select: none;
+  flex-grow: 1;
+}
+
+#save_button {
+  /* display: flex; */
+  /* flex-flow: row nowrap; */
+  /* justify-content: space-between; */
+  height: fit-content;
+  width: 60px;
+  text-align: center;
+  /* min-height: 13px; */
+  /* min-width: 155px; */
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  background-color: rgb(0 255 34 / 60%); /* 41% */
+  border: 1px solid black;
+  border-bottom: none;
+  padding: 4px;
+  cursor: default;
+  font-size: 17px;
+  font-family: IBM_Plex_Sans;
+  color: #040a16;
+ /* margin-right: 13%; */
+/*  margin-left: 9%; */
+}
+
+#save_button:hover {
+  background-color: rgb(0 255 34); /* 75% */
+}
+
+#delete_lemma_button {
+
+  height: fit-content;
+  width: 40px;
+  text-align: center;
+  /* min-height: 13px; */
+  /* min-width: 155px; */
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  background-color: rgba(255, 0, 0, 0.6); /* 41% */
+  border: 1px solid black;
+  border-bottom: none;
+  padding: 4px;
+  cursor: default;
+  font-size: 12px;
+  font-family: IBM_Plex_Sans;
+  color: #040a16;
+}
+#delete_lemma_button:hover {
+  background-color: rgba(255, 0, 0);
+}

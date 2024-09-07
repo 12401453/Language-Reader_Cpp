@@ -238,6 +238,14 @@ function loadText() {
 
   let newtext_raw = document.getElementById('newtext').value.replaceAll('\u00AD', '').replaceAll("’", "\'").trim();
   let text_title_raw = document.getElementById('text_title').value.replaceAll('\u00AD', '').replaceAll("’", "\'").trim(); //U+00AD is a soft-hyphen, invisible little bastard
+  
+  let langselect = document.getElementById('langselect').value;
+  
+  if(langselect == '2') {
+    newtext_raw = newtext_raw.replaceAll('\u0259', '\u04D9').replaceAll('\u018F', '\u04D8'); //replace Latin schwa-letter with Cyrillic ә (they look identical)
+    text_title_raw = text_title_raw.replaceAll('\u0259', '\u04D9').replaceAll('\u018F', '\u04D8');
+  }
+
   if(text_title_raw == '' && newtext_raw == '') { return; }
   if(text_title_raw == '') { alert("Do not leave Text Title blank"); return; }
   if(newtext_raw == '') {alert("You cannot submit a blank text"); return; }
@@ -246,7 +254,7 @@ function loadText() {
  
   
   let text_title = encodeURIComponent(text_title_raw);
-  let langselect = document.getElementById('langselect').value;
+  
 
   
 /*
