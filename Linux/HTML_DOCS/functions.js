@@ -884,6 +884,101 @@ const lemmaTooltip = function () {
 
 };
 
+const lemmaTooltipMW = function () {
+  let lemma_tooltips = document.querySelectorAll('.lemma_tt');
+  lemma_tooltips.forEach(lemma_tooltip => {
+    lemma_tooltip.remove();
+  });
+
+  const lemma_set_words = Array.from(document.getElementsByClassName('lemma_set_unexplicit'));
+  const mw_set_words = document.querySelectorAll(".multiword");
+  
+  let lemma_set_toknos = new Array();
+  let lemma_set_word_eng_ids = new Array();
+  
+  let mw_first_toknos = new Array();
+  let mw_first_word_eng_ids = new Array();
+  
+  lemma_set_words.forEach(lemma_set_word => {
+    let lemma_set_tokno = lemma_set_word.dataset.tokno;
+    let lemma_set_word_eng_id = lemma_set_word.dataset.word_engine_id;
+    lemma_set_toknos.push(lemma_set_tokno);
+    lemma_set_word_eng_ids.push(lemma_set_word_eng_id);
+  
+  });
+
+  const mw_count_set = new Set();
+  mw_set_words.forEach(mw_word => {
+    const mw_count = Number(mw_word.dataset.multiword);
+    if(mw_count_set.has(mw_count) == false) {
+        mw_count_set.add(mw_count);
+        mw_first_toknos.push(mw_word.dataset.tokno);
+        mw_first_word_eng_ids.push(mw_word.dataset.word_engine_id); 
+    }
+  });
+  
+  let mw_first_words = [];
+  mw_first_toknos.forEach(tokno => {
+    mw_first_words.push(document.querySelector("[data-tokno='"+tokno+"']"));
+  });
+
+  const httpRequest = (method, url) => {
+
+    // let send_data = toknos_POST_data;
+    let send_data = "toknos=" + lemma_set_toknos + "&word_eng_ids=" + lemma_set_word_eng_ids + "&mw_first_toknos=" + mw_first_toknos;
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.responseType = 'json';
+
+    xhttp.onload = () => {
+      if(xhttp.readyState == 4) {
+        tooltips_shown = true;
+        const json_lemma_transes = xhttp.response[0];
+        const json_mw_transes = xhttp.response[1];
+       // console.log(json_lemma_transes);
+        if(json_lemma_transes == null) {
+         document.getElementById("tt_toggle").disabled = false;
+         return;
+        }
+        let i = 0;
+        //const lemma_set_only_words = lemma_set_words.filter(x => mw_first_toknos.includes(x.dataset.tokno) == false); 
+        lemma_set_words.forEach(lemma_set_word => {
+          if(mw_first_toknos.includes(lemma_set_toknos[i]) == false) {
+            const json_pos = Number(json_lemma_transes[i].pos);
+
+            let lemma_tt_box = '<span class="lemma_tt" onclick="event.stopPropagation()"><span id="tt_top"><div class="lemma_tag_tt">'+json_lemma_transes[i].lemma_form+'</div><span id="pos_tag_box_tt">'+tt_pos_arr[json_pos]+'</span></span><span id="tt_mid"><div id="tt_meaning">'+json_lemma_transes[i].lemma_trans+'</div></span><span id="tt_bottom"></span></span>';
+  
+            lemma_set_word.innerHTML = lemma_set_word.innerHTML + lemma_tt_box;
+          }
+          i++;
+        });
+        i = 0;
+        mw_first_words.forEach(mw_set_word => {
+          const json_mw_pos = Number(json_mw_transes[i].mw_pos);
+          
+          let mw_tt_box = '<span class="mw_tt" data-mw_active="1" onclick="event.stopPropagation()">'
+          if(lemma_set_toknos.includes(mw_first_toknos[i]))mw_tt_box += '<span class="appendages append_inact append_act" id="append1">M</span>    <span class="appendages append_inact" id="append2">L</span>';
+          mw_tt_box += '<span id="tt_top"><div class="lemma_tag_tt">'+json_mw_transes[i].mw_lemma_form+'</div><span id="pos_tag_box_tt">'+tt_pos_arr[json_mw_pos]+'</span></span><span id="tt_mid"><div id="tt_meaning">'+json_mw_transes[i].mw_lemma_trans+'</div></span><span id="tt_bottom"></span></span>'
+            
+          mw_set_word.innerHTML = mw_set_word.innerHTML + mw_tt_box;
+          i++
+            
+        });
+        
+        
+        document.getElementById("tt_toggle").disabled = false;
+        setTimeout(ttPosition, 200);
+      }
+
+    }
+    xhttp.send(send_data);
+  };
+  httpRequest("POST", "lemma_tooltip_mw.php");
+
+};
+
+
 const lemmaRecordTooltipUpdate = function (current_words) {
   current_words.forEach(current_word => {
     let current_lemma_tt = current_word.querySelector('.lemma_tt');

@@ -614,6 +614,9 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     else if(!strcmp(m_url, "/lemma_tooltip.php")) {
         bool php_func_success = lemmaTooltips(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/lemma_tooltip_mw.php")) {
+        bool php_func_success = lemmaTooltipsMW(post_values, clientSocket);
+    }
     else if(!strcmp(m_url, "/lemma_delete.php")) {
         bool php_func_success = deleteLemma(post_values, clientSocket);
     }
@@ -718,6 +721,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/dump_lemmas.php")) return 1;
     else if(!strcmp(url, "/add_text_OE.php")) return 3;
     else if(!strcmp(url, "/update_displayWord.php")) return 5;
+    else if(!strcmp(url, "/lemma_tooltip_mw.php")) return 3;
     else return -1;
 }
 /*
@@ -3866,4 +3870,238 @@ bool WebServer::updateDisplayWord(std::string _POST[5], int clientSocket) {
         std::cout << "Database connection failed on updateDisplayWord()\n";
         return false;
     }   
+}
+
+bool WebServer::lemmaTooltipsMW(std::string _POST[3], int clientSocket) {
+    sqlite3* DB;    
+
+    if(!sqlite3_open(m_DB_path, &DB)) {
+
+        sqlite3_stmt* statement1;
+        sqlite3_stmt* statement2;
+        sqlite3_stmt* statement3; 
+        sqlite3_stmt* statement4;  
+        sqlite3_stmt* statement5;
+        sqlite3_stmt* statement6;    
+
+        int tooltip_count = 1;
+        //word_engine_id's are generally going to be smaller than toknos so more efficient to iterate through them
+        for(auto i = _POST[1].begin(), nd=_POST[1].end(); i < nd; i++) {
+            char c = (*i);
+            if(c == ',') tooltip_count++;
+        }
+        int mw_tooltip_count = 1;
+        for(auto i = _POST[2].begin(), nd=_POST[2].end(); i < nd; i++) {
+            char c = (*i);
+            if(c == ',') mw_tooltip_count++;
+        }
+
+        std::vector<sqlite3_int64> toknos;
+        std::vector<int> word_engine_ids;
+
+        toknos.reserve(tooltip_count); 
+        word_engine_ids.reserve(tooltip_count);
+
+        std::string tokno_str = "";
+        for(auto i = _POST[0].begin(), nd=_POST[0].end(); i < nd; i++) {
+            char c = (*i);
+            if(c == ',') {
+                sqlite3_int64 tokno = std::stol(tokno_str);
+                toknos.emplace_back(tokno);
+                tokno_str = "";
+                continue;
+            }
+            tokno_str += c;
+            if(nd - 1 == i) {
+                sqlite3_int64 tokno = std::stol(tokno_str);
+                toknos.emplace_back(tokno);
+            }
+        }
+        std::string word_engine_id_str = "";
+        for(auto i = _POST[1].begin(), nd=_POST[1].end(); i < nd; i++) {
+            char c = (*i);
+            if(c == ',') {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_engine_ids.emplace_back(word_engine_id);
+                word_engine_id_str = "";
+                continue;
+            }
+            word_engine_id_str += c;
+            if(nd - 1 == i) {
+                int word_engine_id = std::stoi(word_engine_id_str);
+                word_engine_ids.emplace_back(word_engine_id);
+            }
+        }
+        
+        std::vector<sqlite3_int64> mw_first_toknos;
+        mw_first_toknos.reserve(mw_tooltip_count);
+        std::string mw_first_tokno_str = "";
+        for(auto i = _POST[2].begin(), nd=_POST[2].end(); i < nd; i++) {
+            char c = (*i);
+            if(c == ',') {
+                sqlite3_int64 mw_first_tokno = std::stol(mw_first_tokno_str);
+                mw_first_toknos.emplace_back(mw_first_tokno);
+                mw_first_tokno_str = "";
+                continue;
+            }
+            mw_first_tokno_str += c;
+            if(nd - 1 == i) {
+                sqlite3_int64 mw_first_tokno = std::stol(mw_first_tokno_str);
+                mw_first_toknos.emplace_back(mw_first_tokno);
+            }        
+        }
+
+        const char* sql_text1 = "SELECT lemma_id, lemma_meaning_no FROM display_text WHERE tokno = ?";
+        const char* sql_text2 = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
+        const char* sql_text3 = "SELECT lemma, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10, pos FROM lemmas WHERE lemma_id = ?";
+        sqlite3_prepare_v2(DB, sql_text1, -1, &statement1, NULL);
+        sqlite3_prepare_v2(DB, sql_text2, -1, &statement2, NULL);
+        sqlite3_prepare_v2(DB, sql_text3, -1, &statement3, NULL);
+
+        std::string lemma_form = "";
+        std::string lemma_trans = "";
+        std::string mw_lemma_form = "";
+        std::string mw_lemma_trans = "";
+        short int pos = 1;
+        short int mw_pos = 1;
+
+
+        std::ostringstream json;
+        json << "[[";
+
+        int x = 0;
+        for(const sqlite3_int64 &tokno : toknos) {
+
+            sqlite3_bind_int64(statement1, 1, tokno);
+            sqlite3_step(statement1);
+            int lemma_id = sqlite3_column_int(statement1, 0);
+ 
+            if(lemma_id) {
+                short int lemma_meaning_no = sqlite3_column_int(statement1, 1);
+                std::string sql_text4_str = "SELECT lemma, eng_trans"+std::to_string(lemma_meaning_no)+", pos FROM lemmas WHERE lemma_id = "+std::to_string(lemma_id); 
+                sqlite3_prepare_v2(DB, sql_text4_str.c_str(), -1, &statement4, NULL);
+                sqlite3_step(statement4);
+
+                const unsigned char* lemma_rawsql = sqlite3_column_text(statement4, 0);
+                if(lemma_rawsql != nullptr) {
+                    lemma_form = (const char*)lemma_rawsql;
+                }
+                else lemma_form = "";
+                const unsigned char* lemma_trans_rawsql = sqlite3_column_text(statement4, 1);
+                if(lemma_trans_rawsql != nullptr) {
+                    lemma_trans = (const char*)lemma_trans_rawsql;
+                }
+                else lemma_trans = "";
+                pos = sqlite3_column_int(statement4, 2);
+
+                std::cout << "lemma_form: " << lemma_form << ", lemma_trans: " << lemma_trans << ", pos: " << pos << std::endl;
+                //sqlite3_reset(statement1);
+                sqlite3_finalize(statement4);
+            }
+            else {
+                sqlite3_bind_int(statement2, 1, word_engine_ids[x]);
+                sqlite3_step(statement2);
+                lemma_id = sqlite3_column_int(statement2, 0);
+                std::cout << "lemma_id: " << lemma_id << std::endl;
+                sqlite3_reset(statement2);
+
+                sqlite3_bind_int(statement3, 1, lemma_id);
+                sqlite3_step(statement3);
+                const unsigned char* lemma_rawsql = sqlite3_column_text(statement3, 0);
+                if(lemma_rawsql != nullptr) {
+                    lemma_form = (const char*)lemma_rawsql;
+                }
+                else lemma_form = "";
+
+                lemma_trans = "";
+                for(int i = 1; i < 11; i++) {
+                    const unsigned char* lemma_trans_rawsql = sqlite3_column_text(statement3, i);
+                    if(lemma_trans_rawsql != nullptr) {
+                        lemma_trans = (const char*)lemma_trans_rawsql;
+                        break;
+                    }
+                }
+                pos = sqlite3_column_int(statement3, 11);
+                sqlite3_reset(statement3);
+                std::cout << "lemma_form: " << lemma_form << ", lemma_trans: " << lemma_trans << ", pos: " << pos << std::endl;     
+            }
+            //I'm sure these need to be htmlspecialchars()'d as well/instead (as that escapes quotes with html codes)
+            json << "{\"lemma_form\":\"" << htmlspecialchars(lemma_form) << "\",\"lemma_trans\":\"" << htmlspecialchars(lemma_trans) << "\",\"pos\":\"" << pos << "\"}";
+            x++;
+            if(x != tooltip_count) {
+                json << ",";
+            } //for some reason the browser only recognises the response as JSON if there is no trailing comma
+            sqlite3_reset(statement1);
+        } 
+        sqlite3_finalize(statement1);
+        sqlite3_finalize(statement2);
+        sqlite3_finalize(statement3);
+
+        json << "],[";
+        
+        const char* sql_text5 = "SELECT multiword_id, multiword_meaning_no FROM display_text WHERE tokno = ?";
+        sqlite3_prepare_v2(DB, sql_text5, -1, &statement5, NULL);
+
+        x = 0;
+        for(const sqlite3_int64 &mw_tokno : mw_first_toknos) {
+            sqlite3_bind_int64(statement5, 1, mw_tokno);
+            sqlite3_step(statement5);
+            int mw_first_id = sqlite3_column_int(statement5, 0);
+            int mw_meaning_no = sqlite3_column_int(statement5, 1);
+            if(!mw_meaning_no) mw_meaning_no = 1;
+
+            if(mw_first_id) {
+
+                std::string sql_text6_str = "SELECT multiword_lemma_form, pos, eng_trans"+std::to_string(mw_meaning_no)+" FROM multiword_lemmas WHERE multiword_id = ?"; //this string interpolation is allowed because mw_meaning_no is guaranteed to be an integer.
+                sqlite3_prepare_v2(DB, sql_text6_str.c_str(), -1, &statement6, NULL);
+                sqlite3_bind_int(statement6, 1, mw_first_id);
+                sqlite3_step(statement6);
+
+                const unsigned char* mw_lemma_rawsql = sqlite3_column_text(statement6, 0);
+                if(mw_lemma_rawsql != nullptr) {
+                    mw_lemma_form = (const char*)mw_lemma_rawsql;
+                }
+                else mw_lemma_form = "";
+                const unsigned char* mw_trans_rawsql = sqlite3_column_text(statement6, 2);
+                if(mw_trans_rawsql != nullptr) {
+                    mw_lemma_trans = (const char*)mw_trans_rawsql;
+                }
+                else mw_lemma_trans = "";
+                mw_pos = sqlite3_column_int(statement6, 1);
+
+                sqlite3_finalize(statement6);
+
+                std::cout << "mw_form: " << mw_lemma_form << "| mw_trans: " << mw_lemma_trans << "| mw_pos: " << mw_pos << "\n";
+            }
+            else {
+                std::cout << "malformed or incorrect tokno\n";
+                mw_pos = 1;
+            }
+
+            json << "{\"mw_lemma_form\":\"" << htmlspecialchars(mw_lemma_form) << "\",\"mw_lemma_trans\":\"" << htmlspecialchars(mw_lemma_trans) << "\",\"mw_pos\":\"" << mw_pos << "\"}";
+            x++;
+            if(x != mw_tooltip_count) {
+                json << ",";
+            } //for some reason the browser only recognises the response as JSON if there is no trailing comma
+            sqlite3_reset(statement5);
+        }
+        sqlite3_finalize(statement5);
+        
+        json << "]]";
+
+        sqlite3_close(DB);
+        int content_length = json.str().size();
+
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length << "\r\n\r\n" << json.str();
+        std::cout << json.str() << "\n";
+        int length = post_response.str().size() + 1;
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+       
+        return true;
+    }
+    else {
+        std::cout << "Database connection failed in lemmaTooltips()" << std::endl;
+        return false;
+    }
 }

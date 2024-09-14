@@ -347,7 +347,7 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
 }
 
 
-.tooltip:hover .lemma_tt {
+.tooltip:hover .lemma_tt, .tooltip:hover .mw_tt {
   visibility: visible;
 } 
 
@@ -356,7 +356,7 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
 } 
   
   
-.tooltip .lemma_tt, .tooltip_selected .lemma_tt {
+.tooltip .lemma_tt, .tooltip_selected .lemma_tt, .tooltip .mw_tt, .tooltip_selected .mw_tt {
 
     visibility: hidden;
     /* width: 170px; */
