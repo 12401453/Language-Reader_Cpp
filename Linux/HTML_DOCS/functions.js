@@ -1,7 +1,7 @@
 
 function tt_type() {
   if(tooltips_shown) {
-    let lemma_tooltips = document.querySelectorAll('.lemma_tt');
+    let lemma_tooltips = document.querySelectorAll('.lemma_tt, .mw_tt');
     lemma_tooltips.forEach(lemma_tooltip => {
       lemma_tooltip.remove();
     });
@@ -9,7 +9,7 @@ function tt_type() {
   }
   else {
     document.getElementById("tt_toggle").disabled = true;
-    lemmaTooltip();
+    lemmaTooltipMW();
     tooltips_shown = true; //redundant but done incase the AJAX request in lemmaTooltips() fails
   }
 }
@@ -92,7 +92,7 @@ function selectText() {
           });
           
           if(tooltips_shown) {
-            lemmaTooltip();
+            lemmaTooltipMW();
           }
           document.getElementById("textselect").blur();
           loadingbutton.remove();
@@ -170,7 +170,7 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
           });
    
           if(tooltips_shown) {
-            lemmaTooltip();
+            lemmaTooltipMW();
           }
           loadingbutton.remove();
           if(page_cur > 1) {
@@ -885,7 +885,7 @@ const lemmaTooltip = function () {
 };
 
 const lemmaTooltipMW = function () {
-  let lemma_tooltips = document.querySelectorAll('.lemma_tt');
+  let lemma_tooltips = document.querySelectorAll('.lemma_tt, .mw_tt');
   lemma_tooltips.forEach(lemma_tooltip => {
     lemma_tooltip.remove();
   });
@@ -895,6 +895,8 @@ const lemmaTooltipMW = function () {
   
   let lemma_set_toknos = new Array();
   let lemma_set_word_eng_ids = new Array();
+
+  //let mw_toknos = new Array();
   
   let mw_first_toknos = new Array();
   let mw_first_word_eng_ids = new Array();
@@ -915,6 +917,7 @@ const lemmaTooltipMW = function () {
         mw_first_toknos.push(mw_word.dataset.tokno);
         mw_first_word_eng_ids.push(mw_word.dataset.word_engine_id); 
     }
+    //mw_toknos.push(mw_word.dataset.tokno);
   });
   
   let mw_first_words = [];
@@ -958,11 +961,11 @@ const lemmaTooltipMW = function () {
           const json_mw_pos = Number(json_mw_transes[i].mw_pos);
           
           let mw_tt_box = '<span class="mw_tt" data-mw_active="1" onclick="event.stopPropagation()">'
-          if(lemma_set_toknos.includes(mw_first_toknos[i]))mw_tt_box += '<span class="appendages append_inact append_act" id="append1">M</span>    <span class="appendages append_inact" id="append2">L</span>';
+          //if(lemma_set_toknos.includes(mw_first_toknos[i]))mw_tt_box += '<span class="appendages append_inact append_act" id="append1">M</span>    <span class="appendages append_inact" id="append2">L</span>';
           mw_tt_box += '<span id="tt_top"><div class="lemma_tag_tt">'+json_mw_transes[i].mw_lemma_form+'</div><span id="pos_tag_box_tt">'+tt_pos_arr[json_mw_pos]+'</span></span><span id="tt_mid"><div id="tt_meaning">'+json_mw_transes[i].mw_lemma_trans+'</div></span><span id="tt_bottom"></span></span>'
             
           mw_set_word.innerHTML = mw_set_word.innerHTML + mw_tt_box;
-          i++
+          i++;
             
         });
         
@@ -978,7 +981,7 @@ const lemmaTooltipMW = function () {
 
 };
 
-
+//need to write an equivalent for multiword_recording to update mw_tooltips
 const lemmaRecordTooltipUpdate = function (current_words) {
   current_words.forEach(current_word => {
     let current_lemma_tt = current_word.querySelector('.lemma_tt');
@@ -1772,9 +1775,13 @@ window.addEventListener("keyup", event1 => {
   }
 });
 
-const underlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px solid rgb(0, 255, 186)";})); };
+const underlineMultiwords = function (event) {
+  (document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px solid rgb(0, 255, 186)";})); 
+};
 
-const removeUnderlineMultiwords = function (event) {(document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px dotted rgb(0, 255, 186, 0.5)";})); };
+const removeUnderlineMultiwords = function (event) {
+  (document.querySelectorAll('[data-multiword="'+event.target.dataset.multiword+'"]').forEach(multiword =>  {multiword.style.borderBottom = "2px dotted rgb(0, 255, 186, 0.5)";})); 
+};
 
 document.querySelectorAll('.multiword').forEach(multiword => {
   //multiword.onclick = showMultiwordAnnotate;
@@ -1789,7 +1796,7 @@ const ttPosition = function () {
   const viewport_width = window.visualViewport.width;
   if(viewport_width > 768) return;
 
-  const tooltips = document.body.querySelectorAll(".lemma_tt");
+  const tooltips = document.body.querySelectorAll(".lemma_tt, .mw_tt");
   
   tooltips.forEach(tooltip => {
 

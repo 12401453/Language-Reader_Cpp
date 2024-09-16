@@ -357,7 +357,6 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
   
   
 .tooltip .lemma_tt, .tooltip_selected .lemma_tt, .tooltip .mw_tt, .tooltip_selected .mw_tt {
-
     visibility: hidden;
     /* width: 170px; */
     min-width: 170px;
@@ -381,9 +380,7 @@ border-bottom: 2px solid rgb(23, 33, 54, 0);
     align-items: stretch;
     flex-grow: 0;
     cursor: default;
-
     word-break: break-word;
-  
   }
 
   #tt_top {
