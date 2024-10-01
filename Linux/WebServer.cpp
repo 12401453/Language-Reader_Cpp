@@ -3012,7 +3012,6 @@ bool WebServer::recordMultiwordOld(std::string _POST[8], int clientSocket) {
     }
 }
 
-//currently broken
 bool WebServer::recordMultiword(std::string _POST[8], int clientSocket) {
     sqlite3* DB;
 

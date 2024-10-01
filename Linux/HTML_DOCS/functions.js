@@ -1033,6 +1033,47 @@ const lemmaRecordTooltipUpdate = function (current_words) {
   httpRequest("POST", "lemma_tooltip.php");
 };
 
+const singleTooltipUpdate = function (single_word) {
+  
+  if(!single_word.classList.contains('lemma_set_unexplicit')) return;
+
+  let current_lemma_tt = single_word.querySelector('.lemma_tt');
+  if(current_lemma_tt != null) {
+    current_lemma_tt.remove();
+  }
+
+  let single_tokno = single_word.dataset.tokno;
+  let single_word_eng_id = single_word.dataset.word_engine_id;
+
+  const httpRequest = (method, url) => {
+
+    // let send_data = toknos_POST_data;
+    let send_data = "toknos=" + single_tokno + "&word_eng_ids=" + single_word_eng_id;
+    const xhttp = new XMLHttpRequest();
+    xhttp.open(method, url, true);
+    xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhttp.responseType = 'json';
+
+    xhttp.onload = () => {
+      if (xhttp.readyState == 4) {
+        tooltips_shown = true;
+        const json_lemma_transes = xhttp.response;
+       // console.log(json_lemma_transes);
+        if (json_lemma_transes == null) {
+          return;
+        }
+        let i = 0;
+        const json_pos = Number(json_lemma_transes[i].pos);
+        let lemma_tt_box = '<span class="lemma_tt" onclick="event.stopPropagation()"><span id="tt_top"><div class="lemma_tag_tt">' + json_lemma_transes[i].lemma_form + '</div><span id="pos_tag_box_tt">' + tt_pos_arr[json_pos] + '</span></span><span id="tt_mid"><div id="tt_meaning">' + json_lemma_transes[i].lemma_trans + '</div></span><span id="tt_bottom"></span></span>';
+        single_word.innerHTML = single_word.innerHTML + lemma_tt_box;
+      }
+
+    }
+    xhttp.send(send_data);
+  };
+  httpRequest("POST", "lemma_tooltip.php");
+};
+
 
 let pos = 1;
 let lemma_form_tag_initial = "";
@@ -1151,6 +1192,32 @@ const fetchLemmaData = function (box_present = true) {
   httpRequest("POST", "retrieve_engword.php");
 };
 
+const htmlSpecialChars = (unescaped) => {
+  let escaped = "";
+  for(const c of unescaped) {
+    switch(c) {
+      case '<':
+          escaped += "&lt;";
+          break;
+      case '>':
+          escaped += "&gt;";
+          break;
+      case '"':
+          escaped += "&quot;";
+          break;
+      case '\'':
+          escaped += "&#039;";
+          break;
+      case '&':
+          escaped += "&amp;";
+          break;
+      default:
+        escaped += c;
+    }
+  }
+  return escaped;
+};
+
 const recordMultiword = function () {
   if(document.getElementById("lemma_textarea").value.trim() != "" || multiword_meanings[multiword_meaning_no] != undefined) {
     multiword_meanings[multiword_meaning_no] = document.getElementById("lemma_textarea").value.trim();
@@ -1165,6 +1232,8 @@ const recordMultiword = function () {
   if(mw_meaning == undefined) {
     mw_meaning = "";
   }
+  const tt_mw_lemma_form = htmlSpecialChars(document.getElementById('lemma_tag').value.trim());
+  const tt_mw_meaning = htmlSpecialChars(mw_meaning);
 
   const httpRequest = (method, url) => {
 
@@ -1198,7 +1267,8 @@ const recordMultiword = function () {
         }
 
         let dataselectorstring = '[data-multiword="' + prev_mw_count + '"]';
-        document.querySelectorAll(dataselectorstring).forEach(prev_mw => {
+        const prev_multiwords = document.querySelectorAll(dataselectorstring);
+        prev_multiwords.forEach(prev_mw => {
           prev_mw.removeAttribute('data-multiword');
           prev_mw.classList.remove("multiword");
         });
@@ -1210,14 +1280,20 @@ const recordMultiword = function () {
         console.log("mw_meanings_lengths: ", mw_meanings_length); //remove
         console.log("count: ", count); //remove
 
-        document.querySelectorAll(`[data-multiword="${new_mw_count}"`).forEach(multiword => {
+        const new_multiwords = document.querySelectorAll(`[data-multiword="${new_mw_count}"`);
+        new_multiwords.forEach(multiword => {
           multiword.addEventListener('click', showMultiwordAnnotate);
           multiword.addEventListener('mouseover', underlineMultiwords);
           multiword.addEventListener('mouseout', removeUnderlineMultiwords);
         });
-        /*if(tooltips_shown == true) {
-          //lemmaRecordTooltipUpdate(current_words);
-        } */
+        if(tooltips_shown == true) {
+          if(prev_multiwords[0] != undefined) prev_multiwords[0].querySelector('.mw_tt').remove();
+          
+          let mw_tt_box = '<span class="mw_tt" data-mw_active="1" onclick="event.stopPropagation()">'
+          mw_tt_box += '<span id="tt_top"><div class="lemma_tag_tt">'+tt_mw_lemma_form+'</div><span id="pos_tag_box_tt">'+tt_pos_arr[pos]+'</span></span><span id="tt_mid"><div id="tt_meaning">'+tt_mw_meaning+'</div></span><span id="tt_bottom"></span></span>';
+
+          new_multiwords[0].innerHTML = new_multiwords[0].innerHTML + mw_tt_box;
+        }
         delAnnotate();
       }
     }
@@ -1229,7 +1305,7 @@ const recordMultiword = function () {
 
 const updateMultiwordTranslations = (new_mw_id, mw_meaning_no, eng_trans) => {
   const httpRequest = (method, url) => {
-    let send_data = "multiword_id="+new_mw_id + "&multiword_meaning_no="+mw_meaning_no + "&mw_meaning="+eng_trans;
+    let send_data = "multiword_id="+new_mw_id + "&multiword_meaning_no="+mw_meaning_no + "&mw_meaning="+encodeURIComponent(eng_trans);
     const xhttp = new XMLHttpRequest();
     xhttp.open(method, url, true);
     xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
@@ -1259,12 +1335,17 @@ const deleteMultiword = function () {
         delAnnotate();
 
         let dataselectorstring = '[data-multiword="' + prev_mw_count + '"]';
-        document.querySelectorAll(dataselectorstring).forEach(prev_mw => {
+        const prev_multiwords = document.querySelectorAll(dataselectorstring);
+        prev_multiwords.forEach(prev_mw => {
           prev_mw.removeAttribute('data-multiword');
           prev_mw.classList.remove("multiword");
           //prev_mw.onclick = showAnnotate;
           prev_mw.removeEventListener('click', showMultiwordAnnotate);
         });
+        if(tooltips_shown && prev_multiwords[0] != undefined) {
+          prev_multiwords[0].querySelector('.mw_tt').remove();
+          singleTooltipUpdate(prev_multiwords[0]);
+        }
 
       }
     }
