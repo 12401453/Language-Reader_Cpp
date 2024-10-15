@@ -44,6 +44,11 @@ class Dictionary {
                     return response.json();
                 })
                 .then(response => this.OE_glossary = response);
+                break;
+            case 11: 
+                this.dict_type = 2;
+                this.lang_name = "Latin";
+                break;
         }
         this.PONS_german = this.m_lang_id == 5 ? false : true;
     }
@@ -139,6 +144,7 @@ class Dictionary {
         7: [1,2],
         8: [1,2,7,5],
         10: [6,2],
+        11: [2],
     };
 
     display() {
@@ -822,6 +828,7 @@ class Dictionary {
 
             let pos_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             let pos_index = 0;
+            let headword_count = 0;
             while (el && langFlag) {
 
                 if (el.className != "mw-heading mw-heading2") {
@@ -852,15 +859,35 @@ class Dictionary {
                     
                     }
 
+                    let headword = "";
+                    
+                    /*if(el.nodeName == "P") {
+                        const headword_line = el.querySelector(".headword-line");
+                        if(headword_line != null) {
+                            headword = headword_line.querySelector(".headword").textContent.trim();
+                            console.log("Headword is: ", headword);
+                        }     
+                    } */
+                    
                     if (el.nodeName == "OL") {
+                        
+                        const headword_elems = el.parentNode.querySelectorAll("p > .headword-line > .headword");
+                        if(headword_elems[headword_count] != null) {
+                            headword = headword_elems[headword_count].textContent;
+                        }
+
                         let definition_array = new Array();
 
                         let el1 = el.firstElementChild;
+                        definition_array.push(headword);
+                        headword = "";
+                        headword_count++; //this bullshit is necessary because the headword elements are not subordinated within each entry, it's a very flat structure with everything adjacent to everything else
                         while (el1 != null) {
                             let def = "";
 
                             el1.childNodes.forEach(node => {
-                                if (node.nodeName == 'DL' || node.className == "nyms-toggle" || node.nodeName == 'UL' || node.className == "HQToggle" || node.nodeName == 'OL') { ; }
+                                //this is bad because it is using a blacklist rather than a whitelist;
+                                if (node.nodeName == 'DL' || node.className == "nyms-toggle" || node.nodeName == 'UL' || node.className == "HQToggle" || node.nodeName == 'OL' || node.nodeName == "STYLE") { ; }
                                 else if (node.className == "use-with-mention") {
                                     def += "[" + node.textContent + "]";
                                 }
@@ -896,10 +923,15 @@ class Dictionary {
         dict_body.innerHTML = "";
         dict_body.style.display = "flex";
         for(let pos in this.dict_result_Wk) {
-            dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+pos+'</div></div>'));
-            this.dict_result_Wk[pos].forEach(def => {
+            dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">'+this.dict_result_Wk[pos][0]+'</span> <span class="wiki_pos">['+pos+']</span></div></div>'));
+            
+            /*this.dict_result_Wk[pos].forEach(def => {
                 dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+def+'</div></div>'));
-            });
+            });*/
+            const wk_result_array = this.dict_result_Wk[pos];
+            for(let i = 1; i < wk_result_array.length; i++) {
+                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+wk_result_array[i]+'</div></div>'));
+            }
         }
     }
 

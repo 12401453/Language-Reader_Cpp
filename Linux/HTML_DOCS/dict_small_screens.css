@@ -179,6 +179,10 @@
     border-left: 2px solid black;
     border-right: 2px solid black;
 }
+.wiki_pos {
+    font-size: 8px;
+    font-weight: normal;
+}
 .PONS_title_info {
     font-weight: normal;
     color: rgb(230, 230, 230);
