@@ -89,6 +89,9 @@ class Dictionary {
             if(this.m_lang_id == 10) {
                 word = this.wiktionariseOldEnglish(word);
             }
+            if(this.m_lang_id == 11) {
+                word = this.wiktionariseLatin(word);
+            }
             return "https://en.wiktionary.org/wiki/" + encodeURIComponent(word);
         }
         else if(dict_type == 3) {
@@ -275,6 +278,9 @@ class Dictionary {
 
     wiktionariseOldEnglish = (OE_string) => {
         return OE_string.replaceAll('ð', 'þ').replaceAll('ǣ', 'æ').replaceAll('ā', 'a').replaceAll('ē', 'e').replaceAll('ī', 'i').replaceAll('ȳ', 'y').replaceAll('ō', 'o').replaceAll('ū', 'u').replaceAll('ƿ', 'w').replaceAll('ᵹ', 'g').replaceAll('ċ', 'c').replaceAll('ġ', 'g');
+    };
+    wiktionariseLatin = (Latin_string) => {
+        return Latin_string.replaceAll('ā', 'a').replaceAll('ē', 'e').replaceAll('ī', 'i').replaceAll('ȳ', 'y').replaceAll('ō', 'o').replaceAll('ū', 'u');
     };
 
     /* Dict-type codes:
@@ -829,6 +835,29 @@ class Dictionary {
             let pos_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             let pos_index = 0;
             let headword_count = 0;
+
+            let headwords_arr = new Array();
+            let headword = "";
+            let next_sibling = el.nextElementSibling;
+            while(next_sibling != null) {
+                if(next_sibling.nodeName == "P") {
+                    const headword_elem = next_sibling.querySelector(".headword-line > .headword");
+                    
+                    if(headword_elem != null) {
+                        headword = headword_elem.textContent;
+                        headwords_arr.push(headword);
+                        headword = "";
+                    }
+                    
+                }
+                if(next_sibling.className == "mw-heading mw-heading2") {
+                    console.log("reached next language");
+                    break;
+                }
+                next_sibling=next_sibling.nextElementSibling;
+            }
+            console.log(headwords_arr);
+
             while (el && langFlag) {
 
                 if (el.className != "mw-heading mw-heading2") {
@@ -858,30 +887,14 @@ class Dictionary {
                         else if (pos.includes("Noun")) pos_index = 19; */
                     
                     }
-
-                    let headword = "";
-                    
-                    /*if(el.nodeName == "P") {
-                        const headword_line = el.querySelector(".headword-line");
-                        if(headword_line != null) {
-                            headword = headword_line.querySelector(".headword").textContent.trim();
-                            console.log("Headword is: ", headword);
-                        }     
-                    } */
-                    
+                                        
                     if (el.nodeName == "OL") {
                         
-                        const headword_elems = el.parentNode.querySelectorAll("p > .headword-line > .headword");
-                        if(headword_elems[headword_count] != null) {
-                            headword = headword_elems[headword_count].textContent;
-                        }
-
                         let definition_array = new Array();
 
                         let el1 = el.firstElementChild;
-                        definition_array.push(headword);
-                        headword = "";
-                        headword_count++; //this bullshit is necessary because the headword elements are not subordinated within each entry, it's a very flat structure with everything adjacent to everything else
+                        definition_array.push(headwords_arr[headword_count]);
+                        headword_count++
                         while (el1 != null) {
                             let def = "";
 
