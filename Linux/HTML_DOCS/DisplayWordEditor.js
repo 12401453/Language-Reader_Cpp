@@ -285,6 +285,7 @@ class DisplayWordEditor {
 
   makeLocale = () => {
     if(lang_id == 7) return "tr";
+    else if(lang_id == 12) return "az";
     else return "en-US";
   };
 

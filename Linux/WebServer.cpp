@@ -924,6 +924,9 @@ bool WebServer::addText(std::string _POST[3], int clientSocket) {
                     if(lang_id == 7) {
                         tb_copy.toLower(icu::Locale("tr", "TR"));
                     }
+                    else if(lang_id == 12) {
+                        tb_copy.toLower(icu::Locale("az", "AZ"));
+                    }
                     else{
                         tb_copy.toLower();
                     }

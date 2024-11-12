@@ -49,6 +49,9 @@ class Dictionary {
                 this.dict_type = 2;
                 this.lang_name = "Latin";
                 break;
+            case 12:
+                this.dict_type = 2;
+                this.lang_name = "Azerbaijani";
         }
         this.PONS_german = this.m_lang_id == 5 ? false : true;
     }
@@ -148,6 +151,7 @@ class Dictionary {
         8: [1,2,7,5],
         10: [6,2],
         11: [2],
+        12: [2],
     };
 
     display() {
