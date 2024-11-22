@@ -1710,6 +1710,9 @@ const displayAnnotBox = function () {
   if(lang_id == 10) {
     annot_box.getElementById("lemma_tag").addEventListener('beforeinput', oldEnglishInput);
   }
+  else if(lang_id == 11) {
+    annot_box.getElementById("lemma_tag").addEventListener('beforeinput', latinInput);
+  }
   if(display_word.dataset.multiword !== undefined) {
     annot_box.getElementById("edit_button").style.visibility = "hidden";
   }
@@ -2080,6 +2083,56 @@ const oldEnglishInput = (event) => {
 			digraph(last_letter, 'Ġ', 'ġ', textarea);
 		}
 	}
+  setLemmaTagSize();
+};
+
+const latinInput = (event) => {
+
+	const key_pressed = event.data;
+	const textarea = event.target;
+	const selection_start = textarea.selectionStart;
+	const selection_end = textarea.selectionEnd;
+
+	const digraph = (base_letter, replacement_upper, replacement_lower, input_element) => {
+		event.preventDefault();
+		const replacement = (base_letter == base_letter.toUpperCase()) ? replacement_upper : replacement_lower;
+		input_element.value = input_element.value.slice(0, selection_start - 1) + replacement + textarea.value.slice(selection_end);
+		textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+	};
+
+  if(key_pressed == ":") {
+    let long_vowel = '';
+		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
+		const upper_case = (last_letter == last_letter.toUpperCase());
+		switch(last_letter.toLowerCase()) {
+			case 'a':
+				long_vowel = 'ā';
+				break;
+			case 'e':
+				long_vowel = 'ē';
+				break;
+			case 'i':
+				long_vowel = 'ī';
+				break;
+			case 'u':
+				long_vowel = 'ū';
+				break;
+			case 'o':
+				long_vowel = 'ō';
+				break;
+			case 'y':
+				long_vowel = 'ȳ';
+				break;
+			default:
+				;		
+		}
+		if(long_vowel != '') {
+			event.preventDefault();
+			if(upper_case) long_vowel = long_vowel.toUpperCase();
+			textarea.value = textarea.value.slice(0, selection_start - 1) + long_vowel + textarea.value.slice(selection_end);
+			textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+		}
+  }
   setLemmaTagSize();
 };
 
