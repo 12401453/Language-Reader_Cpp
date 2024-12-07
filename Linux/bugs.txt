@@ -12,3 +12,9 @@
 11.) Wiktionary parser has an unignored element that shows up in the scraped text, occurs with Russian опираться
 
 12.) It's very rarely possible for an undefined value to appear in the sozdik.kz dictionary-result but I can't remember which word triggers it
+
+13.) when you click on a multiword-lemmatised word and then switch to the single lemma-translation interface-box, the underlining for that word disappears until you rehover over it again or close the interface
+
+14.) on laptops it seems that you can get double multiword+lemma tooltip bug when you newly annotate a multiword which already has a lemma tooltip displayed, but I cant recreate it easily so Im not sure of the cause
+
+15.) There should really be an indexes on lemma_id and word_engine_id columns on display_text table, because 60ms to delete a lemma on desktop PC is not good enough

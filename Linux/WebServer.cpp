@@ -2481,7 +2481,7 @@ bool WebServer::clearTable(int clientSocket) {
         sqlite3_step(statement);
         sqlite3_finalize(statement);
 
-        const char* sql_text = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_meaning_no INTEGER, lemma_id INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER, multiword_count INTEGER);CREATE INDEX mw_count_index ON display_text(multiword_count) WHERE multiword_count IS NOT NULL;CREATE INDEX lemma_id_index ON display_text(lemma_id) WHERE lemma_id IS NOT NULL";
+        const char* sql_text = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_meaning_no INTEGER, lemma_id INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER, multiword_count INTEGER);CREATE INDEX mw_count_index ON display_text(multiword_count) WHERE multiword_count IS NOT NULL;CREATE INDEX lemma_id_index ON display_text(lemma_id) WHERE lemma_id IS NOT NULL;CREATE INDEX word_engine_id_index ON display_text(word_engine_id) WHERE word_engine_id IS NOT NULL";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
         sql_text = "DROP TABLE IF EXISTS word_engine;CREATE TABLE word_engine (word_engine_id INTEGER PRIMARY KEY, word TEXT, lang_id INTEGER, first_lemma_id INTEGER, UNIQUE(word, lang_id))";
