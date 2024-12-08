@@ -1,4 +1,4 @@
-1.) Updating a lemma-meaning does not change the tooltip for other different-formed versions of that lemma in the same text (need to change updateLemmaTooltip() to look for same lemma_ids, which is not really possible without more database lookups because I purposefully do not store lemma_id's as data-attributes in the HTML)
+1.) Updating a lemma-meaning does not change the tooltip for other different-formed versions of that lemma in the same text (need to change updateLemmaTooltip() to look for same lemma_ids, which is not really possible without more database lookups because I purposefully do not store lemma_id's as data-attributes in the HTML) (also applies to multiword-tooltips)
 
 3.) the multiword-annotation is blocked by fullstops in the writing of Danish dates ("19. juli"), which might indicate that a better approach would be a dumb 50-words either side rather than also blocking on Unicode sentence-boundaries.
 
@@ -15,6 +15,6 @@
 
 13.) when you click on a multiword-lemmatised word and then switch to the single lemma-translation interface-box, the underlining for that word disappears until you rehover over it again or close the interface
 
-14.) on laptops it seems that you can get double multiword+lemma tooltip bug when you newly annotate a multiword which already has a lemma tooltip displayed, but I cant recreate it easily so Im not sure of the cause
+14.) the MW double-tooltip bug has been fixed, but if you add a single-lemma annotation to the first word of an existing multiword-annotation then it gets rid of the MW tooltip in favour of the new single-lemma tooltip, which is not really the correct behaviour
 
 15.) There should really be an indexes on lemma_id and word_engine_id columns on display_text table, because 60ms to delete a lemma on desktop PC is not good enough

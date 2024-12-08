@@ -806,7 +806,7 @@ const lemmaDelete = function () {
         delAnnotate();
 
         if(tooltips_shown) {
-          lemmaTooltip();
+          lemmaTooltipMW();
         }
       }
     }
@@ -1288,6 +1288,11 @@ const recordMultiword = function () {
         });
         if(tooltips_shown == true) {
           if(prev_multiwords[0] != undefined) prev_multiwords[0].querySelector('.mw_tt').remove();
+          //check whether the first word of the new mw-annotation already has a lemma_tt annotation present and get rid of it if so
+          const new_mw_first_elem_children = new_multiwords[0].children;
+          if(new_mw_first_elem_children.length > 0) {
+            if(new_mw_first_elem_children[0].classList.contains("lemma_tt")) new_mw_first_elem_children[0].remove();
+          }
           
           let mw_tt_box = '<span class="mw_tt" data-mw_active="1" onclick="event.stopPropagation()">'
           mw_tt_box += '<span id="tt_top"><div class="lemma_tag_tt">'+tt_mw_lemma_form+'</div><span id="pos_tag_box_tt">'+tt_pos_arr[pos]+'</span></span><span id="tt_mid"><div id="tt_meaning">'+tt_mw_meaning+'</div></span><span id="tt_bottom"></span></span>';
