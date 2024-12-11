@@ -17,35 +17,47 @@ function tt_type() {
 let lang_id = 0;
 let dict = Object.create(null);
 function setLangId() {
-  let textselect_value = document.getElementById('textselect').value;
-  let post_data = "textselect=" + textselect_value;
-  const httpRequest = (method, url) => {
+  // let textselect_value = document.getElementById('textselect').value;
+  // let post_data = "textselect=" + textselect_value;
+  // const httpRequest = (method, url) => {
 
-    const xhttp = new XMLHttpRequest();
-    xhttp.open(method, url, true);
-    xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhttp.setRequestHeader('Cache-Control', 'no-cache');
+  //   const xhttp = new XMLHttpRequest();
+  //   xhttp.open(method, url, true);
+  //   xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  //   xhttp.setRequestHeader('Cache-Control', 'no-cache');
 
-    xhttp.onreadystatechange = () => {
+  //   xhttp.onreadystatechange = () => {
 
-      if (xhttp.readyState == 4) {
-        lang_id = Number(xhttp.responseText);
-        //setWkLangName();
-        console.log(lang_id);
-        if(dict.bool_displayed == true) dict.remove();
-        dict = new Dictionary();
-        dict.display();
-      }
+  //     if (xhttp.readyState == 4) {
+  //       lang_id = Number(xhttp.responseText);
+  //       //setWkLangName();
+  //       console.log(lang_id);
+  //       if(dict.bool_displayed == true) dict.remove();
+  //       dict = new Dictionary();
+  //       dict.display();
+  //     }
 
-    }
+  //   }
 
-    xhttp.send(post_data);
+  //   xhttp.send(post_data);
 
-  }
+  // }
 
-  httpRequest("POST", "get_lang_id.php");
+  // httpRequest("POST", "get_lang_id.php");
+  const textSelect = document.getElementById('textselect');
+  const selected_index = textSelect.selectedIndex;
 
+  lang_id = Number(textSelect.options[selected_index].dataset.lang_id);
+  console.log(lang_id);
+  if(dict.bool_displayed == true) dict.remove();
+  dict = new Dictionary();
+  dict.display();
 }
+
+let page_toknos_arr = [];
+let current_pageno = 1;
+let dt_end = 0;
+
 
 function selectText() {
   if(displayWordEditor.edit_mode) {
@@ -70,19 +82,26 @@ function selectText() {
       const xhttp = new XMLHttpRequest();
       xhttp.open(method, url, true);
       xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      xhttp.responseType = 'json';
 
       xhttp.onreadystatechange = () => {
       
          
     
         if(xhttp.readyState == 4) {
-          para1.innerHTML = xhttp.responseText;
+          // para1.innerHTML = xhttp.responseText;
+          //console.log(xhttp.response);
+          para1.innerHTML = xhttp.response["html"];
+          page_toknos_arr = xhttp.response["pagenos"];
+          dt_end = xhttp.response["dt_end"];
+
+          current_pageno = 1;
+
+          if(page_toknos_arr.length > 0) {
+            document.getElementById("pagenos").addEventListener('click', selectText_splitup);
+            document.getElementById("pagenos").addEventListener('keydown', selectText_splitup);
+          }
          
-          /*
-          let tt_btns = document.querySelectorAll('.tooltip');
-          tt_btns.forEach(tt_btn => {
-            tt_btn.onclick = showAnnotate;
-          }); */
           document.getElementById("textbody").addEventListener('click', showAnnotate);
 
           document.querySelectorAll('.multiword').forEach(mw => {
@@ -120,24 +139,51 @@ const removeLoadingButton = () => {
   document.getElementById("loadingbutton").remove();
 };
 
-function selectText_splitup(dt_start, dt_end, page_cur) {
+const selectText_splitup = (event) => {
+  let new_pageno = 1;
+  const pageno_box = document.getElementById("pageno_box");
+  if(event.type == "keydown" && event.target.id == "pageno_box") {
+    if(event.key == "Enter") {
+      event.preventDefault();
+      new_pageno = Math.floor(Number(event.target.value));
+      if(Number.isNaN(new_pageno)) {
+        pageno_box.value = current_pageno;
+        return;
+      }
+      if(new_pageno < 1) new_pageno = 1;
+      else if(new_pageno > page_toknos_arr.length) new_pageno = page_toknos_arr.length;
+      pageno_box.value = new_pageno;
+      pageno_box.blur();
+    }
+    else return;
+  }
+  else if(event.type == "click") {
+    if(event.target.id == "pageno_leftarrow" && current_pageno > 1) {
+      new_pageno = current_pageno - 1;
+      pageno_box.value = new_pageno;   
+    }
+    else if(event.target.id == "pageno_rightarrow" && current_pageno < page_toknos_arr.length) {
+      new_pageno = current_pageno + 1;
+      pageno_box.value = new_pageno;   
+    }
+    else return;
+  }
+  if(new_pageno == current_pageno) return;
+
   if(displayWordEditor.edit_mode) {
     displayWordEditor.stopEditing();
   }
   if(display_word != null) delAnnotate();
-
-  let highlight_pagenos = document.querySelectorAll('.current_pageno');
-  highlight_pagenos.forEach(highlighted_pageno => {
-    highlighted_pageno.classList.remove("current_pageno");
-  });
 
   let loadingbutton = document.createElement('div');
   loadingbutton.innerHTML = "Loading...";
   loadingbutton.id = 'loadingbutton';
   document.getElementById('spoofspan').after(loadingbutton);
 
+  const dt_start = page_toknos_arr[new_pageno - 1];
+
   let textselect_value = document.getElementById('textselect').value;
-  let post_data = "dt_start="+dt_start+"&dt_end="+dt_end+"&page_cur="+page_cur;
+  let post_data = "dt_start="+dt_start+"&dt_end="+dt_end+"&page_cur="+new_pageno;
   console.log(post_data);
   const httpRequest = (method, url) => {
 
@@ -173,16 +219,11 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
             lemmaTooltipMW();
           }
           loadingbutton.remove();
-          if(page_cur > 1) {
+          if(new_pageno > current_pageno) {
             let title = document.getElementById("title");
             title.scrollIntoView();
           }
-          let pagenos = document.querySelectorAll('.pageno');
-          pagenos.forEach(pageno => {
-            if(Number(pageno.innerHTML) == page_cur) {
-              pageno.classList.add("current_pageno");
-            }
-          });
+          current_pageno = new_pageno;
         }
      
       }
@@ -192,9 +233,7 @@ function selectText_splitup(dt_start, dt_end, page_cur) {
 }
 
   httpRequest("POST", "retrieve_text_splitup.php");
-  
- 
-}
+};
 
 /*
 const highlightPageno = function (event) {

@@ -255,12 +255,22 @@ a {
 
 }
 
+#pageno_footer {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+}
 #pagenos {
   display: flex;
-  justify-content: space-around;
-  width: 100%;
-  font-family: Calibri;
-  font-size: 18px;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  height: fit-content;
+  width: fit-content;
+  min-height: 13px;
+  /* min-width: 155px; */
+  border-radius: 6px;
+  background-color: #040a16;
+  border: 1px solid black;
 }
 
 .pageno {
@@ -272,6 +282,85 @@ a {
 .current_pageno {
   color: rgb(0 255 186);
   border-bottom: 2px solid rgb(0 255 186);
+}
+
+.pageno_text {
+  height: 30px;
+  width: 52px;
+  padding: 3px;
+  outline: none;
+  overflow: hidden;
+  text-align: center;
+  resize: none;
+  border: 1px solid #040a16;
+  box-sizing: border-box;
+  color: #cbd9f4a6;
+  font-family: Bookerly;
+  font-size: 16px;
+  background-color: #071022;
+  user-select: none;
+}
+#pageno_box {
+  width: 52px;
+  height: 30px;
+  text-align: center;
+  padding: 3px;
+  outline: none;
+  overflow: hidden;
+  resize: none;
+  border: 1px solid #040a16;
+  box-sizing: border-box;
+
+  color: #cbd9f4;
+  font-family: Bookerly;
+  font-size: 16px;
+  background-color:#071022;
+}
+#pageno_box:focus {
+  border: 1px solid black;
+  background-color: black;
+}
+#pageno_leftarrow {
+  border-right: 1px solid black;
+  width: 26px;
+
+  border-top-left-radius: 5px; /* 1px less than the parent box because of the border */
+  border-bottom-left-radius: 5px;
+
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  font-weight: 900;
+}
+#pageno_rightarrow {
+  border-left: 1px solid black;
+  width: 26px;
+
+  border-top-right-radius: 5px; /* 1px less than the parent box because of the border */
+  border-bottom-right-radius: 5px;
+
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  font-weight: 900;
+}
+.nav_arrow {
+  cursor: default;
+  color: grey;
+  font-family: Liberation_Serif;
+  user-select: none;
+}
+.nav_arrow:hover {
+  background-color:#172136;
+  color: white;
+}
+
+.nav_arrow_deactiv {
+  cursor: default;
+  color: grey;
+  font-family: Liberation_Serif;
 }
 
 /*-------------------------tooltip_prevs.css----------------------------*/

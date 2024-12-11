@@ -274,7 +274,15 @@ int WebServer::checkHeaderEnd(const char* msg) {
             else if(page_type == 1 && line.find("<?cky") != -1) ss_text << "<br><br><div id=\"textbody\"></div>\n";
             
             //For some reason I do not understand, if you insert a <script> tag to declare the below JS variable outside of the script tag at the bottom, on Chrome Android the server very often will get stuck for absolutely ages on loading the Bookerly font file when you refresh the page, and the javascript engine will freeze for about 5-10seconds, but this never happens on Desktop. Thus I've had to make up another bullshit <?js tag to signal where to insert this C++-generated JS, and the only reason I'm inserting it server-side is because JS string functions are absolute dogshit and compared to my C-string parsing of the cookie text, doing it on the client by parsing the document.cookie string is ungodlily inefficient
-            else if(page_type == 1 && cookies_present && line.find("<?js") != -1) ss_text << "let cookie_textselect = " + m_cookies[0] + ";\n";
+            else if(page_type == 1 && cookies_present && line.find("<?js") != -1) {
+                ss_text << "let cookie_textselect = " << m_cookies[0] << ";\n";
+                ss_text << "page_toknos_arr = " << m_page_toknos_arr << ";\n";
+                ss_text << "if(page_toknos_arr.length > 0) {document.getElementById('pagenos').addEventListener('click', selectText_splitup);\ndocument.getElementById('pagenos').addEventListener('keydown', selectText_splitup);}\n";
+                ss_text << "dt_end = " << m_dt_end << ";\n";
+                ss_text << "current_pageno = " << m_cookies[1] << ";\n";
+            }
+
+
             else if(page_type == 1 && line.find("<?js") != -1) ss_text << "let cookie_textselect = 0;\n";
 
             else if(page_type > 1 && line.find("<?lng") != -1) insertLangSelect(ss_text);
@@ -302,22 +310,24 @@ void WebServer::insertTextSelect(std::ostringstream &html) {
         int prep_code, run_code;
         const char *sql_text;
 
-        sql_text = "SELECT text_id, text_title FROM texts";
+        sql_text = "SELECT text_id, text_title, lang_id FROM texts";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
 
         int text_id = 0;
         const char* text_title;
+        int lang_id = 0;
         //std::string text_title_str;
 
         while(sqlite3_step(statement) == SQLITE_ROW) {
             text_id = sqlite3_column_int(statement, 0);
             text_title = (const char*)sqlite3_column_text(statement, 1);
+            lang_id = sqlite3_column_int(statement, 2);
 
             //icu::UnicodeString unicode_text_title = text_title;
             //unicode_text_title.findAndReplace("¬", "\'");
             //unicode_text_title.toUTF8String(text_title_str);
 
-            html << "<option value=\"" << text_id << "\">" << text_title << "</option>\n";
+            html << "<option value=\"" << text_id << "\" data-lang_id=\"" << lang_id <<  "\">" << text_title << "</option>\n";
             //text_title_str = "";
         }
 
@@ -1244,21 +1254,25 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
     std::cout << text_id_int << std::endl;
 
     if(text_id_int == 0) {
-       std::ostringstream html;
-       html << "<br><br><div id=\"textbody\"></div>";
+        std::ostringstream html;
+        html << "<br><br><div id=\"textbody\"></div>";
 
-       std::string content_str = html.str();
-       int content_length = content_str.size();
+        std::stringstream json_response_ss;
+        json_response_ss << "{ \"html\": \"" << escapeQuotes(html.str()) << "\", \"pagenos\": []" << ", \"dt_end\": " << 0 << "}";
+        std::string json_response = json_response_ss.str();
+        
 
-       std::ostringstream post_response_ss;
-       post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length;
-       post_response_ss << "\r\n" << "Set-Cookie: text_id=0; Max-Age=157680000";
-       post_response_ss << "\r\nSet-Cookie: current_pageno=1; Max-Age=157680000";
-       post_response_ss << "\r\n\r\n" << content_str;
-       int length = post_response_ss.str().size() + 1;
-       sendToClient(clientSocket, post_response_ss.str().c_str(), length);
-       std::cout << "Sent text to client" << std::endl;
-       return true;
+        int content_length = json_response.size();
+
+        std::ostringstream post_response_ss;
+        post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length;
+        post_response_ss << "\r\n" << "Set-Cookie: text_id=0; Max-Age=157680000";
+        post_response_ss << "\r\nSet-Cookie: current_pageno=1; Max-Age=157680000";
+        post_response_ss << "\r\n\r\n" << json_response;
+        int length = post_response_ss.str().size() + 1;
+        sendToClient(clientSocket, post_response_ss.str().c_str(), length);
+        std::cout << "Sent text to client" << std::endl;
+        return true;
     }
 
     UErrorCode status = U_ZERO_ERROR;
@@ -1397,9 +1411,10 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
     sqlite3_finalize(statement);
     html << "</div>";
     
-
+    std::stringstream page_toknos_arr;
+    page_toknos_arr << "[";
     if(chunk_total > words_per_page) {
-        html << "<br><br><div id=\"pagenos\">";
+        html << "<br><br><div id='pageno_footer'><div id=\"pagenos\">";
 
         chunk_count = 1;
         int pagenos = (int)ceil(chunk_total/words_per_page);
@@ -1419,7 +1434,7 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
           
             tokno = sqlite3_column_int64(statement, 0);
             
-            if(chunk_count % 750 == 0) {
+            if(chunk_count % (int)words_per_page == 0) {
                 page_toknos[arr_index] = tokno + 1;
                 std::cout << "arr_index: " << arr_index << std::endl;
                 std::cout << "chunk_count: " << chunk_count << std::endl;
@@ -1430,29 +1445,41 @@ bool WebServer::retrieveText(std::string text_id[1], int clientSocket) {
         }
         
         sqlite3_finalize(statement);
+        html << "<div id=\"pageno_leftarrow\" class=\"nav_arrow\">&lt;</div>";
+        html << "<textarea id=\"pageno_box\" spellcheck=\"false\" autocomplete=\"off\">";
+        html << "1";
+        html << "</textarea>";
+        html << "<div class=\"pageno_text\" style=\"width: 40px;\">of</div>";
+        html << "<div class=\"pageno_text\">" << pagenos << "</div>";
+        
+        html << "<div id=\"pageno_rightarrow\" class=\"nav_arrow\">&gt;</div>"; 
 
         for(int i = 0; i < pagenos; i++) {
-            std::cout << "Page " << i + 1 << " starting tokno: " << page_toknos[i] << std::endl;
-            html << "<span class=\"pageno";
-            if(i == 0) html << " current_pageno";
-            html << "\" onclick=\"selectText_splitup("<< page_toknos[i] << ", " << dt_end << ", " << i + 1 << ")\">" << i + 1 << "</span>";
+            page_toknos_arr << page_toknos[i] << ",";
         }
-        html << "</div>";
+        page_toknos_arr.seekp(-1, std::ios_base::cur); //get rid of trailing comma
+        html << "</div></div>";
     }
     else {
         html << "<br>";
     }
+    page_toknos_arr << "]";
 
-    sqlite3_close(DB); 
+    sqlite3_close(DB);
 
-    std::string content_str = html.str();
-    int content_length = content_str.size();
+    std::stringstream json_response_ss;
+    json_response_ss << "{ \"html\": \"" << escapeQuotes(html.str()) << "\", \"pagenos\": " << page_toknos_arr.str() << ", \"dt_end\": " << dt_end << "}";
+    std::string json_response = json_response_ss.str();
+
+    int content_length = json_response.size();
 
     std::ostringstream post_response_ss;
-    post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html;charset=UTF-8\r\nContent-Length: " << content_length;
+    // post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: text/html;charset=UTF-8\r\nContent-Length: " << content_length;
+    post_response_ss << "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " << content_length;
     post_response_ss << "\r\nSet-Cookie: text_id=" << text_id[0] << "; Max-Age=157680000";
     post_response_ss << "\r\nSet-Cookie: current_pageno=1; Max-Age=157680000";
-    post_response_ss << "\r\n\r\n" << content_str;
+    post_response_ss << "\r\nSet-Cookie: lang_id=" << lang_id << "; Max-Age=157680000";
+    post_response_ss << "\r\n\r\n" << json_response;
     int length = post_response_ss.str().size() + 1;
     sendToClient(clientSocket, post_response_ss.str().c_str(), length);
     std::cout << "Sent text to client" << std::endl;
@@ -1630,6 +1657,8 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
 
     if(cookie_textselect == 0) {
         html << "<br><br><div id=\"textbody\"></div>\n";
+        m_page_toknos_arr = "[]";
+        m_dt_end = 0;
         return;
     }
 
@@ -1659,6 +1688,7 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
             return;
         }
         sqlite3_int64 dt_end = sqlite3_column_int64(statement, 1);
+        m_dt_end = dt_end;
         int lang_id = sqlite3_column_int(statement, 3);
         
         
@@ -1694,6 +1724,9 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
         int pagenos = (int)ceil(chunk_total/words_per_page);
         sqlite3_int64 page_toknos[pagenos];
 
+        std::stringstream page_toknos_arr;
+        page_toknos_arr << "[";
+
         if(pagenos > 1) {
             page_toknos[0] = dt_start;
             int arr_index = 1;
@@ -1715,8 +1748,13 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
                     
                 }
                 chunk_count++;
-            }   
+            } 
             sqlite3_finalize(statement);
+
+            for(int i = 0; i < pagenos; i++) {
+                page_toknos_arr << page_toknos[i] << ",";
+            }
+            page_toknos_arr.seekp(-1, std::ios_base::cur); //get rid of trailing comma
         }
 
         /* new bollocks above */
@@ -1817,19 +1855,24 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
 
 
         if(pagenos > 1) {
-            html << "<br><br><div id=\"pagenos\">";
-
-            for(int i = 0; i < pagenos; i++) {
-                std::cout << "Page " << i + 1 << " starting tokno: " << page_toknos[i] << std::endl;
-                html << "<span class=\"pageno";
-                if(i == cookie_pageno - 1) html << " current_pageno";
-                html << "\" onclick=\"selectText_splitup("<< page_toknos[i] << ", " << dt_end << ", " << i + 1 << ")\">" << i + 1 << "</span>";
-            }
-            html << "</div>";
+            html << "<br><br><div id='pageno_footer'><div id=\"pagenos\">";
+            html << "<div id=\"pageno_leftarrow\" class=\"nav_arrow\">&lt;</div>";
+            html << "<textarea id=\"pageno_box\" spellcheck=\"false\" autocomplete=\"off\">";
+            html << cookie_pageno;
+            html << "</textarea>";
+            html << "<div class=\"pageno_text\" style=\"width: 40px;\">of</div>";
+            html << "<div class=\"pageno_text\">" << pagenos << "</div>";
+            
+            html << "<div id=\"pageno_rightarrow\" class=\"nav_arrow\">&gt;</div>";             
+            html << "</div></div>";
         }
         else {
             html << "<br>";
         }
+        page_toknos_arr << "]";
+
+        m_page_toknos_arr = page_toknos_arr.str();
+        std::cout << m_page_toknos_arr << "\n";
 
         sqlite3_close(DB); 
 
