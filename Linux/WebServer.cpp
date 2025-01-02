@@ -1901,7 +1901,9 @@ void WebServer::sendBinaryFile(char* url_c_str, int clientSocket, const std::str
             std::cout << "Error reading fontfile size" << std::endl;
             return;
         }
-        std::string headers =  "HTTP/1.1 200 OK\r\nContent-Type: "+content_type+"\r\nContent-Length: "+ std::to_string(font_filesize) + "\r\n\r\n";
+        std::string headers =  "HTTP/1.1 200 OK\r\nContent-Type: "+content_type+"\r\nContent-Length: "+ std::to_string(font_filesize) + "\r\n";
+        if(content_type == "font/ttf") headers = headers + "Cache-Control: public, max-age=31536000, immutable\r\n";
+        headers = headers + "\r\n";
         int headers_size = headers.size();
         const char* headers_c_str = headers.c_str();
 
