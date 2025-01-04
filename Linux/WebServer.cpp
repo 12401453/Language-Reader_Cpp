@@ -375,7 +375,7 @@ void WebServer::buildPOSTedData(const char* msg, bool headers_present, int lengt
         int content_length_start = c_strFind(msg, "Content-Length:") + 16;
         
         int cl_figures = 0;
-        char next_nl;
+        char next_nl = 'c';
         while(next_nl != '\x0d') {
             next_nl = msg[content_length_start + cl_figures];
             cl_figures++;
