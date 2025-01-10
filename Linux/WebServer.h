@@ -97,7 +97,7 @@ class WebServer : public TcpListener {
 
         std::string         m_dict_cookies;
 
-        std::string m_page_toknos_arr;
+        std::string m_page_toknos_arr {"[]"};
         sqlite3_int64 m_dt_end;
 
 };

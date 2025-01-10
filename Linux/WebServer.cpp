@@ -1683,6 +1683,8 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
         //if the cookie refers to a deleted text then SQLite will convert the null given by this query of an empty row to 0, which is falsey in C++
         if(!dt_start) {
             html << "<br><br><div id=\"textbody\"></div>\n";
+            m_page_toknos_arr = "[]";
+            m_dt_end = 0;
             sqlite3_finalize(statement);
             sqlite3_close(DB);
             return;
