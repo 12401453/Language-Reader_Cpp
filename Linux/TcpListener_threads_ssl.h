@@ -27,7 +27,7 @@ class TcpListener {
             SSL* ssl;
         };
 
-        virtual void onClientConnected(ClientConnection* ssl_conn_ptr);
+        virtual void onClientConnected(int clientSocket);
         virtual void onClientDisconnected(int clientSocket);
         virtual void onMessageReceived(ClientConnection* ssl_conn_ptr, const char *msg, int length, int get_or_post, int headers_length, int content_length=0);
         void sendToClient(ClientConnection* ssl_conn_ptr, const char* msg, int length);
