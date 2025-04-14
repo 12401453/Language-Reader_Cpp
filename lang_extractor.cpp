@@ -536,6 +536,8 @@ int main() {
     DatabaseExtractor PL_db_extractor = DatabaseExtractor("Kazakh.db", "Polish.db", 3);
     DatabaseExtractor DE_db_extractor = DatabaseExtractor("Kazakh.db", "German.db", 5);
     DatabaseExtractor TK_db_extractor = DatabaseExtractor("Kazakh.db", "Turkish.db", 7);
+    DatabaseExtractor LA_db_extractor = DatabaseExtractor("Kazakh.db", "Latin.db", 11);
+    DatabaseExtractor AZ_db_extractor = DatabaseExtractor("Kazakh.db", "Azerbaijani.db", 12);
     
     
     std::thread dk_thread ([&]() {
@@ -565,6 +567,12 @@ int main() {
     std::thread tk_thread([&]() {
         TK_db_extractor.extractAllTables();
     });
+    std::thread la_thread([&]() {
+        LA_db_extractor.extractAllTables();
+    });
+    std::thread az_thread([&]() {
+        AZ_db_extractor.extractAllTables();
+    });
 
     oe_thread.join();
     sv_thread.join();
@@ -575,6 +583,9 @@ int main() {
     de_thread.join();
     tk_thread.join();
     dk_thread.join();
+    la_thread.join();
+    az_thread.join();
+    
 
     return 0;
 }
