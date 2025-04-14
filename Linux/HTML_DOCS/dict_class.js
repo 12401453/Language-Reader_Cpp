@@ -732,92 +732,6 @@ class Dictionary {
     }
 
     dict_result_Wk = Object.create(null);
-    /*scrapeWiktionary = (response_text) => {
-        this.dict_result_Wk = {};
-
-        const parser = new DOMParser();
-        const Wk_page = parser.parseFromString(response_text, "text/html");
-        const wk_langName = this.lang_name.split(' ').join('_'); //multi-word language names in Wiktionary are joined by underscores for the purposes of element-id
-
-        if (Wk_page.getElementById(wk_langName) == null) {
-            this.noResultsFound("No " + this.lang_name + " definitions found");
-            return;
-        }
-        else {
-            let pos = "";
-            let langFlag = true;
-            let el = Wk_page.getElementById(wk_langName).parentNode.nextElementSibling;
-            console.log(this.lang_name + " Dictionary Entries Found:");
-
-            let pos_counters = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-            let pos_index = 0;
-            while (el && langFlag) {
-
-                if (el.nodeName != "H2") {
-
-                    if (el.nodeName == "H4" || el.nodeName == "H3") {
-
-                        pos = el.querySelector(".mw-headline").textContent;
-                        if (pos.includes("Noun")) { pos_index = 0; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Verb")) { pos_index = 1; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Adverb")) { pos_index = 2; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Adjective")) { pos_index = 3; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Conjunction")) { pos_index = 4; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Preposition")) { pos_index = 5; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Interjection")) { pos_index = 6; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Particle")) { pos_index = 7; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Determiner")) { pos_index = 8; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Pronoun")) { pos_index = 9; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Participle")) { pos_index = 10; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Postposition")) { pos_index = 11; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Letter")) { pos_index = 12; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Predicative")) { pos_index = 13; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Prefix")) { pos_index = 14; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Numeral")) { pos_index = 15; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Article")) { pos_index = 16; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        else if (pos.includes("Contraction")) { pos_index = 17; pos_counters[pos_index] = pos_counters[pos_index] + 1; }
-                        /*else if (pos.includes("Noun")) pos_index = 18;
-                        else if (pos.includes("Noun")) pos_index = 19; */
-               /*     }
-
-                    if (el.nodeName == "OL") {
-                        let definition_array = new Array();
-
-                        let el1 = el.firstElementChild;
-                        while (el1 != null) {
-                            let def = "";
-
-                            el1.childNodes.forEach(node => {
-                                if (node.nodeName == 'DL' || node.className == "nyms-toggle" || node.nodeName == 'UL' || node.className == "HQToggle" || node.nodeName == 'OL') { ; }
-                                else if (node.className == "use-with-mention") {
-                                    def += "[" + node.textContent + "]";
-                                }
-                                else {
-                                    def += node.textContent;
-                                }
-                            });
-                            def = def.trim();
-                            if (def != "") definition_array.push(def);
-                            el1 = el1.nextElementSibling;
-                        }
-                        if (this.dict_result_Wk[pos] == undefined) {
-                            this.dict_result_Wk[pos] = definition_array;
-                        }
-                        else {
-                            this.dict_result_Wk[pos + String(pos_counters[pos_index])] = definition_array;
-                        }
-                    }
-
-                }
-                else {
-                    langFlag = false;
-                }
-                el = el.nextElementSibling;
-            }
-            console.log(pos_counters);
-            this.unPackWikResult(this.dict_result_Wk);
-        }
-    }; */
 
     scrapeWiktionary = (response_text) => {
         this.dict_result_Wk = {};
@@ -841,6 +755,7 @@ class Dictionary {
             let headword_count = 0;
 
             let headwords_arr = new Array();
+            let grammar_arr = new Array();
             let headword = "";
             let next_sibling = el.nextElementSibling;
             while(next_sibling != null) {
@@ -852,6 +767,28 @@ class Dictionary {
                         headwords_arr.push(headword);
                         headword = "";
                     }
+
+                    const headword_line = next_sibling.querySelector(".headword-line");
+                    let grammar_str = "";
+                    if(headword_line != null) {
+                        headword_line.childNodes.forEach(node => {
+                            if(node.nodeName == "STRONG") {;}
+                            else if(node.className == "gender") grammar_str += node.innerHTML;
+                            else if(node.nodeName == "B") grammar_str += "<b>" + node.textContent + "</b>";
+                            else if(node.nodeName == "I") grammar_str += "<i>" + node.textContent + "</i>";
+                            else grammar_str += node.textContent;
+                        });
+
+                        for(const childNode of next_sibling.childNodes) {
+                            if(childNode.className == "headword-line") {;}
+                            else if(childNode.nodeName == "I") grammar_str += "<i>" + childNode.textContent + "</i>";
+                            else grammar_str += childNode.textContent;
+
+                        }
+
+                        grammar_arr.push(grammar_str.trim());
+                    }
+                    
                     
                 }
                 if(next_sibling.className == "mw-heading mw-heading2") {
@@ -861,6 +798,7 @@ class Dictionary {
                 next_sibling=next_sibling.nextElementSibling;
             }
             console.log(headwords_arr);
+            console.log(grammar_arr);
 
             while (el && langFlag) {
 
@@ -898,6 +836,7 @@ class Dictionary {
 
                         let el1 = el.firstElementChild;
                         definition_array.push(headwords_arr[headword_count]);
+                        definition_array.push(grammar_arr[headword_count]);
                         headword_count++
                         while (el1 != null) {
                             let def = "";
@@ -940,13 +879,18 @@ class Dictionary {
         dict_body.innerHTML = "";
         dict_body.style.display = "flex";
         for(let pos in this.dict_result_Wk) {
-            dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">'+this.dict_result_Wk[pos][0]+'</span> <span class="wiki_pos">['+pos+']</span></div></div>'));
+            const wiki_headword_grammar = this.dict_result_Wk[pos][1];
+            let wiki_headword_html = '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">'+this.dict_result_Wk[pos][0]+'</span> <span class="wiki_pos">['+pos+']</span>';
+            if(wiki_headword_grammar.trim() != "") wiki_headword_html += '<br><span class="wiki_headword_grammar">'+wiki_headword_grammar+'</span>';
+            wiki_headword_html += '</div></div>';
+            //dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">'+this.dict_result_Wk[pos][0]+'</span> <span class="wiki_pos">['+pos+']</span></div></div>'));
+            dict_body.appendChild(document.createRange().createContextualFragment(wiki_headword_html));
             
             /*this.dict_result_Wk[pos].forEach(def => {
                 dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+def+'</div></div>'));
             });*/
             const wk_result_array = this.dict_result_Wk[pos];
-            for(let i = 1; i < wk_result_array.length; i++) {
+            for(let i = 2; i < wk_result_array.length; i++) {
                 dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+wk_result_array[i]+'</div></div>'));
             }
         }

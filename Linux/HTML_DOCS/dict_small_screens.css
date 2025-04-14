@@ -183,6 +183,10 @@
     font-size: 8px;
     font-weight: normal;
 }
+.wiki_headword_grammar {
+    font-weight: normal;
+    font-size: 8px;
+}
 .PONS_title_info {
     font-weight: normal;
     color: rgb(230, 230, 230);
