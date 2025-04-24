@@ -176,10 +176,10 @@ void TcpListener::onClientConnected(int clientSocket) {
         return;
     }  
     else if (get_or_post == -1) {
-        sendToClient(&ssl_conn, "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: 23\r\n\r\nNeither a GET nor a POST request... REPENT!", 124);
+        sendToClient(&ssl_conn, "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: 43\r\n\r\nNeither a GET nor a POST request... REPENT!", 124);
         sslCloseConnection(&ssl_conn);
         onClientDisconnected(ssl_conn.client_socket);
-        std::cout << "The headers have been going on for more than 8192 bytes, suggesting a mal-formed incoming HTTP message. Aborting...\n";
+        std::cout << "Neither a GET nor a POST request, sent HTTP 405 Method Not Allowed status\n";
         return;
     }
     //no need for final else because the other two branches return
