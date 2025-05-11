@@ -5,7 +5,7 @@
   
 
 <link href="words.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
-<link href="words_small_screens.css" rel="stylesheet" media="all and (max-width: 768px)" type="text/css">
+<link href="words_small_screens.css" rel="stylesheet" media="all and (max-width: 769px)" type="text/css">
 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
