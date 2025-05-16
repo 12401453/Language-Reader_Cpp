@@ -17,4 +17,4 @@
 
 14.) the MW double-tooltip bug has been fixed, but if you add a single-lemma annotation to the first word of an existing multiword-annotation then it gets rid of the MW tooltip in favour of the new single-lemma tooltip, which is not really the correct behaviour
 
-15.) There should really be an indexes on lemma_id and word_engine_id columns on display_text table, because 60ms to delete a lemma on desktop PC is not good enough
+15.) The German method of auto-pulling-in noun-lemmas which are stored capitalised in the table relies on using the property of SQLite's SELECT WHERE LIKE 'query' which defaults to being case-insensitive, but only for ASCII characters, so this won't work for words like Ueberlegung, which is an unacceptably inconsistent behaviour.
