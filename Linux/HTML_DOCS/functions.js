@@ -601,8 +601,16 @@ const pullInLemma = function (can_skip = true) {
   
   let lemma_form = document.getElementById('lemma_tag').value.trim();
   if (lemma_form == lemma_form_tag_initial && can_skip) {
+    console.log("skipping pullInLemma()");
     return;
   }
+
+  let latin_length_sensitivity = 0;
+  //to switch off length-mark-ignoring in cases such as anus = oldwoman vs ānus = ring
+  if(lang_id == 11 && (removeLengthMarks(lemma_form) == removeLengthMarks(lemma_form_tag_initial) && lemma_form != lemma_form_tag_initial)) {
+    latin_length_sensitivity = 1;
+  }
+
 /*  if(lang_id == 5 && pos == 1) {
     lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
   } */
@@ -617,6 +625,7 @@ const pullInLemma = function (can_skip = true) {
     else {
       send_data += pos + "&lang_id=" + lang_id;
     }
+    send_data += "&latin_length_sensitivity=" + latin_length_sensitivity;
 
     const xhttp = new XMLHttpRequest();
     xhttp.open(method, url, true);
@@ -640,10 +649,12 @@ const pullInLemma = function (can_skip = true) {
 
           pos = Number(json_response.pos);
           //German gets case-folded when the lemma-forms are looked up, so an originally lower-case noun-form that succeeds in pulling in a capitalised lemma's definition needs to be capitalised as well 
-          if(lang_id == 5 && pos == 1) {
-	          lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
-            document.getElementById('lemma_tag').value = lemma_form;
-	        }
+          // if(lang_id == 5 && pos == 1) {
+	        //   lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
+          //   document.getElementById('lemma_tag').value = lemma_form;
+	        // }
+          document.getElementById('lemma_tag').value = json_response.db_lemma_form;
+          lemma_form_tag_initial = json_response.db_lemma_form;
           pos_initial = pos;
           document.getElementById('pos_tag_box').innerHTML = choosePoS(pos);
         }
@@ -2180,7 +2191,9 @@ const latinInput = (event) => {
   setLemmaTagSize();
 };
 
-
+const removeLengthMarks = (latin_str) => {
+  return latin_str.replaceAll("ā", "a").replaceAll("ē", "e").replaceAll("ī", "i").replaceAll("ū", "u").replaceAll("ō", "o").replaceAll("ȳ", "y").replaceAll("Ā", "A").replaceAll("Ē", "E").replaceAll("Ī", "I").replaceAll("Ō", "O").replaceAll("Ū", "U").replaceAll("Ȳ", "Y");
+};
 
 
 
@@ -2487,3 +2500,4 @@ class DisplayWordEditor {
 
 }
 const displayWordEditor = new DisplayWordEditor();
+

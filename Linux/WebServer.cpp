@@ -527,6 +527,42 @@ std::string WebServer::escapeQuotes(const std::string &quoteystring) {
     return escaped;
 }
 
+void WebServer::replaceAll(std::string &source, const std::string yeeted, const std::string replacement) {
+    
+    size_t yeeted_length = yeeted.length();
+    if(yeeted_length == 0) return;
+    size_t replacement_length = replacement.length();
+
+    std::string result;
+
+    int search_pos = 0;
+    int yeeted_pos = source.find(yeeted);
+    while(yeeted_pos != std::string::npos) {
+        source = source.replace(yeeted_pos, yeeted_length, replacement); 
+        yeeted_pos = source.find(yeeted, yeeted_pos + replacement_length);
+    }
+}
+
+void WebServer::removeLengthMarks(std::string &long_vowel_text) {
+    replaceAll(long_vowel_text, "ā", "a");
+    replaceAll(long_vowel_text, "ē", "e");
+    replaceAll(long_vowel_text, "ī", "i");
+    replaceAll(long_vowel_text, "ū", "u");
+    replaceAll(long_vowel_text, "ō", "o");
+    replaceAll(long_vowel_text, "ȳ", "y");
+}
+
+std::string WebServer::removeLengthMarksCopy(std::string long_vowel_text) {
+    replaceAll(long_vowel_text, "ā", "a");
+    replaceAll(long_vowel_text, "ē", "e");
+    replaceAll(long_vowel_text, "ī", "i");
+    replaceAll(long_vowel_text, "ū", "u");
+    replaceAll(long_vowel_text, "ō", "o");
+    replaceAll(long_vowel_text, "ȳ", "y");
+
+    return long_vowel_text;
+}
+
 //in order to avoid using std::vector I cannot save the array of the POSTed data into a variable which persists outside this function, because the size of the array is only known if I know which POST data I am processing, which means the code to create an array out of the m_post_data has to be repeated everytime a function to handle it is called
 void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     std::cout << "------------------------COMPLETE POST DATA------------------------\n" << post_data << "\n-------------------------------------------------------\n";
@@ -712,7 +748,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/retrieve_text.php")) return 1;
     else if(!strcmp(url, "/retrieve_text_splitup.php")) return 3;
     else if(!strcmp(url, "/get_lang_id.php")) return 1;
-    else if(!strcmp(url, "/pull_lemma.php")) return 4;
+    else if(!strcmp(url, "/pull_lemma.php")) return 5;
     else if(!strcmp(url, "/lemma_record.php")) return 8;
     else if(!strcmp(url, "/lemma_delete.php")) return 3;
     else if(!strcmp(url, "/retrieve_engword.php")) return 3;
@@ -1996,18 +2032,29 @@ bool WebServer::retrieveEngword(std::string _POST[3], int clientSocket) {
         if(!first_lemma_id) {
             lemma_tag_content = word_eng_word_str;
 
-            //could return more than one row but we just take the first as the default
-            if(lang_id == 5) sql_text = "SELECT eng_trans1, pos, lemma_id FROM lemmas WHERE lemma LIKE ? AND lang_id = ?"; //case-folding to account for German nouns //this won't work for nouns that start with umlauted letters, do better
-            else sql_text = "SELECT eng_trans1, pos, lemma_id FROM lemmas WHERE lemma = ? AND lang_id = ?";
+            //these could return more than one row but we just take the first as the default
+
+            //case-folding to account for German nouns //this won't work for nouns that start with umlauted letters, do better
+            if(lang_id == 5) sql_text = "SELECT lemma, eng_trans1, pos, lemma_id FROM lemmas WHERE lemma LIKE ? AND lang_id = ?";
+            //disregard Latin length-marks
+            else if(lang_id == 11) {
+                sql_text = "SELECT lemma, eng_trans1, pos, lemma_id FROM lemmas WHERE lemma_normalised = ? AND lang_id = ?";
+                removeLengthMarks(word_eng_word_str);
+            }
+            else sql_text = "SELECT lemma, eng_trans1, pos, lemma_id FROM lemmas WHERE lemma = ? AND lang_id = ?";
             prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
             sqlite3_bind_text(statement, 1, word_eng_word_str.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_int(statement, 2, lang_id);
 
             run_code = sqlite3_step(statement);
-            const unsigned char* lemma_textarea_content_rawsql = sqlite3_column_text(statement, 0);
+            
+            const unsigned char* lemma_tag_content_rawsql = sqlite3_column_text(statement, 0);
+            if(lemma_tag_content_rawsql != nullptr) lemma_tag_content = (const char*)lemma_tag_content_rawsql;
+            const unsigned char* lemma_textarea_content_rawsql = sqlite3_column_text(statement, 1);
             if(lemma_textarea_content_rawsql != nullptr) lemma_textarea_content = (const char*)lemma_textarea_content_rawsql;
-            pos = sqlite3_column_int(statement, 1);
-            lemma_id = sqlite3_column_int(statement, 2); //will remain 0 if no existing lemma is found
+            
+            pos = sqlite3_column_int(statement, 2);
+            lemma_id = sqlite3_column_int(statement, 3); //will remain 0 if no existing lemma is found
             if(!pos) pos = 1;
             sqlite3_finalize(statement);
         }
@@ -2082,6 +2129,9 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
     sqlite3_stmt* statement;
 
     if (!sqlite3_open(m_DB_path, &DB)) {
+        
+        //sqlite3_exec(DB, "PRAGMA journal_mode=WAL", nullptr, nullptr, nullptr);
+
         int word_engine_id = std::stoi(_POST[0]);
 
         std::string lemma_form = URIDecode(_POST[1]);
@@ -2100,18 +2150,36 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
         sqlite3_finalize(statement);
 
         //this will get skipped if we are assigning an existing lemma to a new form
-        const char* sql_text = "INSERT OR IGNORE INTO lemmas (lemma, lang_id, pos) VALUES (?, ?, ?)";
+        const char* sql_text = "INSERT OR IGNORE INTO lemmas (lemma, lang_id, pos, lemma_normalised) VALUES (?, ?, ?, ?)";
+
+        //const char* sql_text_returning = "INSERT INTO lemmas (lemma, lang_id, pos, lemma_normalised) VALUES (?, ?, ?, ?) ON CONFLICT(lemma, lang_id, pos) DO UPDATE SET lang_id = excluded.lang_id RETURNING lemma_id";
+
         int prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
         sqlite3_bind_int(statement, 2, lang_id);
         sqlite3_bind_int(statement, 3, pos);
-        int run_code = sqlite3_step(statement);
+        if(lang_id == 11) {
+            sqlite3_bind_text(statement, 4, removeLengthMarksCopy(lemma_form).c_str(), -1, SQLITE_STATIC);
+        }
+        else sqlite3_bind_null(statement, 4);
+
+        sqlite3_step(statement);
+
+        //for use with the RETURNING clause in SQLite
+        // int target_lemma_id = 0;
+        // if(sqlite3_step(statement) == SQLITE_ROW) {
+        //     target_lemma_id = sqlite3_column_int(statement, 0);
+        // }
+        // else {
+        //     target_lemma_id = sqlite3_last_insert_rowid(DB);
+        // }
+            
         sqlite3_finalize(statement);
 
         sql_text = "SELECT first_lemma_id FROM word_engine WHERE word_engine_id = ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_int(statement, 1, word_engine_id);
-        run_code = sqlite3_step(statement);
+        int run_code = sqlite3_step(statement);
         int first_lemma_id = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
@@ -2122,7 +2190,10 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
         int lemma_id_current = sqlite3_column_int(statement, 0);
         sqlite3_finalize(statement);
 
-        //get lemma_id of the lemma we just (tried to) insert (it may already have been in the table so we have to get it by its set of unique columns)
+        // get lemma_id of the lemma we just (tried to) insert (it may already have been in the table so we have to get it by its set of unique columns)
+        // this is a performance-problem since none of those columns are indexed and I'd prefer not to index lemma since it will slow down INSERTion
+        // we have to do this unless we can predict what the lemma_id of a newly-inserted lemma will be, which we can't easily because it isn't always just the previous highest one + 1, since when you delete lemmas that frees up rowids to be used again in the future (though whether or not that actually happens untill you hit the BIGINT maximum is not known; I need to find out because getting rid of this statement would solve a lot of problems)
+        
         sql_text = "SELECT lemma_id FROM lemmas WHERE lemma = ? AND lang_id = ? AND pos = ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
         sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
@@ -2216,7 +2287,7 @@ bool WebServer::recordLemma(std::string _POST[8], int clientSocket) {
     }
 }
 
-bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
+bool WebServer::pullInLemma(std::string _POST[5], int clientSocket) {
     sqlite3* DB;
     sqlite3_stmt* statement;
 
@@ -2225,19 +2296,32 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
         std::string sql_text_str = "";
         std::string lemma_form = URIDecode(_POST[0]);
         short int lemma_meaning_no = safeStrToInt(_POST[1]);
-        short int pos = std::stoi(_POST[2]);
-        int lang_id = std::stoi(_POST[3]);
+        short int pos = safeStrToInt(_POST[2]);
+        int lang_id = safeStrToInt(_POST[3]);
+        bool latin_length_sensitivity = safeStrToInt(_POST[4], 0);
 
         if (pos == 0) {
-            if(lang_id == 5) sql_text_str = "SELECT eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id, pos FROM lemmas WHERE lemma LIKE ? AND lang_id = ?"; //casefold German to cope with nouns
-            else sql_text_str = "SELECT eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id, pos FROM lemmas WHERE lemma = ? AND lang_id = ?";
+            //casefold German to cope with nouns
+            if(lang_id == 5) sql_text_str = "SELECT lemma, eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id, pos FROM lemmas WHERE lemma LIKE ? AND lang_id = ?";
+            //disregard Latin length-marks
+            else if(lang_id == 11 && latin_length_sensitivity == 0) {
+                sql_text_str = "SELECT lemma, eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id, pos FROM lemmas WHERE lemma_normalised = ? AND lang_id = ?";
+                removeLengthMarks(lemma_form);
+            }
+            else sql_text_str = "SELECT lemma, eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id, pos FROM lemmas WHERE lemma = ? AND lang_id = ?";
             sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
             sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_int(statement, 2, lang_id);
         }
         else {
-            if(lang_id == 5) sql_text_str = "SELECT eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id FROM lemmas WHERE lemma LIKE ? AND pos = ? AND lang_id = ?"; //casefold German to cope with nouns
-            else sql_text_str = "SELECT eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id FROM lemmas WHERE lemma = ? AND pos = ? AND lang_id = ?";
+            //casefold German to cope with nouns
+            if(lang_id == 5) sql_text_str = "SELECT lemma,  eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id FROM lemmas WHERE lemma LIKE ? AND pos = ? AND lang_id = ?";
+            //disregard Latin length-marks
+            else if(lang_id == 11 && latin_length_sensitivity == 0) {
+                sql_text_str = "SELECT lemma, eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id FROM lemmas WHERE lemma_normalised = ? AND pos = ? AND lang_id = ?";
+                removeLengthMarks(lemma_form);
+            }
+            else sql_text_str = "SELECT lemma, eng_trans" + std::to_string(lemma_meaning_no) + ", lemma_id FROM lemmas WHERE lemma = ? AND pos = ? AND lang_id = ?";
             sqlite3_prepare_v2(DB, sql_text_str.c_str(), -1, &statement, NULL);
             sqlite3_bind_text(statement, 1, lemma_form.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_int(statement, 2, pos);
@@ -2247,13 +2331,15 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
         std::cout << sql_text_str << std::endl;
                 
         sqlite3_step(statement);
-        int lemma_id = sqlite3_column_int(statement, 1);
+        int lemma_id = sqlite3_column_int(statement, 2);
         std::string lemma_textarea_content;
+        std::string db_lemma_form;
         if (lemma_id) {
-            lemma_textarea_content = sqlite3_column_text(statement, 0) == nullptr ? "" : (const char*)sqlite3_column_text(statement, 0);
+            lemma_textarea_content = sqlite3_column_text(statement, 1) == nullptr ? "" : (const char*)sqlite3_column_text(statement, 1);
+            db_lemma_form = sqlite3_column_text(statement, 0) == nullptr ? "" : (const char*)sqlite3_column_text(statement, 0);
         }
         if (pos == 0) {
-            pos = sqlite3_column_int(statement, 2);
+            pos = sqlite3_column_int(statement, 3);
         }
 
         sqlite3_finalize(statement);
@@ -2263,10 +2349,10 @@ bool WebServer::pullInLemma(std::string _POST[4], int clientSocket) {
         std::ostringstream json;
 
         if (!lemma_id) {
-            json << "{\"lemma_textarea_content\":null,\"lemma_id\":0,\"pos\":null}";
+            json << "{\"lemma_textarea_content\":null,\"lemma_id\":0,\"pos\":null,\"db_lemma_form\":null}";
         }
         else {
-            json << "{\"lemma_textarea_content\":\"" << escapeQuotes(lemma_textarea_content) << "\",\"lemma_id\":\"" << lemma_id << "\",\"pos\":\"" << pos << "\"}";
+            json << "{\"lemma_textarea_content\":\"" << escapeQuotes(lemma_textarea_content) << "\",\"lemma_id\":\"" << lemma_id << "\",\"pos\":\"" << pos << "\",\"db_lemma_form\":\"" << escapeQuotes(db_lemma_form) << "\"}";
         }
 
         int content_length = json.str().size();
@@ -2537,7 +2623,7 @@ bool WebServer::clearTable(int clientSocket) {
         sql_text = "DROP TABLE IF EXISTS texts;CREATE TABLE texts (text_id INTEGER PRIMARY KEY, text_title TEXT, dt_start INTEGER, dt_end INTEGER, lang_id INTEGER, text_tag TEXT)";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
-        sql_text = "DROP TABLE IF EXISTS lemmas;CREATE TABLE lemmas (lemma_id INTEGER PRIMARY KEY, lemma TEXT, eng_trans1 TEXT, eng_trans2 TEXT, eng_trans3 TEXT, eng_trans4 TEXT, eng_trans5 TEXT, eng_trans6 TEXT, eng_trans7 TEXT, eng_trans8 TEXT, eng_trans9 TEXT, eng_trans10 TEXT, lang_id INTEGER, pos INTEGER, UNIQUE(lemma, lang_id, pos))";
+        sql_text = "DROP TABLE IF EXISTS lemmas;CREATE TABLE lemmas (lemma_id INTEGER PRIMARY KEY, lemma TEXT, eng_trans1 TEXT, eng_trans2 TEXT, eng_trans3 TEXT, eng_trans4 TEXT, eng_trans5 TEXT, eng_trans6 TEXT, eng_trans7 TEXT, eng_trans8 TEXT, eng_trans9 TEXT, eng_trans10 TEXT, lang_id INTEGER, pos INTEGER, lemma_normalised TEXT, UNIQUE(lemma, lang_id, pos))";
         sqlite3_exec(DB, sql_text, nullptr, nullptr, nullptr);
 
         sql_text = "DROP TABLE IF EXISTS multiwords;CREATE TABLE multiwords (multiword_id INTEGER, word_eng_id1 INTEGER DEFAULT 0 NOT NULL, word_eng_id2 INTEGER DEFAULT 0 NOT NULL, word_eng_id3 INTEGER DEFAULT 0 NOT NULL, word_eng_id4 INTEGER DEFAULT 0 NOT NULL, word_eng_id5 INTEGER DEFAULT 0 NOT NULL, word_eng_id6 INTEGER DEFAULT 0 NOT NULL, word_eng_id7 INTEGER DEFAULT 0 NOT NULL, word_eng_id8 INTEGER DEFAULT 0 NOT NULL, word_eng_id9 INTEGER DEFAULT 0 NOT NULL, word_eng_id10 INTEGER DEFAULT 0 NOT NULL, lang_id INTEGER, UNIQUE(multiword_id, lang_id, word_eng_id1, word_eng_id2, word_eng_id3, word_eng_id4, word_eng_id5, word_eng_id6, word_eng_id7, word_eng_id8, word_eng_id9, word_eng_id10))";
