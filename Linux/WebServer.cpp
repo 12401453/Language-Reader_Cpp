@@ -4240,3 +4240,17 @@ bool WebServer::lemmaTooltipsMW(std::string _POST[3], int clientSocket) {
         return false;
     }
 }
+
+
+bool WebServer::curlPhilolog(std::string _POST[1], int clientSocket) {
+
+    std::string search_term = _POST[0]; //shouldn't need to URIDecode() it because I am passing it straight to another web-request-url  that (if it ever contained non-ASCII, which for Latin is doubtful) also requires encodeURIComponent() escaping
+
+    std::string philolog_text_query = "https://philolog.us/ls/query?n=101&idprefix=lemmata&x=0.225928550768416&requestTime=1748717865303&page=0&mode=context&query=%7B%22regex%22%3A0%2C%22lexicon%22%3A%22ls%22%2C%22tag_id%22%3A0%2C%22root_id%22%3A0%2C%22w%22%3A%22" + search_term + "%22%7D";
+
+
+    int philolog_lemma_id = 0;
+    std::string philolog_lemma_id_query = "https://philolog.us/ls/item?id=" + std::to_string(philolog_lemma_id) + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306";
+
+    return true;
+}

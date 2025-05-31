@@ -8,11 +8,13 @@ class CurlFetcher {
             m_dict_url = dict_url;
             m_curl_cookies = curl_cookies;
         }
-        void fetch() {
+        void fetch(std::string query_url="") {
             CURL *curl;
             CURLcode res;
-
+            m_get_html.clear();
             curl = curl_easy_init();
+
+            if(query_url.empty()) query_url = m_dict_url;
 
             if(curl) {
                 curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
@@ -40,6 +42,8 @@ class CurlFetcher {
                     //if(curl_error_msg == "Timeout was reached") m_get_html = "Request timeout";
                     if(res == CURLE_OPERATION_TIMEDOUT) m_get_html = "Request timeout";
                     else m_get_html = "curl failure"; //these messages are for telling javascript what to do so I keep them short
+
+                    error_state = true;
                 }
 
                 curl_easy_cleanup(curl);
@@ -47,6 +51,7 @@ class CurlFetcher {
             }
         }
         std::string m_get_html;
+        bool error_state = false;
     private:
 
         static size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {

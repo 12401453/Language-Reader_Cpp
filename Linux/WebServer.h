@@ -78,6 +78,7 @@ class WebServer : public TcpListener {
 
         bool curlLookup(std::string _POST[1], int clientSocket);
         bool curlLookup_sozdik(std::string _POST[1], int clientSocket);
+        bool curlPhilolog(std::string _POST[1], int clientSocket);
 
         bool dumpLemmaTable(std::string _POST[1], int clientSocket);
 
