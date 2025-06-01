@@ -103,6 +103,11 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
             sendBinaryFile(url_c_str, clientSocket, content_type);
             return;
         }
+        else if(!strcmp(fil_ext, "woff")) {
+            content_type = "font/woff";
+            sendBinaryFile(url_c_str, clientSocket, content_type);
+            return;
+        }
         else if(!strcmp(fil_ext, ".mp3")) {
             content_type = "audio/mpeg";
             sendBinaryFile(url_c_str, clientSocket, content_type);
@@ -720,6 +725,9 @@ void WebServer::handlePOSTedData(const char* post_data, int clientSocket) {
     else if(!strcmp(m_url, "/update_displayWord.php")) {
         bool php_func_success = updateDisplayWord(post_values, clientSocket);
     }
+    else if(!strcmp(m_url, "/curl_philolog.php")) {
+        bool php_func_success = curlPhilolog(post_values, clientSocket);
+    }
 
     std::cout << "m_url: " << m_url << std::endl;
     
@@ -768,6 +776,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/add_text_OE.php")) return 3;
     else if(!strcmp(url, "/update_displayWord.php")) return 5;
     else if(!strcmp(url, "/lemma_tooltip_mw.php")) return 3;
+    else if(!strcmp(url, "/curl_philolog.php")) return 1;
     else return -1;
 }
 /*
@@ -1940,7 +1949,7 @@ void WebServer::sendBinaryFile(char* url_c_str, int clientSocket, const std::str
             return;
         }
         std::string headers =  "HTTP/1.1 200 OK\r\nContent-Type: "+content_type+"\r\nContent-Length: "+ std::to_string(font_filesize) + "\r\n";
-        if(content_type == "font/ttf") headers = headers + "Cache-Control: public, max-age=31536000, immutable\r\n";
+        if(/* content_type == "font/ttf" */c_strStartsWith(content_type.c_str(), "font/")) headers = headers + "Cache-Control: public, max-age=31536000, immutable\r\n";
         headers = headers + "\r\n";
         int headers_size = headers.size();
         const char* headers_c_str = headers.c_str();
@@ -4244,13 +4253,55 @@ bool WebServer::lemmaTooltipsMW(std::string _POST[3], int clientSocket) {
 
 bool WebServer::curlPhilolog(std::string _POST[1], int clientSocket) {
 
+    //I have to set the Content-Type to text/plain because the dict_class.js lookUp() method expects text, not JSON. As with the Sozdik scraper, I just have to manually convert it to JSON with JSON.parse(response_text)
+
+    auto sendBackError = [&](std::string error_msg) {
+        std::string json_response = "{\"error\":1,\"error_msg\":\"" + error_msg + "\",\"json_result\":\"\"}";
+        std::ostringstream post_response;
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " << json_response.size() << "\r\n\r\n" << json_response;
+        int length = post_response.str().size() + 1;
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+    };
+
     std::string search_term = _POST[0]; //shouldn't need to URIDecode() it because I am passing it straight to another web-request-url  that (if it ever contained non-ASCII, which for Latin is doubtful) also requires encodeURIComponent() escaping
 
     std::string philolog_text_query = "https://philolog.us/ls/query?n=101&idprefix=lemmata&x=0.225928550768416&requestTime=1748717865303&page=0&mode=context&query=%7B%22regex%22%3A0%2C%22lexicon%22%3A%22ls%22%2C%22tag_id%22%3A0%2C%22root_id%22%3A0%2C%22w%22%3A%22" + search_term + "%22%7D";
 
+    CurlFetcher query(philolog_text_query.c_str());
 
-    int philolog_lemma_id = 0;
-    std::string philolog_lemma_id_query = "https://philolog.us/ls/item?id=" + std::to_string(philolog_lemma_id) + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306";
+    query.fetch();
+
+    if(query.m_get_html.substr(0, 12) != "{\"selectId\":") {
+        std::string error_msg;
+        if(query.error_state) error_msg = query.m_get_html;
+        else error_msg = "unable to match query to a selectionId";
+        sendBackError(error_msg);     
+        return false;
+    }
+
+
+    int first_comma_pos = query.m_get_html.find(',');
+    std::string philolog_lemma_id_str = query.m_get_html.substr(12, first_comma_pos - 12);
+    int philolog_lemma_id = safeStrToInt(philolog_lemma_id_str, 0);
+    if(philolog_lemma_id == 0) {
+        sendBackError("selectionID JSON not as expected");
+        return false;
+    }
+
+    std::string philolog_lemma_id_query = "https://philolog.us/ls/item?id=" + philolog_lemma_id_str + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306";
+
+    query.fetch(philolog_lemma_id_query);
+
+    if(query.error_state) {
+        sendBackError("second philolog request failed");
+        return false;
+    }
+
+    std::string json_response = "{\"error\":0,\"error_msg\":\"\",\"json_result\":" + query.m_get_html + "}";
+    std::ostringstream post_response;
+    post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " << json_response.size() << "\r\n\r\n" << json_response;
+    int length = post_response.str().size() + 1;
+    sendToClient(clientSocket, post_response.str().c_str(), length);
 
     return true;
 }

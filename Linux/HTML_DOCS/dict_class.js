@@ -109,6 +109,9 @@ class Dictionary {
         else if(dict_type == 7) {
             return "https://ordnet.dk/ddo/ordbog?query=" + encodeURIComponent(word);
         }
+        else if(dict_type == 8) {
+            return encodeURIComponent(this.wiktionariseLatin(word));
+        }
     }
     dict_name = "";
     lang_name = "";
@@ -138,6 +141,9 @@ class Dictionary {
         },
         7: {
             logo_url: 'ordnet.jpg" title="Den Danske Ordbog"',
+        },
+        8: {
+            logo_url: 'perseus_logo.png" title="philolog.us"',
         }
     };
     allowable_dicts = {
@@ -150,7 +156,7 @@ class Dictionary {
         7: [1,2],
         8: [1,2,7,5],
         10: [6,2],
-        11: [2],
+        11: [2, 8],
         12: [2],
     };
 
@@ -221,6 +227,10 @@ class Dictionary {
             this.MR_glossaryLookup(word);
             return;
         }
+        let request_url = "curl_lookup.php";
+
+        if(dict_type == 8) request_url = "curl_philolog.php";
+
         let send_data = "url="+this.urlMaker(word, dict_type, PONS_german); //this has all been URI-encoded already
         const httpRequest = (method, url) => {
             const xhttp = new XMLHttpRequest();
@@ -243,7 +253,7 @@ class Dictionary {
             }; 
             xhttp.send(send_data);
         };  
-        httpRequest("POST", "curl_lookup.php");  
+        httpRequest("POST", request_url);  
     }
     dictResultParse(response_text, dict_type=this.dict_type) {
         if(dict_type == 3 || dict_type == 4) this.scrapeSozdik(response_text);
@@ -251,6 +261,7 @@ class Dictionary {
         else if(dict_type == 2) this.scrapeWiktionary(response_text);
         else if(dict_type == 5) this.scrapeDictCC(response_text);
         else if(dict_type == 7) this.scrapeDanskeOrdbogen(response_text);
+        else if(dict_type == 8) this.scrapePhilolog(response_text);
     }
 
     noResultsFound(message="No results found") {
@@ -1149,5 +1160,19 @@ class Dictionary {
             });
         });
     }
+
+    scrapePhilolog = (response_text) => {
+        const json_response = JSON.parse(response_text);
+
+        if(json_response.error == "1") {
+            this.noResultsFound(json_response.error_msg);
+            return;
+        }
+
+        const dict_body = document.getElementById("dict_body");
+        dict_body.innerHTML = "";
+        dict_body.innerHTML = "<div id=\"philolog_body\">" + json_response.json_result.def + "</div>";
+        dict_body.style.display = "flex";
+    };
 
 }

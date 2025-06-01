@@ -18,7 +18,7 @@ class CurlFetcher {
 
             if(curl) {
                 curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
-                curl_easy_setopt(curl, CURLOPT_URL, m_dict_url);
+                curl_easy_setopt(curl, CURLOPT_URL, query_url.c_str());
                 curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
                 curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
                 curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L); //timeout after ten seconds (possibly a bit low)

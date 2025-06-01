@@ -1,0 +1,179 @@
+ @font-face {
+     font-family: "WebNewAthenaUnicode";
+     src:
+     local("NewAthenaUnicode"),
+     url("newathu5_8.woff") format("woff"),
+     url("newathu5_8.ttf") format("ttf");
+ }
+
+ :root {
+     --author-color: #f45757;
+     --bib-color: #3dd171;
+     --author-color-dark: #f45757;
+     --bib-color-dark: #3dd171;
+     --ref-color: darkorange;
+     --ref-color-dark: darkorange;
+     --gloss-color: black;
+     --foreign-color: #03a5fc;
+     --quote-color: #03a5fc;
+     --foreign-color-dark: #03a5fc;
+     --quote-color-dark: #03a5fc;
+     --attr-color: #03a5fc;
+     --attr-color-dark: #03a5fc;
+     --author-weight: normal;
+     --bib-weight: normal;
+     --ref-weight: normal;
+     --gloss-weight: bold;
+     --foreign-weight: normal;
+     --quote-weight: normal;
+ }
+
+ .dark .fo {
+     color: blue;
+     color: var(--foreign-color-dark, blue);
+ }
+ .dark .qu {
+     color: blue;
+     color: var(--quote-color-dark, blue);
+ }
+ .fo {
+     color: blue;
+     color: var(--foreign-color, blue);
+ }
+ .qu {
+     color: blue;
+     color: var(--quote-color, blue);
+ }
+ .tr {
+     font-weight: bold;
+ }
+ .au {
+     color: #ac1b1b;
+     color: var(--author-color, #ac1b1b);
+ }
+ .dark .au {
+     color: #f45757;
+     color: var(--author-color-dark, #f45757);
+ }
+ .bi {
+     color: #0c640c;
+     color: var(--bib-color, #0c640c);
+ }
+ .dark .bi {
+     color: #3dd171;
+     color: var(--bib-color-dark, #3dd171);
+ }
+ .ti {
+     color: #8b22a0;
+     color: var(--ref-color, #8b22a0);
+ }
+ .dark .ti {
+     color: darkorange;
+     color: var(--ref-color-dark, darkorange);
+ }
+ .biblLink {
+     color: #0c640c;
+     color: var(--bib-color, #0c640c);
+ }
+ .dark .biblLink {
+     color: #3dd171;
+     color: var(--bib-color-dark, #3dd171);
+ }
+ .attrlink {
+     color: blue;
+     color: var(--attr-color, blue);
+ }
+ .dark .attrlink {
+     color: #03a5fc;
+     color: var(--attr-color-dark, #03a5fc);
+ }
+ .storelink {
+     color: blue;
+ }
+ .dark .storelink {
+     color: #03a5fc;
+ }
+ .qu:before {
+     content: '"';
+ }
+ .qu:after {
+     content: '"';
+ }
+ .label {
+     font-weight: bold;
+     margin-right: 5px;
+     /*position: absolute;
+     left: -36px;*/
+ }
+ .label:after {
+     content: " ";
+ }
+ .orth {
+     font-weight: bold;
+ }
+
+ .biblLink:link {
+     text-decoration: none;
+ }
+ .biblLink:visited {
+     text-decoration: none;
+ }
+ .biblLink:hover {
+     text-decoration: underline;
+ }
+ .biblLink:active {
+     text-decoration: none;
+ }
+ .bi {
+     text-decoration: none;
+ }
+
+ .l1 {
+     margin-left: 10px;
+     position: relative;
+ }
+ .l2 {
+     margin-left: 20px;
+     position: relative;
+ }
+ .l3 {
+     margin-left: 30px;
+     position: relative;
+ }
+ .l4 {
+     margin-left: 40px;
+     position: relative;
+ }
+ .l5 {
+     margin-left: 50px;
+     position: relative;
+ }
+ .body {
+     line-height: 1.2;
+     margin: 8px 0px;
+ }
+
+
+
+ .orangetext {
+     color: orange;
+ }
+ .greentext {
+     color: green;
+ }
+ .bluetext {
+     color: blue;
+ }
+ .redtext {
+     color: red;
+ }
+ .boldtext {
+     font-weight: bold;
+ }
+ .blacktext {
+     color: black;
+ }
+ .attrlink {
+     color: blue;
+ }
+
