@@ -408,6 +408,40 @@ em {
     font-size: 11px;
 }
 
+.dict_row.phil_hom_header {
+    font-family: NewAthenaUnicode, WebNewAthenaUnicode, helvetica, arial,
+    san-serif;
+    background-color: #172136;
+    font-weight: bold;
+    text-align: center;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    justify-content: space-around;
+}
+
+.phil_hom_btn {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    padding: 4px;
+    padding-left: 6px;
+    padding-right: 6px;
+    border: 1px solid black;
+    border-radius: 5px;
+    background-color: #040a16;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.phil_hom_btn.deactive {
+    color: #cbd9f47c;
+    background-color: #071022;
+}
+.phil_hom_btn:hover {
+    cursor: pointer;
+    /* background-color: #040a16; */
+    color: #cbd9f4;
+}
+
 /***********************************PHILOLOG STOLEN CSS***********************************/
 @font-face {
     font-family: "WebNewAthenaUnicode";

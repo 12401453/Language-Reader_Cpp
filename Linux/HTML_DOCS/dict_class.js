@@ -1160,8 +1160,10 @@ class Dictionary {
             });
         });
     }
-
+    philolog_entries = ["", ""];
     scrapePhilolog = (response_text) => {
+        this.philolog_entries[0] = "";
+        this.philolog_entries[1] = "";
         const json_response = JSON.parse(response_text);
 
         if(json_response.error == "1") {
@@ -1169,10 +1171,41 @@ class Dictionary {
             return;
         }
 
+        let philolog_body_html = "";
+        const word1 = json_response.json_result.word;
+        const word2 = json_response.json_result2.word
+
+        this.philolog_entries[0] = json_response.json_result.def;
+        if(word1 + "2" == word2) {
+            let homonyms_header = "<div class=\"dict_row phil_hom_header\"><div id=\"phil_hom_1\" class=\"phil_hom_btn\"><span>" + word1 + "<sup>1</sup></span></div><div id=\"phil_hom_2\" class=\"phil_hom_btn deactive\"><span>"+word1 + "<sup>2</sup></span></div></div>";
+            philolog_body_html = homonyms_header + "<div id=\"philolog_body\">" + this.philolog_entries[0] + "</div>";
+
+            this.philolog_entries[1] = json_response.json_result2.def;
+        }
+        else philolog_body_html = "<div id=\"philolog_body\">" + json_response.json_result.def + "</div>";
+
         const dict_body = document.getElementById("dict_body");
         dict_body.innerHTML = "";
-        dict_body.innerHTML = "<div id=\"philolog_body\">" + json_response.json_result.def + "</div>";
+        dict_body.innerHTML = philolog_body_html;
+
+        dict_body.querySelectorAll(".phil_hom_btn").forEach(phil_hom_btn => {
+            phil_hom_btn.addEventListener('click', this.switchPhilologHomonym);
+        });
+
         dict_body.style.display = "flex";
+    };
+    switchPhilologHomonym = (event) => {
+        const btn = event.currentTarget;
+        if(btn.classList.contains('deactive')) {
+            const phil_hom_buttons = btn.parentElement.childNodes;
+            phil_hom_buttons.forEach(btn => btn.classList.add('deactive'));
+            btn.classList.remove('deactive');
+            
+            const philolog_body = document.getElementById("philolog_body");
+            philolog_body.innerHTML = this.philolog_entries[Number(btn.id.slice(-1)) - 1];
+            philolog_body.scrollTop = 0;
+
+        }
     };
 
 }

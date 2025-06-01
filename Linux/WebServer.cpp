@@ -7,6 +7,7 @@
 #include <math.h>
 #include <sys/stat.h>
 #include <vector>
+#include <thread>
 
 void WebServer::onClientConnected(int clientSocket) {
 
@@ -4289,15 +4290,27 @@ bool WebServer::curlPhilolog(std::string _POST[1], int clientSocket) {
     }
 
     std::string philolog_lemma_id_query = "https://philolog.us/ls/item?id=" + philolog_lemma_id_str + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306";
+    std::string second_philolog_lemma_id_query = "https://philolog.us/ls/item?id=" + std::to_string(philolog_lemma_id + 1) + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306";
+    CurlFetcher second_query(second_philolog_lemma_id_query.c_str());
 
-    query.fetch(philolog_lemma_id_query);
+    std::thread query1([&](){
+        query.fetch(philolog_lemma_id_query);
+        std::cout << "philolog query1 has returned\n";
+    });
+    std::thread query2([&](){
+        second_query.fetch();
+        std::cout << "philolog query2 has returned\n";
+    });
+
+    query1.join();
+    query2.join();
 
     if(query.error_state) {
         sendBackError("second philolog request failed");
         return false;
     }
 
-    std::string json_response = "{\"error\":0,\"error_msg\":\"\",\"json_result\":" + query.m_get_html + "}";
+    std::string json_response = "{\"error\":0,\"error_msg\":\"\",\"json_result\":" + query.m_get_html + ",\"json_result2\":" + second_query.m_get_html + "}";
     std::ostringstream post_response;
     post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " << json_response.size() << "\r\n\r\n" << json_response;
     int length = post_response.str().size() + 1;
