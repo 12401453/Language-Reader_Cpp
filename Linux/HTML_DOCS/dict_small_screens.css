@@ -442,6 +442,16 @@ em {
     color: #cbd9f4;
 }
 
+.dict_cell.bildilchin {
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+
+    line-height: 15px;
+}
+.dict_cell.bildilchin c {
+    color: #fff800;
+}
+
 /***********************************PHILOLOG STOLEN CSS***********************************/
 @font-face {
     font-family: "WebNewAthenaUnicode";

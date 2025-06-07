@@ -112,6 +112,9 @@ class Dictionary {
         else if(dict_type == 8) {
             return encodeURIComponent(this.wiktionariseLatin(word));
         }
+        else if(dict_type == 9) {
+            return 'https://bildilchin.az:8888/bildilchin/get/description?selectedWord=' + encodeURIComponent(word) + '&indexLang=az';
+        }
     }
     dict_name = "";
     lang_name = "";
@@ -144,6 +147,9 @@ class Dictionary {
         },
         8: {
             logo_url: 'perseus_logo.png" title="philolog.us"',
+        },
+        9: {
+            logo_url: 'bildilchin.svg" title="bildilchin.az"',
         }
     };
     allowable_dicts = {
@@ -157,7 +163,7 @@ class Dictionary {
         8: [1,2,7,5],
         10: [6,2],
         11: [2, 8],
-        12: [2],
+        12: [2, 9],
     };
 
     display() {
@@ -262,6 +268,7 @@ class Dictionary {
         else if(dict_type == 5) this.scrapeDictCC(response_text);
         else if(dict_type == 7) this.scrapeDanskeOrdbogen(response_text);
         else if(dict_type == 8) this.scrapePhilolog(response_text);
+        else if(dict_type == 9) this.scrapeBildilchin(response_text);
     }
 
     noResultsFound(message="No results found") {
@@ -1206,6 +1213,41 @@ class Dictionary {
             philolog_body.scrollTop = 0;
 
         }
+    };
+
+    bildilchin_json = Object.create(null);
+    scrapeBildilchin = (response_text) => {
+        this.bildilchin_json = Object.create(null);
+        try {
+            this.bildilchin_json = JSON.parse(response_text);
+        }
+        catch(e) {
+            console.log("bildilchin request returned invalid JSON");
+            this.noResultsFound("bildilchin request returned invalid JSON");
+            return;
+        }
+
+        const dict_body = document.getElementById("dict_body");
+        dict_body.innerHTML = "";
+        const filtered_results = this.bildilchin_json.filter(obj => obj.dictionary.id == 5 || obj.dictionary.id == 6);
+        if(filtered_results.length > 0) {
+            let bildilchin_html = '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + filtered_results[0].word + '</span><br><span class="wiki_headword_grammar">' + filtered_results[0].dictionary.nameAz + "</span></div></div>";
+
+            bildilchin_html += '<div class="dict_row"><div class="dict_cell bildilchin">' + filtered_results[0].description + "</div></div>";
+
+            if(filtered_results.length > 1) {
+                bildilchin_html += '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + filtered_results[1].word + '</span><br><span class="wiki_headword_grammar">' + filtered_results[1].dictionary.nameAz + "</span></div></div>";
+
+                bildilchin_html += '<div class="dict_row"><div class="dict_cell bildilchin">' + filtered_results[1].description + "</div></div>";
+            }
+
+            dict_body.innerHTML = bildilchin_html;
+            dict_body.style.display = "flex";
+        }
+        else {
+            this.noResultsFound();
+        }
+        
     };
 
 }
