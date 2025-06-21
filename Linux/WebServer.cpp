@@ -161,27 +161,37 @@ void WebServer::onMessageReceived(int clientSocket, const char* msg, int length)
 }
 
 
-bool WebServer::c_strStartsWith(const char *str1, const char *str2)
-{
-    int strcmp_count = 0;
-    int str2_len = strlen(str2);
- 
-    int i = -1;
-   
-    while ((*str1 == *str2 || *str2 == '\0') && i < str2_len)
-    {
-        strcmp_count++;
-        str1++;
-        str2++;
-        i++;
+// bool WebServer::c_strStartsWith(const char *str1, const char *str2)
+// {
+//     int strcmp_count = 0;
+//     int str2_len = strlen(str2);
+//
+//     int i = -1;
+//
+//     while ((*str1 == *str2 || *str2 == '\0') && i < str2_len)
+//     {
+//         strcmp_count++;
+//         str1++;
+//         str2++;
+//         i++;
+//     }
+//
+//     if (strcmp_count == str2_len + 1)
+//     {
+//         return true;
+//     }
+//     else
+//         return false;
+// }
+bool WebServer::c_strStartsWith(const char *haystack, const char *needle) {
+    while(*needle) {
+        if(*haystack != *needle) {
+            return false;
+        }
+        ++haystack;
+        ++needle;
     }
- 
-    if (strcmp_count == str2_len + 1)
-    {
-        return true;
-    }
-    else
-        return false;
+    return true;
 }
 
 int WebServer::c_strFind(const char* haystack, const char* needle) {

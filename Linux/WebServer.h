@@ -30,7 +30,7 @@ class WebServer : public TcpListener {
     private:
         int getRequestType(const char* msg);     
         
-        bool c_strStartsWith(const char* str1, const char* str2);
+        bool c_strStartsWith(const char* haystack, const char* needle);
         int c_strFind(const char* haystack, const char* needle);
         int c_strFindNearest(const char* haystack, const char* needle1, const char* needle2);
 
