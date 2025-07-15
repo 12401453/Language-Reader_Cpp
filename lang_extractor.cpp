@@ -4,6 +4,8 @@
 #include <sqlite3.h>
 #include <thread>
 
+//compile: g++ -O3 -std=c++20 lang_extractor.cpp -lsqlite3 -o lang_extractor
+
 class DatabaseExtractor {
     public:
         DatabaseExtractor(const std::string& _source_db_filepath, const std::string& _new_db_filepath, int _lang_id) {
@@ -194,14 +196,14 @@ void DatabaseExtractor::rewriteLemmas() {
 
         sqlite3_stmt* dump_lemmas_stmt;
         
-        const char* dump_lemmas_sql = "SELECT lemma_id, lemma, pos, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10 FROM lemmas WHERE lang_id = ?";
+        const char* dump_lemmas_sql = "SELECT lemma_id, lemma, pos, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10, lemma_normalised FROM lemmas WHERE lang_id = ?";
         sqlite3_prepare_v2(source_DB, dump_lemmas_sql, -1, &dump_lemmas_stmt, NULL);
         sqlite3_bind_int(dump_lemmas_stmt, 1, lang_id);
 
         beginTransaction(new_DB);
 
         sqlite3_stmt* insert_lemma_stmt;
-        const char* insert_lemma_sql = "INSERT INTO lemmas (lemma_id, lemma, pos, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        const char* insert_lemma_sql = "INSERT INTO lemmas (lemma_id, lemma, pos, eng_trans1, eng_trans2, eng_trans3, eng_trans4, eng_trans5, eng_trans6, eng_trans7, eng_trans8, eng_trans9, eng_trans10, lemma_normalised) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         sqlite3_prepare_v2(new_DB, insert_lemma_sql, -1, &insert_lemma_stmt, NULL);
 
         while(sqlite3_step(dump_lemmas_stmt) == SQLITE_ROW) {
@@ -226,7 +228,7 @@ void DatabaseExtractor::rewriteLemmas() {
             int pos = sqlite3_column_int(dump_lemmas_stmt, 2);
             sqlite3_bind_int(insert_lemma_stmt, 3, pos);
 
-            for(int i = 3, x = 4; i < 13; i++, x++) {
+            for(int i = 3, x = 4; i < 14; i++, x++) {
                 
                 const unsigned char* eng_trans_rawsql = sqlite3_column_text(dump_lemmas_stmt, i);
                 if(eng_trans_rawsql != nullptr) {
@@ -331,13 +333,13 @@ void DatabaseExtractor::initialiseDatabase() {
         const char* sql_BEGIN = "BEGIN IMMEDIATE";
         const char* sql_COMMIT = "COMMIT";
 
-        const char* sql_createDisplayText = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_id INTEGER, lemma_meaning_no INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER, multiword_count INTEGER);CREATE INDEX mw_count_index ON display_text(multiword_count) WHERE multiword_count IS NOT NULL;CREATE INDEX lemma_id_index ON display_text(lemma_id) WHERE lemma_id IS NOT NULL";
+        const char* sql_createDisplayText = "DROP TABLE IF EXISTS display_text;CREATE TABLE display_text (tokno INTEGER PRIMARY KEY, text_word TEXT, space INTEGER, word_engine_id INTEGER, lemma_id INTEGER, lemma_meaning_no INTEGER, multiword_id INTEGER, multiword_meaning_no INTEGER, multiword_count INTEGER);CREATE INDEX mw_count_index ON display_text(multiword_count) WHERE multiword_count IS NOT NULL;CREATE INDEX lemma_id_index ON display_text(lemma_id) WHERE lemma_id IS NOT NULL;CREATE INDEX word_engine_id_index ON display_text(word_engine_id) WHERE word_engine_id IS NOT NULL";
 
         const char* sql_createWordEngine = "DROP TABLE IF EXISTS word_engine;CREATE TABLE word_engine (word_engine_id INTEGER PRIMARY KEY, word TEXT, first_lemma_id INTEGER, UNIQUE(word))";
 
         const char* sql_createTexts = "DROP TABLE IF EXISTS texts;CREATE TABLE texts (text_id INTEGER PRIMARY KEY, text_title TEXT, dt_start INTEGER, dt_end INTEGER, text_tag TEXT)";
 
-        const char* sql_createLemmas = "DROP TABLE IF EXISTS lemmas;CREATE TABLE lemmas (lemma_id INTEGER PRIMARY KEY, lemma TEXT, eng_trans1 TEXT, eng_trans2 TEXT, eng_trans3 TEXT, eng_trans4 TEXT, eng_trans5 TEXT, eng_trans6 TEXT, eng_trans7 TEXT, eng_trans8 TEXT, eng_trans9 TEXT, eng_trans10 TEXT, pos INTEGER, UNIQUE(lemma, pos))";
+        const char* sql_createLemmas = "DROP TABLE IF EXISTS lemmas;CREATE TABLE lemmas (lemma_id INTEGER PRIMARY KEY, lemma TEXT, eng_trans1 TEXT, eng_trans2 TEXT, eng_trans3 TEXT, eng_trans4 TEXT, eng_trans5 TEXT, eng_trans6 TEXT, eng_trans7 TEXT, eng_trans8 TEXT, eng_trans9 TEXT, eng_trans10 TEXT, pos INTEGER, lemma_normalised TEXT, UNIQUE(lemma, pos))";
 
         const char* sql_createMultiwordLemmas = "DROP TABLE IF EXISTS multiword_lemmas;CREATE TABLE multiword_lemmas (multiword_id INTEGER PRIMARY KEY, multiword_lemma_form TEXT, eng_trans1 TEXT, eng_trans2 TEXT, eng_trans3 TEXT, eng_trans4 TEXT, eng_trans5 TEXT, pos INTEGER, UNIQUE(multiword_lemma_form, pos))";
 
