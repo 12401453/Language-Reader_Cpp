@@ -11,8 +11,8 @@ int TcpListener::init() {
     if(!m_ctx) ERR_print_errors_fp(stderr);
 
 
-    std::cout << SSL_CTX_use_certificate_file(m_ctx, "cert.pem", SSL_FILETYPE_PEM) << "\n";
-    std::cout << SSL_CTX_use_PrivateKey_file(m_ctx, "key.pem", SSL_FILETYPE_PEM) << "\n";
+    std::cout << SSL_CTX_use_certificate_file(m_ctx, /*"cert.pem"*/ "localhost.crt", SSL_FILETYPE_PEM) << "\n";
+    std::cout << SSL_CTX_use_PrivateKey_file(m_ctx, /*"key.pem"*/ "localhost.key", SSL_FILETYPE_PEM) << "\n";
     std::cout << SSL_CTX_check_private_key(m_ctx) << "\n";
 
     m_socket = socket(AF_INET, SOCK_STREAM, 0); //AF_INET and SOCK_STREAM are both constants defined by a #define macro to be = 1
@@ -138,100 +138,136 @@ void TcpListener::onClientConnected(int clientSocket) {
         return;
     }
     
-    char c_str_message_buffer[16384];
-    char* c_str_msg_write_position = c_str_message_buffer;
-    memset(c_str_message_buffer, 0, 16384);
-    int message_size = 0;
-    printf("entered onClientConnect()\n");
+    while(true) {
+        char c_str_message_buffer[16384];
+        char* c_str_msg_write_position = c_str_message_buffer;
+        memset(c_str_message_buffer, 0, 16384);
+        int message_size = 0;
+        printf("entered onClientConnect()\n");
 
-    int headers_length = -1;
-    while (headers_length == -1) {
+        int headers_length = -1;
+        while (headers_length == -1) {
 
-        if(message_size > 8192) {
-            sendToClient(&ssl_conn, "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 23\r\n\r\nMal-formed HTTP request", 97);
-            sslCloseConnection(&ssl_conn);
-            onClientDisconnected(ssl_conn.client_socket);
-            std::cout << "The headers have been going on for more than 8192 bytes, suggesting a mal-formed incoming HTTP message. Aborting...\n";
-            return;
-        }
+            if(message_size > 8192) {
+                sendToClient(&ssl_conn, "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: 23\r\n\r\nMal-formed HTTP request", 97);
+                sslCloseConnection(&ssl_conn);
+                onClientDisconnected(ssl_conn.client_socket);
+                std::cout << "The headers have been going on for more than 8192 bytes, suggesting a mal-formed incoming HTTP message. Aborting...\n";
+                return;
+            }
 
-        char buf[4096];
-        memset(buf, 0, 4096);
-        //int bytesIn = recv(clientSocket, buf, 4096, 0);
-        int bytesIn = SSL_read(ssl_conn.ssl, buf, 4096);
-        message_size += bytesIn;
-        
-        c_str_msg_write_position = (char*)mempcpy(c_str_msg_write_position, buf, bytesIn);
-
-        headers_length = c_strFind(c_str_message_buffer, "\r\n\r\n");
-
-    }
-    std::cout << c_str_message_buffer << "\n";
-
-    int get_or_post = getRequestType(c_str_message_buffer);
-    if(get_or_post == GET) {
-        onMessageReceived(&ssl_conn, c_str_message_buffer, message_size + 1, get_or_post, headers_length);
-        sslCloseConnection(&ssl_conn);
-        onClientDisconnected(ssl_conn.client_socket);
-        return;
-    }  
-    else if (get_or_post == -1) {
-        sendToClient(&ssl_conn, "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: 43\r\n\r\nNeither a GET nor a POST request... REPENT!", 124);
-        sslCloseConnection(&ssl_conn);
-        onClientDisconnected(ssl_conn.client_socket);
-        std::cout << "Neither a GET nor a POST request, sent HTTP 405 Method Not Allowed status\n";
-        return;
-    }
-    //no need for final else because the other two branches return
-
-    int content_length = getContentLength(c_str_message_buffer);
-    int total_message_length = headers_length + 4 + content_length;
-
-    if(total_message_length < 16384) {
-        printf("Stack-allocating HTTP message-buffer...\n");
-        while(message_size < total_message_length) {
-            //this NEEDS a timeout to be set on SSL_read, otherwise you can crash the server just by sending a POST with a falsely high Content-Length header that will block indefinitely (since there will be nothing to read on the socket)
-            printf("in recv() loop\n");
             char buf[4096];
             memset(buf, 0, 4096);
             //int bytesIn = recv(clientSocket, buf, 4096, 0);
             int bytesIn = SSL_read(ssl_conn.ssl, buf, 4096);
-            bytesIn = message_size + bytesIn < total_message_length ? bytesIn : total_message_length - message_size; //if the client lies and sends more data than its Content-Length says, then we want to cap the amount we read off the socket to be below the amount which will overflow our buffer
+            if (bytesIn <= 0) {
+                // client hung up or error
+                int err = SSL_get_error(ssl_conn.ssl, bytesIn);
+                if (err == SSL_ERROR_ZERO_RETURN) {
+                    // clean shutdown
+                    printf("Client closed connection\n");
+                } else {
+                    printf("SSL_read error: %d\n", err);
+                }
+                sslCloseConnection(&ssl_conn);
+                onClientDisconnected(ssl_conn.client_socket);
+                return;
+                //break;
+            }
+            
             message_size += bytesIn;
+            
             c_str_msg_write_position = (char*)mempcpy(c_str_msg_write_position, buf, bytesIn);
+
+            headers_length = c_strFind(c_str_message_buffer, "\r\n\r\n");
+
         }
-        printf("message_size: %i\n", message_size);
-        printf("%s\n", c_str_message_buffer);
-        onMessageReceived(&ssl_conn, c_str_message_buffer, message_size + 1, get_or_post, headers_length, content_length); //need to send an extra \0 from the buffer to null-terminate the message
-        
-        sslCloseConnection(&ssl_conn);
+        std::cout << c_str_message_buffer << "\n";
 
-        onClientDisconnected(ssl_conn.client_socket);
+        int get_or_post = getRequestType(c_str_message_buffer);
+        if(get_or_post == GET) {
+            onMessageReceived(&ssl_conn, c_str_message_buffer, message_size + 1, get_or_post, headers_length);
+            // sslCloseConnection(&ssl_conn);
+            // onClientDisconnected(ssl_conn.client_socket);
+            // return;
+        }  
+        else if (get_or_post == -1) {
+            sendToClient(&ssl_conn, "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: 43\r\n\r\nNeither a GET nor a POST request... REPENT!", 124);
+            // sslCloseConnection(&ssl_conn);
+            // onClientDisconnected(ssl_conn.client_socket);
+            std::cout << "Neither a GET nor a POST request, sent HTTP 405 Method Not Allowed status\n";
+            // return;
+        }
+        //no need for final else because the other two branches return
 
-        return;
+        int content_length = getContentLength(c_str_message_buffer);
+        int total_message_length = headers_length + 4 + content_length;
+
+        if(total_message_length < 16384) {
+            printf("Stack-allocating HTTP message-buffer...\n");
+            while(message_size < total_message_length) {
+                //this NEEDS a timeout to be set on SSL_read, otherwise you can crash the server just by sending a POST with a falsely high Content-Length header that will block indefinitely (since there will be nothing to read on the socket)
+                printf("in recv() loop\n");
+                char buf[4096];
+                memset(buf, 0, 4096);
+                //int bytesIn = recv(clientSocket, buf, 4096, 0);
+                int bytesIn = SSL_read(ssl_conn.ssl, buf, 4096);
+                if (bytesIn <= 0) {
+                    // client hung up or error
+                    int err = SSL_get_error(ssl_conn.ssl, bytesIn);
+                    if (err == SSL_ERROR_ZERO_RETURN) {
+                        // clean shutdown
+                        printf("Client closed connection\n");
+                    } else {
+                        printf("SSL_read error: %d\n", err);
+                    }
+                    sslCloseConnection(&ssl_conn);
+                    onClientDisconnected(ssl_conn.client_socket);
+                    return;
+                    
+                    //break;
+                }
+                bytesIn = message_size + bytesIn < total_message_length ? bytesIn : total_message_length - message_size; //if the client lies and sends more data than its Content-Length says, then we want to cap the amount we read off the socket to be below the amount which will overflow our buffer
+                message_size += bytesIn;
+                c_str_msg_write_position = (char*)mempcpy(c_str_msg_write_position, buf, bytesIn);
+            }
+            printf("message_size: %i\n", message_size);
+            printf("%s\n", c_str_message_buffer);
+            onMessageReceived(&ssl_conn, c_str_message_buffer, message_size + 1, get_or_post, headers_length, content_length); //need to send an extra \0 from the buffer to null-terminate the message
+        }
+        else {
+            printf("Heap-allocating HTTP message-buffer...\n");
+            std::string message_buffer;
+            printf("Heap-allocated POST message up to the end of the headers:\n\n%s\n\n", c_str_message_buffer);
+            message_buffer.append(c_str_message_buffer, message_size);
+            while(message_size < total_message_length) {
+                char buf[4096];
+                memset(buf, 0, 4096);
+                //int bytesIn = recv(clientSocket, buf, 4096, 0);
+                int bytesIn = SSL_read(ssl_conn.ssl, buf, 4096);
+                if (bytesIn <= 0) {
+                    // client hung up or error
+                    int err = SSL_get_error(ssl_conn.ssl, bytesIn);
+                    if (err == SSL_ERROR_ZERO_RETURN) {
+                        // clean shutdown
+                        printf("Client closed connection\n");
+                    } else {
+                        printf("SSL_read error: %d\n", err);
+                    }
+                    sslCloseConnection(&ssl_conn);
+                    onClientDisconnected(ssl_conn.client_socket);
+                    return;
+                    //break;
+                }
+                message_size += bytesIn;
+                message_buffer.append(buf, bytesIn);
+            }
+            printf("message_size: %i\n", message_size);
+            onMessageReceived(&ssl_conn, message_buffer.c_str(), message_size + 1, get_or_post, headers_length, content_length); //calling .c_str() should return a null-terminated-string so need an extra byte in the size
+        }  
     }
-    else {
-        printf("Heap-allocating HTTP message-buffer...\n");
-        std::string message_buffer;
-        printf("Heap-allocated POST message up to the end of the headers:\n\n%s\n\n", c_str_message_buffer);
-        message_buffer.append(c_str_message_buffer, message_size);
-        while(message_size < total_message_length) {
-            char buf[4096];
-            memset(buf, 0, 4096);
-            //int bytesIn = recv(clientSocket, buf, 4096, 0);
-            int bytesIn = SSL_read(ssl_conn.ssl, buf, 4096);
-            message_size += bytesIn;
-            message_buffer.append(buf, bytesIn);
-        }
-        printf("message_size: %i\n", message_size);
-        onMessageReceived(&ssl_conn, message_buffer.c_str(), message_size + 1, get_or_post, headers_length, content_length); //calling .c_str() should return a null-terminated-string so need an extra byte in the size
-        
-        sslCloseConnection(&ssl_conn);
-
-        onClientDisconnected(ssl_conn.client_socket);
-
-        return;
-    }   
+    sslCloseConnection(&ssl_conn);
+    onClientDisconnected(ssl_conn.client_socket);
 
 }
 
