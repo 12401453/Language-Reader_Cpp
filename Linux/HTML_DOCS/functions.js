@@ -2410,8 +2410,9 @@ class DisplayWordEditor {
         else if(this.makeRegex().test(event.key)) {
           //console.log(event.key);
           let character = event.key
-          if(lang_id == 10) {
-              const OE_array = this.oldEnglishify(character);
+          if(lang_id == 10 || lang_id == 13) {
+              const OE_array = lang_id == 10 ? this.oldEnglishify(character) : this.oldNorsify(character);
+              console.log(OE_array);
               if(OE_array[0] == true) window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Backspace'}));
               character = OE_array[1];
           }
@@ -2553,9 +2554,76 @@ class DisplayWordEditor {
       else return [true, digraph_letter];
     }
   };
+  oldNorsify = (key_pressed) => {
+    console.log("oldNorsify() called");
+    const last_letter = this.wordContent.slice(this.cursor_position -1, this.cursor_position);
+  
+    const digraph = (base_letter, replacement_upper, replacement_lower) => {
+      return (base_letter == base_letter.toUpperCase()) ? replacement_upper : replacement_lower;
+    };
+  
+    if(key_pressed == ":") {
+      let long_vowel = '';
+      const upper_case = (last_letter == last_letter.toUpperCase());
+      switch(last_letter.toLowerCase()) {
+        case 'a':
+          long_vowel = 'á';
+          break;
+        case 'e':
+          long_vowel = 'é';
+          break;
+        case 'i':
+          long_vowel = 'í';
+          break;
+        case 'æ':
+          long_vowel = 'ǣ';
+          break;
+        case 'u':
+          long_vowel = 'ú';
+          break;
+        case 'o':
+          long_vowel = 'ó';
+          break;
+        case 'y':
+          long_vowel = 'ý';
+          break;	
+        default:
+          return [false, ""];
+    	
+      }
+      if(long_vowel != '') {
+        return (upper_case) ? [true, long_vowel.toUpperCase()] : [true, long_vowel];
+      }
+    }
+  
+    else {
+      let digraph_letter = "";
+      if(key_pressed == 'e' && last_letter.toLowerCase() == 'a') {
+        digraph_letter = digraph(last_letter, 'Æ', 'æ');
+      }
+      else if(key_pressed == 'e' && last_letter.toLowerCase() == 'o') {
+        digraph_letter = digraph(last_letter, 'Œ', 'œ');
+      }
+      else if(key_pressed == 'h' && last_letter.toLowerCase() == 't') {
+        digraph_letter = digraph(last_letter, 'Þ', 'þ');
+      }
+      else if(key_pressed == 'h' && last_letter.toLowerCase() == 'd') {
+        digraph_letter = digraph(last_letter, 'Ð', 'ð');
+      }
+      else if(key_pressed == 'a' && last_letter.toLowerCase() == 'o') {
+        digraph_letter = digraph(last_letter, 'Ǫ', 'ǫ');
+      }
+      else if(key_pressed == 'y' && last_letter.toLowerCase() == 'o') {
+        digraph_letter = digraph(last_letter, 'Ö', 'ö');
+      }
+  
+      if(digraph_letter == "") return [false, key_pressed];
+      else return [true, digraph_letter];
+    }
+  };
 
   makeRegex = () => {
-    if(lang_id == 10) return new RegExp(/^(\p{L}|:)$/u);
+    if(lang_id == 10 || lang_id == 13) return new RegExp(/^(\p{L}|:)$/u);
     else return new RegExp(/^\p{L}$/u);
   };
 
