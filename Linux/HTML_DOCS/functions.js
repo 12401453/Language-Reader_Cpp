@@ -1768,6 +1768,9 @@ const displayAnnotBox = function () {
   else if(lang_id == 11) {
     annot_box.getElementById("lemma_tag").addEventListener('beforeinput', latinInput);
   }
+  else if(lang_id == 13) {
+    annot_box.getElementById("lemma_tag").addEventListener('beforeinput', oldNorseInput);
+  }
   if(display_word.dataset.multiword !== undefined) {
     annot_box.getElementById("edit_button").style.visibility = "hidden";
   }
@@ -2137,6 +2140,80 @@ const oldEnglishInput = (event) => {
 		else if(key_pressed == 'j' && last_letter.toLowerCase() == 'g') {
 			digraph(last_letter, 'Ġ', 'ġ', textarea);
 		}
+	}
+  setLemmaTagSize();
+};
+const oldNorseInput = (event) => {
+
+	const key_pressed = event.data;
+	const textarea = event.target;
+	const selection_start = textarea.selectionStart;
+	const selection_end = textarea.selectionEnd;
+
+	const digraph = (base_letter, replacement_upper, replacement_lower, input_element) => {
+		event.preventDefault();
+		const replacement = (base_letter == base_letter.toUpperCase()) ? replacement_upper : replacement_lower;
+		input_element.value = input_element.value.slice(0, selection_start - 1) + replacement + textarea.value.slice(selection_end);
+		textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+	};
+
+	if(key_pressed == ":") {
+    let long_vowel = '';
+		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
+		const upper_case = (last_letter == last_letter.toUpperCase());
+		switch(last_letter.toLowerCase()) {
+			case 'a':
+          long_vowel = 'á';
+          break;
+      case 'e':
+          long_vowel = 'é';
+          break;
+      case 'i':
+          long_vowel = 'í';
+          break;
+      case 'æ':
+          long_vowel = 'ǣ';
+          break;
+      case 'u':
+          long_vowel = 'ú';
+          break;
+      case 'o':
+          long_vowel = 'ó';
+          break;
+      case 'y':
+          long_vowel = 'ý';
+          break;
+      default:
+          ;		
+		}
+		if(long_vowel != '') {
+			event.preventDefault();
+			if(upper_case) long_vowel = long_vowel.toUpperCase();
+			textarea.value = textarea.value.slice(0, selection_start - 1) + long_vowel + textarea.value.slice(selection_end);
+			textarea.selectionStart = selection_start; textarea.selectionEnd = selection_start;
+		}
+  }
+
+	else {
+		const last_letter = textarea.value.slice(selection_start - 1, selection_start);
+		if(key_pressed == 'e' && last_letter.toLowerCase() == 'a') {
+			digraph(last_letter, 'Æ', 'æ', textarea);
+		}
+    else if(key_pressed == 'e' && last_letter.toLowerCase() == 'o') {
+			digraph(last_letter, 'Œ', 'œ', textarea);
+		}
+		else if(key_pressed == 'h' && last_letter.toLowerCase() == 't') {
+			digraph(last_letter, 'Þ', 'þ', textarea);
+		}
+		else if(key_pressed == 'h' && last_letter.toLowerCase() == 'd') {
+			digraph(last_letter, 'Ð', 'ð', textarea);
+		}
+    else if(key_pressed == 'a' && last_letter.toLowerCase() == 'o') {
+      digraph(last_letter, 'Ǫ', 'ǫ', textarea);
+    }
+    else if(key_pressed == 'y' && last_letter.toLowerCase() == 'o') {
+      digraph(last_letter, 'Ö', 'ö', textarea);
+    }
 	}
   setLemmaTagSize();
 };
