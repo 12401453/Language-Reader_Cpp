@@ -787,7 +787,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/add_text_OE.php")) return 3;
     else if(!strcmp(url, "/update_displayWord.php")) return 5;
     else if(!strcmp(url, "/lemma_tooltip_mw.php")) return 3;
-    else if(!strcmp(url, "/curl_philolog.php")) return 1;
+    else if(!strcmp(url, "/curl_philolog.php")) return 2;
     else return -1;
 }
 /*
@@ -4262,7 +4262,7 @@ bool WebServer::lemmaTooltipsMW(std::string _POST[3], int clientSocket) {
 }
 
 
-bool WebServer::curlPhilolog(std::string _POST[1], int clientSocket) {
+bool WebServer::curlPhilolog(std::string _POST[2], int clientSocket) {
 
     //I have to set the Content-Type to text/plain because the dict_class.js lookUp() method expects text, not JSON. As with the Sozdik scraper, I just have to manually convert it to JSON with JSON.parse(response_text)
 
@@ -4275,8 +4275,9 @@ bool WebServer::curlPhilolog(std::string _POST[1], int clientSocket) {
     };
 
     std::string search_term = _POST[0]; //shouldn't need to URIDecode() it because I am passing it straight to another web-request-url  that (if it ever contained non-ASCII, which for Latin is doubtful) also requires encodeURIComponent() escaping
+    int lang_id = safeStrToInt(_POST[1], 11); //default to latin
 
-    std::string philolog_text_query = "https://philolog.us/ls/query?n=101&idprefix=lemmata&x=0.225928550768416&requestTime=1748717865303&page=0&mode=context&query=%7B%22regex%22%3A0%2C%22lexicon%22%3A%22ls%22%2C%22tag_id%22%3A0%2C%22root_id%22%3A0%2C%22w%22%3A%22" + search_term + "%22%7D";
+    std::string philolog_text_query = lang_id == 11 ? "https://philolog.us/ls/query?n=101&idprefix=lemmata&x=0.225928550768416&requestTime=1748717865303&page=0&mode=context&query=%7B%22regex%22%3A0%2C%22lexicon%22%3A%22ls%22%2C%22tag_id%22%3A0%2C%22root_id%22%3A0%2C%22w%22%3A%22" + search_term + "%22%7D" : "https://philolog.us/lsj/query?n=101&idprefix=lemmata&x=0.4444108310977324&requestTime=1763088361247&page=0&mode=context&query=%7B%22regex%22%3A0%2C%22lexicon%22%3A%22lsj%22%2C%22tag_id%22%3A0%2C%22root_id%22%3A0%2C%22w%22%3A%22" + search_term + "%22%7D";
 
     CurlFetcher query(philolog_text_query.c_str());
 

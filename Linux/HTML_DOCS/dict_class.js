@@ -241,11 +241,16 @@ class Dictionary {
             this.MR_glossaryLookup(word);
             return;
         }
-        let request_url = "curl_lookup.php";
-
-        if(dict_type == 8) request_url = "curl_philolog.php";
 
         let send_data = "url="+this.urlMaker(word, dict_type, PONS_german); //this has all been URI-encoded already
+        let request_url = "curl_lookup.php";
+
+        if(dict_type == 8) {
+            request_url = "curl_philolog.php";
+            send_data += "&lang_id="+this.m_lang_id;
+        }
+
+        
         const httpRequest = (method, url) => {
             const xhttp = new XMLHttpRequest();
             xhttp.open(method, url, true);
