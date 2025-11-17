@@ -4300,12 +4300,24 @@ bool WebServer::curlPhilolog(std::string _POST[2], int clientSocket) {
         return false;
     }
 
-    std::string philolog_lemma_id_query = "https://philolog.us/ls/item?id=" + philolog_lemma_id_str + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306";
-    std::string second_philolog_lemma_id_query = "https://philolog.us/ls/item?id=" + std::to_string(philolog_lemma_id + 1) + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306";
-    CurlFetcher second_query(second_philolog_lemma_id_query.c_str());
+    auto getPhilologLemmaIdQueries = [&](int lang_id, const std::string philolog_lemma_id_str) {
+        if(lang_id == 11) {
+            return std::pair<std::string, std::string>("https://philolog.us/ls/item?id=" + philolog_lemma_id_str + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306", "https://philolog.us/ls/item?id=" + std::to_string(philolog_lemma_id + 1) + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306");
+        }
+        else {
+            return std::pair<std::string, std::string>("https://philolog.us/lsj/item?id="+ philolog_lemma_id_str + "&lexicon=lsj&skipcache=0&addwordlinks=0&x=0.5217165758271952", "https://philolog.us/lsj/item?id="+ std::to_string(philolog_lemma_id + 1) + "&lexicon=lsj&skipcache=0&addwordlinks=0&x=0.5217165758271952");
+        }
+    };
+
+    // std::string philolog_lemma_id_query = "https://philolog.us/ls/item?id=" + philolog_lemma_id_str + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306";
+    // std::string second_philolog_lemma_id_query = "https://philolog.us/ls/item?id=" + std::to_string(philolog_lemma_id + 1) + "&lexicon=ls&skipcache=0&addwordlinks=0&x=0.48539218927832306";
+
+    auto philolog_lemma_id_queries_pair = getPhilologLemmaIdQueries(lang_id, philolog_lemma_id_str);
+
+    CurlFetcher second_query(philolog_lemma_id_queries_pair.second.c_str());
 
     std::thread query1([&](){
-        query.fetch(philolog_lemma_id_query);
+        query.fetch(philolog_lemma_id_queries_pair.first);
         std::cout << "philolog query1 has returned\n";
     });
     std::thread query2([&](){

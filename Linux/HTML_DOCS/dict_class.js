@@ -52,9 +52,14 @@ class Dictionary {
             case 12:
                 this.dict_type = 2;
                 this.lang_name = "Azerbaijani";
+                break;
             case 13:
                 this.dict_type = 2;
                 this.lang_name = "Old Norse";
+                break;
+            case 14:
+                this.dict_type = 8;
+                this.lang_name = "Ancient Greek";
                 break;
         }
         this.PONS_german = this.m_lang_id == 5 ? false : true;
@@ -169,6 +174,7 @@ class Dictionary {
         11: [2, 8],
         12: [2, 9],
         13: [2],
+        14: [8, 2],
     };
 
     display() {

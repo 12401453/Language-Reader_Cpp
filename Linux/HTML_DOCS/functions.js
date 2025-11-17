@@ -284,6 +284,10 @@ function loadText() {
     newtext_raw = newtext_raw.replaceAll('\u0259', '\u04D9').replaceAll('\u018F', '\u04D8'); //replace Latin schwa-letter with Cyrillic ә (they look identical)
     text_title_raw = text_title_raw.replaceAll('\u0259', '\u04D9').replaceAll('\u018F', '\u04D8');
   }
+  else if(langselect == "14") {
+    //replace Loeb Classical Library Greek accents with the ones on the modern Greek keyboard
+    newtext_raw = newtext_raw.replaceAll("ό", "ό").replaceAll("ή", "ή").replaceAll("ό", "ό").replaceAll("ό", "ό").replaceAll("ό", "ό").replaceAll("ό", "ό").replaceAll("ό", "ό").replaceAll("ό", "ό");
+  }
 
   if(text_title_raw == '' && newtext_raw == '') { return; }
   if(text_title_raw == '') { alert("Do not leave Text Title blank"); return; }
