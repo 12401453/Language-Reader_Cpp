@@ -248,6 +248,11 @@ class Dictionary {
             return;
         }
 
+        if(this.m_lang_id == 14) {
+            word = word.replace(/σ$/, "ς");
+            document.getElementById("dict_searchbox").value = word;
+        }
+
         let send_data = "url="+this.urlMaker(word, dict_type, PONS_german); //this has all been URI-encoded already
         let request_url = "curl_lookup.php";
 

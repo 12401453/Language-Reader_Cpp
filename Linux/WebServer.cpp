@@ -286,16 +286,16 @@ int WebServer::checkHeaderEnd(const char* msg) {
         while (std::getline(urlFile, line))
         {   
             if(page_type > 0 && line.find("<?php") != -1) insertTextSelect(ss_text);
-            else if(page_type == 1 && cookies_present && line.find("<?cky") != -1) void_retrieveText(m_cookies, ss_text); 
+            else if(page_type == 1 && cookies_present && line.find("<?cky") != -1) void_retrieveText(ss_text); 
             else if(page_type == 1 && line.find("<?cky") != -1) ss_text << "<br><br><div id=\"textbody\"></div>\n";
             
             //For some reason I do not understand, if you insert a <script> tag to declare the below JS variable outside of the script tag at the bottom, on Chrome Android the server very often will get stuck for absolutely ages on loading the Bookerly font file when you refresh the page, and the javascript engine will freeze for about 5-10seconds, but this never happens on Desktop. Thus I've had to make up another bullshit <?js tag to signal where to insert this C++-generated JS, and the only reason I'm inserting it server-side is because JS string functions are absolute dogshit and compared to my C-string parsing of the cookie text, doing it on the client by parsing the document.cookie string is ungodlily inefficient
             else if(page_type == 1 && cookies_present && line.find("<?js") != -1) {
-                ss_text << "let cookie_textselect = " << m_cookies[0] << ";\n";
+                ss_text << "let cookie_textselect = " << safeStrToInt(m_cookies[0]) << ";\n";
                 ss_text << "page_toknos_arr = " << m_page_toknos_arr << ";\n";
                 ss_text << "if(page_toknos_arr.length > 0) {document.getElementById('pagenos').addEventListener('click', selectText_splitup);\ndocument.getElementById('pagenos').addEventListener('keydown', selectText_splitup);}\n";
                 ss_text << "dt_end = " << m_dt_end << ";\n";
-                ss_text << "current_pageno = " << m_cookies[1] << ";\n";
+                ss_text << "current_pageno = " << safeStrToInt(m_cookies[1]) << ";\n";
             }
 
 
@@ -1707,9 +1707,11 @@ bool WebServer::getLangId(std::string text_id[1], int clientSocket) {
     else return false;
 }
 
-void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &html) {
-    int cookie_textselect = std::stoi(cookies[0]);
-    int cookie_pageno = std::stoi(cookies[1]);
+void WebServer::void_retrieveText(/*std::string cookies[2],*/ std::ostringstream &html) {
+    int cookie_textselect = safeStrToInt(m_cookies[0]);
+    int cookie_pageno = safeStrToInt(m_cookies[1]);
+
+    //need some logic in here to clamp the cookie text_id (and probably also page-number) value to the max or min of the actually-available text_id's / page_numbers, because it keeps messing up when the localhost's text_id coookie has been set to something unavailable by the ocsserver program
 
     if(cookie_textselect == 0) {
         html << "<br><br><div id=\"textbody\"></div>\n";
@@ -1730,10 +1732,10 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
 
         sql_text = "SELECT dt_start, dt_end, text_title, lang_id FROM texts WHERE text_id = ?";
         prep_code = sqlite3_prepare_v2(DB, sql_text, -1, &statement, NULL);
-        std::cout << "bind code: " << sqlite3_bind_int(statement, 1, cookie_textselect) << std::endl;
+        std::cout << "bind code: " << sqlite3_bind_int(statement, 1, cookie_textselect) << "\n";
         run_code = sqlite3_step(statement);
-
-        std::cout << prep_code << " " << run_code << std::endl;
+        
+        //std::cout << prep_code << " " << run_code << std::endl;
 
         sqlite3_int64 dt_start = sqlite3_column_int64(statement, 0);
         //if the cookie refers to a deleted text then SQLite will convert the null given by this query of an empty row to 0, which is falsey in C++
@@ -1756,11 +1758,8 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
         std::string text_title_str;
         text_title_utf8.toUTF8String(text_title_str); */
         html << "<h1 id=\"title\">" << text_title << "</h1><br><div id=\"textbody\">"; 
-        if(cookie_pageno == 1) html << "&emsp;";
         
-     /*   else {
-            html << "<h1 id=\"title\">" << sqlite3_column_text(statement, 2) << "</h1><br><div id=\"textbody\">&emsp;";
-        } */
+        
         sqlite3_finalize(statement);
 
         sql_text = "SELECT count(*) FROM display_text WHERE tokno >= ? AND tokno <= ? AND space IS NOT NULL"; // OR text_word = '\n')";
@@ -1780,7 +1779,14 @@ void WebServer::void_retrieveText(std::string cookies[2], std::ostringstream &ht
         sqlite3_int64 tokno;
 
         int pagenos = (int)ceil(chunk_total/words_per_page);
+        if(cookie_pageno > pagenos) {
+            //clamp the cookie page_no value to the maximum number of pages otherwise bad shit happens further down
+            cookie_pageno = pagenos;
+            m_cookies[1] = std::to_string(cookie_pageno);
+        }
         sqlite3_int64 page_toknos[pagenos];
+
+        if(cookie_pageno == 1) html << "&emsp;";
 
         std::stringstream page_toknos_arr;
         page_toknos_arr << "[";

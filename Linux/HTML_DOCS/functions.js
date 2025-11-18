@@ -286,7 +286,7 @@ function loadText() {
   }
   else if(langselect == "14") {
     //replace Loeb Classical Library Greek accents with the ones on the modern Greek keyboard
-    newtext_raw = newtext_raw.replaceAll("ό", "ό").replaceAll("ή", "ή").replaceAll("ό", "ό").replaceAll("ό", "ό").replaceAll("ό", "ό").replaceAll("ό", "ό").replaceAll("ό", "ό").replaceAll("ό", "ό");
+    newtext_raw = newtext_raw.replaceAll("ό", "ό").replaceAll("ή", "ή").replaceAll("ύ", "ύ").replaceAll("ά", "ά").replaceAll("ί", "ί").replaceAll("ώ", "ώ").replaceAll("έ", "έ");
   }
 
   if(text_title_raw == '' && newtext_raw == '') { return; }
@@ -615,9 +615,9 @@ const pullInLemma = function (can_skip = true) {
     latin_length_sensitivity = 1;
   }
 
-/*  if(lang_id == 5 && pos == 1) {
-    lemma_form = lemma_form[0].toUpperCase().concat(lemma_form.slice(1));
-  } */
+  if(lang_id == 14) {
+    lemma_form = lemma_form.replace(/σ$/, "ς");
+  }
   lemma_form_tag_initial = lemma_form;//TESTING
 
   document.getElementById('save_button').onclick = "";
@@ -783,6 +783,9 @@ const lemmaRecord = function () {
   //auto-capitalise German nouns (will mess up words like 'iPhone' and 'eTicket', but those are unlikely to need translations)
   if(lang_id == 5 && pos == 1) {
     lemma_form_trimmed = lemma_form_trimmed[0].toUpperCase().concat(lemma_form_trimmed.slice(1));
+  }
+  else if(lang_id == 14) {
+    lemma_form_trimmed = lemma_form_trimmed.replace(/σ$/, "ς");
   }
   const lemma_form = encodeURIComponent(lemma_form_trimmed);
   
