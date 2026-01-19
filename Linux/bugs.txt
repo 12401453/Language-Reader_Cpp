@@ -18,3 +18,5 @@
 14.) the MW double-tooltip bug has been fixed, but if you add a single-lemma annotation to the first word of an existing multiword-annotation then it gets rid of the MW tooltip in favour of the new single-lemma tooltip, which is not really the correct behaviour
 
 15.) The German method of auto-pulling-in noun-lemmas which are stored capitalised in the table relies on using the property of SQLite's SELECT WHERE LIKE 'query' which defaults to being case-insensitive, but only for ASCII characters, so this won't work for words like Ueberlegung, which is an unacceptably inconsistent behaviour.
+
+16. The Philolog scraper will be unusable in instances like searching for ὁδός, because it selects the first alphabetical in its list of candidates which uses a normalised version of the search term that ignores breathings etc., so ὁδός gives as its first option ὀδός, v. οὐδός, i.e. a variant spelling of the word for threshold with no rough-breathing. Need some way of displaying the sidebar list of terms like on the website to select between options

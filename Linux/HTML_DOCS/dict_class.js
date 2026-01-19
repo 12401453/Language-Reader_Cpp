@@ -50,7 +50,7 @@ class Dictionary {
                 this.lang_name = "Latin";
                 break;
             case 12:
-                this.dict_type = 2;
+                this.dict_type = 9;
                 this.lang_name = "Azerbaijani";
                 break;
             case 13:
@@ -177,9 +177,13 @@ class Dictionary {
         14: [8, 2],
     };
 
+    //TEMP REMOVE
+    //pons_page;
+    //TEMP REMOVE
+
     display() {
         let logo_url = this.logos[this.dict_type].logo_url;
-        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_minimise"><div id="minimise"></div></div><div id="dict_close"><svg id="red_cross" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z"/></svg></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox" spellcheck="false"></textarea><img id="dict_logo" src="'+logo_url+' draggable="false"></img></div></div><div id="dict_hidden_box"><div id="dict_hidden_text">Dict</div></div>');
+        let dict_html = document.createRange().createContextualFragment('<div id="dict_outline"><div id="dict_topbar"><div id="dict_minimise"><div id="minimise"></div></div><div id="dict_history"><div class="dict_hist_arrow" id="dict_back_btn">&lt;</div><div class="dict_hist_arrow" id="dict_fwd_btn">&gt;</div></div><div id="dict_close"><svg id="red_cross" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z"/></svg></div></div><div id="dict_body" style="display: flex;"></div><div id="dict_bottombar"><textarea id="dict_searchbox" spellcheck="false"></textarea><img id="dict_logo" src="'+logo_url+' draggable="false"></img></div></div><div id="dict_hidden_box"><div id="dict_hidden_text">Dict</div></div>');
         document.getElementById("spoofspan2").after(dict_html);
         document.getElementById("dict_searchbox").addEventListener("keydown", this.submit);
         document.getElementById("dict_minimise").addEventListener('click', () => {
@@ -286,13 +290,17 @@ class Dictionary {
         httpRequest("POST", request_url);  
     }
     dictResultParse(response_text, dict_type=this.dict_type) {
-        if(dict_type == 3 || dict_type == 4) this.scrapeSozdik(response_text);
-        else if(dict_type == 1) this.scrapePONS(response_text);
-        else if(dict_type == 2) this.scrapeWiktionary(response_text);
-        else if(dict_type == 5) this.scrapeDictCC(response_text);
-        else if(dict_type == 7) this.scrapeDanskeOrdbogen(response_text);
-        else if(dict_type == 8) this.scrapePhilolog(response_text);
-        else if(dict_type == 9) this.scrapeBildilchin(response_text);
+        let dict_body_innerHTML_fragment;
+        if(dict_type == 3 || dict_type == 4) dict_body_innerHTML_fragment = this.scrapeSozdik(response_text);
+        else if(dict_type == 1) dict_body_innerHTML_fragment = this.scrapePONS(response_text);
+        else if(dict_type == 2) dict_body_innerHTML_fragment = this.scrapeWiktionary(response_text);
+        else if(dict_type == 5) dict_body_innerHTML_fragment = this.scrapeDictCC(response_text);
+        else if(dict_type == 7) dict_body_innerHTML_fragment = this.scrapeDanskeOrdbogen(response_text);
+        else if(dict_type == 8) dict_body_innerHTML_fragment = this.scrapePhilolog(response_text);
+        else if(dict_type == 9) dict_body_innerHTML_fragment = this.scrapeBildilchin(response_text);
+
+        console.log(dict_body_innerHTML_fragment);
+        dict_body_innerHTML_fragment && document.getElementById("dict_body").append(dict_body_innerHTML_fragment);
     }
 
     noResultsFound(message="No results found") {
@@ -458,10 +466,13 @@ class Dictionary {
         }
         dict_body.innerHTML = "";
         dict_body.style.display = "flex";
-        dict_body.appendChild(document.createRange().createContextualFragment(html_str));
-        document.querySelectorAll(".kaz_clickable").forEach(synonym => {
-                synonym.addEventListener('click', this.lookUpClick);
+        const sozdik_body_fragment = document.createRange().createContextualFragment(html_str);
+        sozdik_body_fragment.querySelectorAll(".kaz_clickable").forEach(synonym => {
+            synonym.addEventListener('click', this.lookUpClick);
         });
+        //dict_body.append(sozdik_body_fragment);
+ 
+        return sozdik_body_fragment;
     }
 
     dict_result_PONS = Object.create(null);
@@ -472,6 +483,7 @@ class Dictionary {
         };
         const parser = new DOMParser();
         const PONS_page = parser.parseFromString(response_text, "text/html");
+        //this.pons_page = PONS_page;
     
         if(PONS_page.getElementsByClassName("fuzzysearch").length > 0) {
             this.noResultsFound("exact word not found");
@@ -744,32 +756,44 @@ class Dictionary {
         dict_body.innerHTML = "";
         dict_body.style.display = "flex";
 
+        let dict_body_inner_html_text = "";
+
         for(let i in this.dict_result_PONS) {
             if(i == "beispielsaetze") {
                 if(Object.keys(this.dict_result_PONS.beispielsaetze).length > 0) {
                     dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">Beispielsätze</div></div>'));
+                    dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell dict_pos">Beispielsätze</div></div>';
+                    
                     for(let x in this.dict_result_PONS.beispielsaetze) {
                         dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS.beispielsaetze[x][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS.beispielsaetze[x][1]+'</div></div>'));
+                        dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS.beispielsaetze[x][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS.beispielsaetze[x][1]+'</div></div>';
                     }
                 }
             }
             else {
                 dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i].h2_text+'</div></div>'));
+                dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i].h2_text+'</div></div>';
+
                 for(let j in this.dict_result_PONS[i]) {    
                     if(j == "h2_text") continue;
                     if(j == "wendungen") {
                         dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">Wendungen</div></div>'));
+                        dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell dict_pos">Wendungen</div></div>';
                     }
                     else if(Object.keys(this.dict_result_PONS[i][j].h3_text).length > 0) {
                         dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i][j].h3_text+'</div></div>'));
+                        dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i][j].h3_text+'</div></div>';
                     }
                     for(let k in this.dict_result_PONS[i][j]) {
                         if(k == "h3_text") continue;
                         else dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>'));
+                        dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>';
                     }
                 
                 }
             }
+
+            return document.createRange().createContextualFragment(dict_body_inner_html_text);
         }
     }
 
@@ -912,7 +936,7 @@ class Dictionary {
                 el = el.nextElementSibling;
             }
             console.log(pos_counters);
-            this.unPackWikResult(this.dict_result_Wk);
+            return this.unPackWikResult(this.dict_result_Wk);
         }
     };
 
@@ -920,22 +944,27 @@ class Dictionary {
         let dict_body = document.getElementById("dict_body");
         dict_body.innerHTML = "";
         dict_body.style.display = "flex";
+
+        let dict_body_inner_html = "";
+
         for(let pos in this.dict_result_Wk) {
             const wiki_headword_grammar = this.dict_result_Wk[pos][1];
             let wiki_headword_html = '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">'+this.dict_result_Wk[pos][0]+'</span> <span class="wiki_pos">['+pos+']</span>';
             if(wiki_headword_grammar.trim() != "") wiki_headword_html += '<br><span class="wiki_headword_grammar">'+wiki_headword_grammar+'</span>';
             wiki_headword_html += '</div></div>';
-            //dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">'+this.dict_result_Wk[pos][0]+'</span> <span class="wiki_pos">['+pos+']</span></div></div>'));
-            dict_body.appendChild(document.createRange().createContextualFragment(wiki_headword_html));
+
+            //dict_body.appendChild(document.createRange().createContextualFragment(wiki_headword_html));
+
+            dict_body_inner_html += wiki_headword_html;
             
-            /*this.dict_result_Wk[pos].forEach(def => {
-                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+def+'</div></div>'));
-            });*/
             const wk_result_array = this.dict_result_Wk[pos];
             for(let i = 2; i < wk_result_array.length; i++) {
-                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+wk_result_array[i]+'</div></div>'));
+                //dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+wk_result_array[i]+'</div></div>'));
+
+                dict_body_inner_html += '<div class="dict_row"><div class="dict_cell Wk">'+wk_result_array[i]+'</div></div>';
             }
         }
+        return document.createRange().createContextualFragment(dict_body_inner_html);
     }
 
     dict_result_dictcc = Object.create(null);
@@ -965,6 +994,7 @@ class Dictionary {
         let definition_count  = 0;
         let block_count = 0;
         this.dict_result_dictcc[block_count] = {};
+        let dict_body_inner_html_text = "";
         for(const result_row of result_rows) {
             if(result_row.id == '') {
                 if(result_row.firstChild.className == "td6") {
@@ -974,7 +1004,8 @@ class Dictionary {
                     const block_header_text = result_row.firstChild.textContent;
                     this.dict_result_dictcc[block_count]["block_header"] = block_header_text;
 
-                    dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+block_header_text+'</div></div>'));
+                    //dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+block_header_text+'</div></div>'));
+                    dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell dict_pos">'+block_header_text+'</div></div>';
                 }    
                 continue;
             }
@@ -984,11 +1015,18 @@ class Dictionary {
             const righthand_text = extractText(righthand_cell);
             this.dict_result_dictcc[block_count][definition_count] = [lefthand_text, righthand_text];
             
-            dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+lefthand_text+'</div><div class="dict_cell right">'+righthand_text+'</div></div>'));
+            //dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+lefthand_text+'</div><div class="dict_cell right">'+righthand_text+'</div></div>'));
+            dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell left">'+lefthand_text+'</div><div class="dict_cell right">'+righthand_text+'</div></div>';
 
             definition_count++;
         }
-        if(Object.keys(this.dict_result_dictcc).length == 1 && Object.keys(this.dict_result_dictcc[0]).length == 0) this.noResultsFound();
+        if(Object.keys(this.dict_result_dictcc).length == 1 && Object.keys(this.dict_result_dictcc[0]).length == 0) {
+            this.noResultsFound();
+            return null;
+        }
+        else {
+            return document.createRange().createContextualFragment(dict_body_inner_html_text);
+        }
     };
 
     OE_results = [];
@@ -1173,7 +1211,7 @@ class Dictionary {
         const topLineHeader = danskeOrdbog_pg.querySelector(".artikel > .definitionBoxTop");
         if(topLineHeader == null) {
             this.noResultsFound();
-            return;
+            return null;
         }
 
         let scraped_html = "";
@@ -1256,14 +1294,23 @@ class Dictionary {
 
         dict_body.innerHTML = "";
         dict_body.style.display = "flex";
-        dict_body.appendChild(document.createRange().createContextualFragment(scraped_html));
+        //dict_body.appendChild(document.createRange().createContextualFragment(scraped_html));
+
+        const danskeOrdbog_body_fragment = document.createRange().createContextualFragment(scraped_html);
         
-        document.querySelectorAll(".ddo_speaker").forEach((speaker_icon, i) => {
+        danskeOrdbog_body_fragment.querySelectorAll(".ddo_speaker").forEach((speaker_icon, i) => {
             speaker_icon.addEventListener('click', () => {
                 this.danskeOrdbogAudio[i].play();
             });
         });
+
+        //dict_body.append(danskeOrdbog_body_fragment); //when you append a doc_fragment you seem to move from it so the original object ends up empty
+        return danskeOrdbog_body_fragment;
+        //NOTE NEED TO SORT OUT THE AUDIO STACK IF I'M GOING TO IMPLEMENT THE DICT_HISTORY
+
     }
+
+
     philolog_entries = ["", ""];
     scrapePhilolog = (response_text) => {
         this.philolog_entries[0] = "";
@@ -1290,13 +1337,18 @@ class Dictionary {
 
         const dict_body = document.getElementById("dict_body");
         dict_body.innerHTML = "";
-        dict_body.innerHTML = philolog_body_html;
+        dict_body.style.display = "flex";
+        //dict_body.innerHTML = philolog_body_html;
 
-        dict_body.querySelectorAll(".phil_hom_btn").forEach(phil_hom_btn => {
+        const philolog_body_fragment = document.createRange().createContextualFragment(philolog_body_html);
+
+        philolog_body_fragment.querySelectorAll(".phil_hom_btn").forEach(phil_hom_btn => {
             phil_hom_btn.addEventListener('click', this.switchPhilologHomonym);
         });
-
-        dict_body.style.display = "flex";
+        //dict_body.append(philolog_body_fragment);
+        
+        //NOTE NEED TO SORT OUT THE HOMONYM STACK IF I IMPLEMENT DICT HISTORY
+        return philolog_body_fragment;
     };
     switchPhilologHomonym = (event) => {
         const btn = event.currentTarget;
@@ -1321,7 +1373,7 @@ class Dictionary {
         catch(e) {
             console.log("bildilchin request returned invalid JSON");
             this.noResultsFound("bildilchin request returned invalid JSON");
-            return;
+            return null;
         }
 
         const dict_body = document.getElementById("dict_body");
@@ -1338,13 +1390,20 @@ class Dictionary {
                 bildilchin_html += '<div class="dict_row"><div class="dict_cell bildilchin">' + filtered_results[1].description + "</div></div>";
             }
 
-            dict_body.innerHTML = bildilchin_html;
+            //dict_body.innerHTML = bildilchin_html;
+            const bildilchin_body_fragment = document.createRange().createContextualFragment(bildilchin_html);
             dict_body.style.display = "flex";
+            //dict_body.append(bildilchin_body_fragment);
+
+            return bildilchin_body_fragment;
         }
         else {
             this.noResultsFound();
+            return null;
         }
         
     };
+
+    dict_history_stack = new Array();
 
 }

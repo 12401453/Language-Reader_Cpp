@@ -451,6 +451,11 @@ em {
 .dict_cell.bildilchin c {
     color: #fff800;
 }
+.dict_cell.bildilchin > p > i {
+    font-weight: bold;
+    font-style: normal;
+    color: rgb(0 255 237)
+}
 
 /***********************************PHILOLOG STOLEN CSS***********************************/
 @font-face {
