@@ -65,7 +65,7 @@ class Dictionary {
         this.PONS_german = this.m_lang_id == 5 ? false : true;
 
         for(const dict_type in this.logos) {
-            this.dict_history_stack[dict_type] = new Array();
+            this.dict_history_stacks[dict_type] = new DictHistoryStack();
         }
 
     }
@@ -206,6 +206,9 @@ class Dictionary {
             document.getElementById("dict_searchbox").addEventListener("beforeinput", this.dictOldNorseInput);
         }
         this.bool_displayed = true;
+
+
+        Array.from(document.getElementsByClassName("dict_hist_arrow")).forEach(arrow => arrow.addEventListener('click', this.switchDictHistoryPosition));
     }
     remove() {
         document.getElementById("dict_outline").remove();
@@ -309,9 +312,12 @@ class Dictionary {
             dict_body_innerHTML_fragment.firstChild.setAttribute("data-dict_type", this.dict_type);
             const dict_body = document.getElementById("dict_body");
             this.updateDictHistoryStack(dict_body);
+
             dict_body.innerHTML = "";
             dict_body.style.display = "flex";
             dict_body.append(dict_body_innerHTML_fragment);
+
+            
         } 
     }
 
@@ -320,7 +326,7 @@ class Dictionary {
         this.updateDictHistoryStack(dict_body);
         dict_body.innerHTML = "";
         dict_body.style.display = "flex";
-        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row dict_no_results"><div class="dict_cell Wk">'+message+'</div></div>'));
+        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row dict_no_results" data-dict_type=\"'+this.dict_type+'\"><div class="dict_cell Wk">'+message+'</div></div>'));
     }
 
     lookUpMouseSelection = (event) => {
@@ -1416,47 +1422,77 @@ class Dictionary {
         
     };
 
-    dict_history_stack = Object.create(null);
-    dict_history_position = 0;
+    dict_history_stacks = Object.create(null);
+    //dict_history_position = 0;
 
     updateDictHistoryStack = (dict_body) => {
-        if(dict_body.innerHTML == "" || dict_body.firstChild.classList.contains("dict_no_results")) {
+        const dict_history_fragment = document.createDocumentFragment();
+        if(dict_body.innerHTML == "" /*|| dict_body.firstChild.classList.contains("dict_no_results")*/) {
+            this.dict_history_stacks[this.dict_type].stack_entries[0] = dict_history_fragment;
+            this.updateDictHistoryArrowActivation(document.getElementById("dict_back_btn"), document.getElementById("dict_fwd_btn"));
             return;
         }
         const previous_dict_type = dict_body.firstChild.dataset.dict_type;
-        console.log(previous_dict_type);
-        const dict_history_fragment = document.createDocumentFragment();
-        dict_history_fragment.append(...dict_body.childNodes); //.append() takes unlimited arguments and appends each one, so spread-syntax ... appends each childNode 
-        this.dict_history_stack[previous_dict_type].push(dict_history_fragment);
-        this.dict_history_position = this.dict_history_stack[this.dict_type].length; //for new lookups this will point to 1 past the end
+
+        const previous_dict_stack = this.dict_history_stacks[previous_dict_type];
+        
+        //dict_history_fragment.append(...dict_body.childNodes); //.append() takes unlimited arguments and appends each one, so spread-syntax ... appends each childNode
+        previous_dict_stack.stack_entries[previous_dict_stack.stack_position].append(...dict_body.childNodes);
+        //previous_dict_stack.stack_position++;
+
+        const current_dict_stack = this.dict_history_stacks[this.dict_type];
+        if(current_dict_stack.stack_entries.length != 0) {
+            current_dict_stack.stack_position++;
+        }
+        current_dict_stack.stack_entries[current_dict_stack.stack_position] = dict_history_fragment;
+        current_dict_stack.stack_entries.length = current_dict_stack.stack_position + 1;
 
         this.updateDictHistoryArrowActivation(document.getElementById("dict_back_btn"), document.getElementById("dict_fwd_btn"));
     };
 
     switchDictHistoryPosition = (event) => {
+        if(!event.target.classList.contains("active")) {
+            return;
+        }
+        const dict_body = document.getElementById("dict_body");
         if(event.target.id == "dict_back_btn") {
-            this.dict_history_position--;
+            const current_dict_stack = this.dict_history_stacks[this.dict_type];
+            //const displayed_entry = document.createDocumentFragment();
+            current_dict_stack.stack_entries[current_dict_stack.stack_position].append(...dict_body.childNodes); //steals the nodes from dict_body, removing them from display
+            current_dict_stack.stack_position--;
+            dict_body.append(...current_dict_stack.stack_entries[current_dict_stack.stack_position].childNodes);
+
+
+            this.updateDictHistoryArrowActivation(document.getElementById("dict_back_btn"), document.getElementById("dict_fwd_btn"));
         }
         else if(event.target.id == "dict_fwd_btn"){
-            this.dict_history_position++;
+            //this.dict_history_position++;
+            console.log("forward arrow clicked, ant done owt with it");
         }
     };
 
     updateDictHistoryArrowActivation = (back_arrow, forward_arrow) => {
-        const stack_length = this.dict_history_stack[this.dict_type].length;
-        const current_stack_position = this.dict_history_position;
+        const stack_length = this.dict_history_stacks[this.dict_type].stack_entries.length;
+        const current_stack_position = this.dict_history_stacks[this.dict_type].stack_position;
         if(stack_length > 0 && current_stack_position > 0) {
             back_arrow.classList.add("active");
         }
         else {
             back_arrow.classList.remove("active");
         }
-        if(stack_length > current_stack_position) {
+        if(stack_length - 1 > current_stack_position) {
             forward_arrow.classList.add("active");
         }
         else {
             forward_arrow.classList.remove("active");
         }
+        console.log("stack_length:", stack_length, "; stack_position:", current_stack_position);
     }
 
+}
+
+
+class DictHistoryStack {
+    stack_position = 0;
+    stack_entries = new Array();
 }
