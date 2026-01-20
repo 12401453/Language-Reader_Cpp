@@ -13,11 +13,11 @@ class Dictionary {
                 this.lang_name = "Kazakh";
                 break;
             case 3:
-                this.dict_type = 1;
+                this.dict_type = 2;
                 this.lang_name = "Polish";
                 break;
             case 4:
-                this.dict_type = 1;
+                this.dict_type = 2;
                 this.lang_name = "Bulgarian";
                 break;
             case 5:
@@ -25,15 +25,15 @@ class Dictionary {
                 this.lang_name = "German";
                 break;
             case 6:
-                this.dict_type = 1;
+                this.dict_type = 2;
                 this.lang_name = "Swedish";
                 break;
             case 7:
-                this.dict_type = 1;
+                this.dict_type = 2;
                 this.lang_name = "Turkish";
                 break;
             case 8:
-                this.dict_type = 1;
+                this.dict_type = 2;
                 this.lang_name = "Danish";
                 break;
             case 10:
@@ -63,6 +63,11 @@ class Dictionary {
                 break;
         }
         this.PONS_german = this.m_lang_id == 5 ? false : true;
+
+        for(const dict_type in this.logos) {
+            this.dict_history_stack[dict_type] = new Array();
+        }
+
     }
 
     urlMaker(word, dict_type=this.dict_type, PONS_german=this.PONS_german) {
@@ -162,14 +167,14 @@ class Dictionary {
         }
     };
     allowable_dicts = {
-        1: [2,1],
+        1: [2],
         2: [3,4,2],
-        3: [1,2],
-        4: [1,2,5],
-        5: [5,1,2],
-        6: [1,2],
-        7: [1,2],
-        8: [1,2,7,5],
+        3: [2],
+        4: [2,5],
+        5: [5,2],
+        6: [2],
+        7: [2],
+        8: [2,7,5],
         10: [6,2],
         11: [2, 8],
         12: [2, 9],
@@ -221,11 +226,11 @@ class Dictionary {
 
     submit = (event) => {
         if(event.key == "Enter") {
-            //this.lookUp(event.target.value.trim());
-            document.getElementById("dict_body").innerHTML = "";
-            document.getElementById("dict_body").style.display = "flex";
+
+            // document.getElementById("dict_body").innerHTML = "";
+            // document.getElementById("dict_body").style.display = "flex";
             event.preventDefault();
-            //event.target.value = "";
+
             event.target.select();
             this.lookUp(event.target.value.trim());
         }
@@ -245,8 +250,8 @@ class Dictionary {
 
     lookUp(word, dict_type=this.dict_type, PONS_german=this.PONS_german) {
         if(this.bool_displayed == false) return;  
-        document.getElementById("dict_body").innerHTML = "";
-        document.getElementById("dict_body").style.display = "flex";
+        //document.getElementById("dict_body").innerHTML = "";
+        document.getElementById("dict_body").style.display = "none";
         if(dict_type == 6) {
             this.MR_glossaryLookup(word);
             return;
@@ -300,14 +305,22 @@ class Dictionary {
         else if(dict_type == 9) dict_body_innerHTML_fragment = this.scrapeBildilchin(response_text);
 
         console.log(dict_body_innerHTML_fragment);
-        dict_body_innerHTML_fragment && document.getElementById("dict_body").append(dict_body_innerHTML_fragment);
+        if(dict_body_innerHTML_fragment !== null) {
+            dict_body_innerHTML_fragment.firstChild.setAttribute("data-dict_type", this.dict_type);
+            const dict_body = document.getElementById("dict_body");
+            this.updateDictHistoryStack(dict_body);
+            dict_body.innerHTML = "";
+            dict_body.style.display = "flex";
+            dict_body.append(dict_body_innerHTML_fragment);
+        } 
     }
 
     noResultsFound(message="No results found") {
-        let dict_body = document.getElementById("dict_body");
+        const dict_body = document.getElementById("dict_body");
+        this.updateDictHistoryStack(dict_body);
         dict_body.innerHTML = "";
         dict_body.style.display = "flex";
-        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+message+'</div></div>'));
+        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row dict_no_results"><div class="dict_cell Wk">'+message+'</div></div>'));
     }
 
     lookUpMouseSelection = (event) => {
@@ -350,15 +363,15 @@ class Dictionary {
         const sozdik_result = JSON.parse(response_text);
         if(sozdik_result.message == "Human check required") {
             this.noResultsFound("sozdik.kz authentication has failed)");
-            return;
+            return null;
         }
-        let dict_body = document.getElementById("dict_body");
+        // let dict_body = document.getElementById("dict_body");
     
         const parser = new DOMParser();
         const sozdik_result_trans = sozdik_result.data.translation;
         if(sozdik_result_trans == "") {
             this.noResultsFound();
-            return;
+            return null;
         }
         const sozdikHTML = parser.parseFromString(sozdik_result_trans, 'text/html');
     
@@ -464,8 +477,8 @@ class Dictionary {
             html_str += '<div class="dict_row"><div class="dict_cell Wk">'+synonym_html_str+'</div></div>';
             
         }
-        dict_body.innerHTML = "";
-        dict_body.style.display = "flex";
+        // dict_body.innerHTML = "";
+        // dict_body.style.display = "flex";
         const sozdik_body_fragment = document.createRange().createContextualFragment(html_str);
         sozdik_body_fragment.querySelectorAll(".kaz_clickable").forEach(synonym => {
             synonym.addEventListener('click', this.lookUpClick);
@@ -808,7 +821,7 @@ class Dictionary {
 
         if (Wk_page.getElementById(wk_langName) == null) {
             this.noResultsFound("No " + this.lang_name + " definitions found");
-            return;
+            return null;
         }
         else {
             let pos = "";
@@ -941,9 +954,9 @@ class Dictionary {
     };
 
     unPackWikResult() {
-        let dict_body = document.getElementById("dict_body");
-        dict_body.innerHTML = "";
-        dict_body.style.display = "flex";
+        // let dict_body = document.getElementById("dict_body");
+        // dict_body.innerHTML = "";
+        // dict_body.style.display = "flex";
 
         let dict_body_inner_html = "";
 
@@ -969,7 +982,7 @@ class Dictionary {
 
     dict_result_dictcc = Object.create(null);
     scrapeDictCC = (response_text) => {
-        const dict_body = document.getElementById("dict_body");
+        // const dict_body = document.getElementById("dict_body");
         const extractText = (element) => {
             let txt = "";
             for(const child of element.childNodes) {
@@ -1202,7 +1215,6 @@ class Dictionary {
     danskeOrdbogAudio = [];
     scrapeDanskeOrdbogen = (response_text) => {
         this.danskeOrdbogAudio = [];
-        const dict_body = document.getElementById("dict_body");
 
         
         const parser = new DOMParser();
@@ -1292,8 +1304,8 @@ class Dictionary {
 
         scraped_html += "</div>";
 
-        dict_body.innerHTML = "";
-        dict_body.style.display = "flex";
+        // dict_body.innerHTML = "";
+        // dict_body.style.display = "flex";
         //dict_body.appendChild(document.createRange().createContextualFragment(scraped_html));
 
         const danskeOrdbog_body_fragment = document.createRange().createContextualFragment(scraped_html);
@@ -1319,7 +1331,7 @@ class Dictionary {
 
         if(json_response.error == "1") {
             this.noResultsFound(json_response.error_msg);
-            return;
+            return null;
         }
 
         let philolog_body_html = "";
@@ -1335,9 +1347,9 @@ class Dictionary {
         }
         else philolog_body_html = "<div id=\"philolog_body\">" + json_response.json_result.def + "</div>";
 
-        const dict_body = document.getElementById("dict_body");
-        dict_body.innerHTML = "";
-        dict_body.style.display = "flex";
+        // const dict_body = document.getElementById("dict_body");
+        // dict_body.innerHTML = "";
+        // dict_body.style.display = "flex";
         //dict_body.innerHTML = philolog_body_html;
 
         const philolog_body_fragment = document.createRange().createContextualFragment(philolog_body_html);
@@ -1376,8 +1388,8 @@ class Dictionary {
             return null;
         }
 
-        const dict_body = document.getElementById("dict_body");
-        dict_body.innerHTML = "";
+        // const dict_body = document.getElementById("dict_body");
+        // dict_body.innerHTML = "";
         const filtered_results = this.bildilchin_json.filter(obj => obj.dictionary.id == 5 || obj.dictionary.id == 6);
         if(filtered_results.length > 0) {
             let bildilchin_html = '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + filtered_results[0].word + '</span><br><span class="wiki_headword_grammar">' + filtered_results[0].dictionary.nameAz + "</span></div></div>";
@@ -1392,7 +1404,7 @@ class Dictionary {
 
             //dict_body.innerHTML = bildilchin_html;
             const bildilchin_body_fragment = document.createRange().createContextualFragment(bildilchin_html);
-            dict_body.style.display = "flex";
+            // dict_body.style.display = "flex";
             //dict_body.append(bildilchin_body_fragment);
 
             return bildilchin_body_fragment;
@@ -1404,6 +1416,17 @@ class Dictionary {
         
     };
 
-    dict_history_stack = new Array();
+    dict_history_stack = Object.create(null);
+
+    updateDictHistoryStack = (dict_body) => {
+        if(dict_body.innerHTML == "" || dict_body.firstChild.classList.contains("dict_no_results")) {
+            return;
+        }
+        const previous_dict_type = dict_body.firstChild.dataset.dict_type;
+        console.log(previous_dict_type);
+        const dict_history_fragment = document.createDocumentFragment();
+        dict_history_fragment.append(...dict_body.childNodes); //.append() takes unlimited arguments and appends each one, so spread-syntax ... appends each childNode 
+        this.dict_history_stack[previous_dict_type].push(dict_history_fragment);
+    }
 
 }
