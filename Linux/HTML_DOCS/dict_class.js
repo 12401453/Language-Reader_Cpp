@@ -64,9 +64,8 @@ class Dictionary {
         }
         this.PONS_german = this.m_lang_id == 5 ? false : true;
 
-        for(const dict_type in this.logos) {
-            this.dict_history_stacks[dict_type] = new DictHistoryStack();
-        }
+
+        this.dict_history_stack = new DictHistoryStack();
 
     }
 
@@ -248,6 +247,16 @@ class Dictionary {
         else document.getElementById("dict_logo").style.filter = "none";
         document.getElementById("dict_logo").addEventListener('click', this.switchDict);
     };
+
+    switchDictByType = (dict_type) => {
+        this.dict_type = dict_type;
+
+        document.getElementById("dict_logo").outerHTML = '<img id="dict_logo" src="' + this.logos[this.dict_type].logo_url + '></img>';
+        if(this.dict_type == 4) document.getElementById("dict_logo").style.filter = "hue-rotate(270deg)";
+        else document.getElementById("dict_logo").style.filter = "none";
+        document.getElementById("dict_logo").addEventListener('click', this.switchDict);
+        console.log("dict_type: "+this.dict_type);
+    }
     
 
 
@@ -1369,6 +1378,7 @@ class Dictionary {
         return philolog_body_fragment;
     };
     switchPhilologHomonym = (event) => {
+        /*UPDATE TO WORK PROPERLY WITH HISTORY_STACK, TEST incursus*/
         const btn = event.currentTarget;
         if(btn.classList.contains('deactive')) {
             const phil_hom_buttons = btn.parentElement.childNodes;
@@ -1422,30 +1432,28 @@ class Dictionary {
         
     };
 
-    dict_history_stacks = Object.create(null);
+    dict_history_stack = Object.create(null);
     //dict_history_position = 0;
 
     updateDictHistoryStack = (dict_body) => {
         const dict_history_fragment = document.createDocumentFragment();
+        const search_term = document.getElementById("dict_searchbox").value
         if(dict_body.innerHTML == "" /*|| dict_body.firstChild.classList.contains("dict_no_results")*/) {
-            this.dict_history_stacks[this.dict_type].stack_entries[0] = dict_history_fragment;
+            this.dict_history_stack.stack_entries[0] = new DictHistoryEntry(this.dict_type, search_term, dict_history_fragment);
             this.updateDictHistoryArrowActivation(document.getElementById("dict_back_btn"), document.getElementById("dict_fwd_btn"));
             return;
         }
         const previous_dict_type = dict_body.firstChild.dataset.dict_type;
 
-        const previous_dict_stack = this.dict_history_stacks[previous_dict_type];
+        // const previous_dict_stack = this.dict_history_stacks[previous_dict_type];
         
         //dict_history_fragment.append(...dict_body.childNodes); //.append() takes unlimited arguments and appends each one, so spread-syntax ... appends each childNode
-        previous_dict_stack.stack_entries[previous_dict_stack.stack_position].append(...dict_body.childNodes);
+        this.dict_history_stack.stack_entries[this.dict_history_stack.stack_position].dh_entry_fragment.append(...dict_body.childNodes);
         //previous_dict_stack.stack_position++;
 
-        const current_dict_stack = this.dict_history_stacks[this.dict_type];
-        if(current_dict_stack.stack_entries.length != 0) {
-            current_dict_stack.stack_position++;
-        }
-        current_dict_stack.stack_entries[current_dict_stack.stack_position] = dict_history_fragment;
-        current_dict_stack.stack_entries.length = current_dict_stack.stack_position + 1;
+        this.dict_history_stack.stack_position++;
+        this.dict_history_stack.stack_entries[this.dict_history_stack.stack_position] = new DictHistoryEntry(this.dict_type, search_term, dict_history_fragment);
+        this.dict_history_stack.stack_entries.length = this.dict_history_stack.stack_position + 1;
 
         this.updateDictHistoryArrowActivation(document.getElementById("dict_back_btn"), document.getElementById("dict_fwd_btn"));
     };
@@ -1455,25 +1463,23 @@ class Dictionary {
             return;
         }
         const dict_body = document.getElementById("dict_body");
-        if(event.target.id == "dict_back_btn") {
-            const current_dict_stack = this.dict_history_stacks[this.dict_type];
-            //const displayed_entry = document.createDocumentFragment();
-            current_dict_stack.stack_entries[current_dict_stack.stack_position].append(...dict_body.childNodes); //steals the nodes from dict_body, removing them from display
-            current_dict_stack.stack_position--;
-            dict_body.append(...current_dict_stack.stack_entries[current_dict_stack.stack_position].childNodes);
-
-
-            this.updateDictHistoryArrowActivation(document.getElementById("dict_back_btn"), document.getElementById("dict_fwd_btn"));
+        this.dict_history_stack.stack_entries[this.dict_history_stack.stack_position].dh_entry_fragment.append(...dict_body.childNodes); //steals the nodes from dict_body, removing them from display
+        if(event.target.id == "dict_back_btn") {     
+            this.dict_history_stack.stack_position--;   
         }
         else if(event.target.id == "dict_fwd_btn"){
-            //this.dict_history_position++;
-            console.log("forward arrow clicked, ant done owt with it");
+            this.dict_history_stack.stack_position++;
         }
+        dict_body.append(...this.dict_history_stack.stack_entries[this.dict_history_stack.stack_position].dh_entry_fragment.childNodes);
+        document.getElementById("dict_searchbox").value = this.dict_history_stack.stack_entries[this.dict_history_stack.stack_position].dh_search_term;
+        this.switchDictByType(this.dict_history_stack.stack_entries[this.dict_history_stack.stack_position].dh_type);
+
+        this.updateDictHistoryArrowActivation(document.getElementById("dict_back_btn"), document.getElementById("dict_fwd_btn"));
     };
 
     updateDictHistoryArrowActivation = (back_arrow, forward_arrow) => {
-        const stack_length = this.dict_history_stacks[this.dict_type].stack_entries.length;
-        const current_stack_position = this.dict_history_stacks[this.dict_type].stack_position;
+        const stack_length = this.dict_history_stack.stack_entries.length;
+        const current_stack_position = this.dict_history_stack.stack_position;
         if(stack_length > 0 && current_stack_position > 0) {
             back_arrow.classList.add("active");
         }
@@ -1495,4 +1501,17 @@ class Dictionary {
 class DictHistoryStack {
     stack_position = 0;
     stack_entries = new Array();
-}
+};
+
+class DictHistoryEntry {
+    constructor(type, search_term, entry_fragment) {
+        this.dh_type = type;
+        this.dh_search_term = search_term;
+        this.dh_entry_fragment = entry_fragment;
+    }
+    
+    dh_type;
+    dh_search_term;
+    dh_entry_fragment;
+
+};
