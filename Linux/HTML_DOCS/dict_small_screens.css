@@ -256,6 +256,45 @@
     width: 46%;
 }
 
+#dict_history {
+    height: 100%;
+    width: 30%;
+    background-color: inherit;
+    /* border-top-left-radius: 4px; */
+    /* border-bottom-right-radius: 4px; */
+    border-right: 1px solid black;
+    border-left: 1px solid black;
+    /* border-bottom: 1px solid black; */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+.dict_hist_arrow {
+    color: rgb(141 147 157);
+    font-size: 13px;
+    font-weight: bold;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;   
+}
+.dict_hist_arrow.active {
+    /* background-color: #172136; */
+    color: white;
+    cursor: pointer;
+}
+
+#dict_back_btn {
+    border-right: 0.5px solid black;
+
+}
+#dict_fwd_btn {
+    border-left: 0.5px solid black;
+    /* border-bottom-right-radius: 4px; */
+}
+
 #red_cross {
     fill: rgba(255, 0, 0, 0.836);
     height: 100%;

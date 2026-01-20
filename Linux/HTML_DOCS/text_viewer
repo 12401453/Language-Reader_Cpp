@@ -8,7 +8,7 @@
 <link href="style_small_screen.css" rel="stylesheet" media="all and (max-width: 769px)" type="text/css">
 <link rel="stylesheet" type="text/css" href="lemma_set_unexplicit.css" id="lemma_set_style">
 <link rel="stylesheet" type="text/css" href="flexbox.css" id="flexbox_styles">
-<link href="dict.css" rel="stylesheet" type="text/css">
+<link href="dict.css" rel="stylesheet" media="all and (min-width: 769px)" type="text/css">
 <link href="dict_small_screens.css" rel="stylesheet" media="all and (max-width: 769px)" type="text/css">
 
 <meta charset="utf-8" />
