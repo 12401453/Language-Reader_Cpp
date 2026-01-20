@@ -1417,6 +1417,7 @@ class Dictionary {
     };
 
     dict_history_stack = Object.create(null);
+    dict_history_position = 0;
 
     updateDictHistoryStack = (dict_body) => {
         if(dict_body.innerHTML == "" || dict_body.firstChild.classList.contains("dict_no_results")) {
@@ -1427,6 +1428,35 @@ class Dictionary {
         const dict_history_fragment = document.createDocumentFragment();
         dict_history_fragment.append(...dict_body.childNodes); //.append() takes unlimited arguments and appends each one, so spread-syntax ... appends each childNode 
         this.dict_history_stack[previous_dict_type].push(dict_history_fragment);
+        this.dict_history_position = this.dict_history_stack[this.dict_type].length; //for new lookups this will point to 1 past the end
+
+        this.updateDictHistoryArrowActivation(document.getElementById("dict_back_btn"), document.getElementById("dict_fwd_btn"));
+    };
+
+    switchDictHistoryPosition = (event) => {
+        if(event.target.id == "dict_back_btn") {
+            this.dict_history_position--;
+        }
+        else if(event.target.id == "dict_fwd_btn"){
+            this.dict_history_position++;
+        }
+    };
+
+    updateDictHistoryArrowActivation = (back_arrow, forward_arrow) => {
+        const stack_length = this.dict_history_stack[this.dict_type].length;
+        const current_stack_position = this.dict_history_position;
+        if(stack_length > 0 && current_stack_position > 0) {
+            back_arrow.classList.add("active");
+        }
+        else {
+            back_arrow.classList.remove("active");
+        }
+        if(stack_length > current_stack_position) {
+            forward_arrow.classList.add("active");
+        }
+        else {
+            forward_arrow.classList.remove("active");
+        }
     }
 
 }
