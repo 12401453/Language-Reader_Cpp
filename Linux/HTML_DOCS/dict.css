@@ -375,7 +375,7 @@ em {
  
 }
 
-#philolog_body {
+.philolog_body {
     font-family: NewAthenaUnicode, WebNewAthenaUnicode, helvetica, arial,
     san-serif;
     background-color: #071022;

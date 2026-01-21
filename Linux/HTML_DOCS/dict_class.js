@@ -265,7 +265,8 @@ class Dictionary {
         //document.getElementById("dict_body").innerHTML = "";
         document.getElementById("dict_body").style.display = "none";
         if(dict_type == 6) {
-            this.MR_glossaryLookup(word);
+            //this.MR_glossaryLookup(word);
+            this.displayDictResult(this.getMR_glossaryResultFragment(word));
             return;
         }
 
@@ -299,7 +300,9 @@ class Dictionary {
                         this.noResultsFound("Dictionary request has failed");
                         return;
                     }
-                    else this.dictResultParse(xhttp.responseText, dict_type);
+                    else {
+                        this.displayDictResult(this.dictResultParse(xhttp.responseText, dict_type));
+                    }
                 }
             }; 
             xhttp.send(send_data);
@@ -316,7 +319,22 @@ class Dictionary {
         else if(dict_type == 8) dict_body_innerHTML_fragment = this.scrapePhilolog(response_text);
         else if(dict_type == 9) dict_body_innerHTML_fragment = this.scrapeBildilchin(response_text);
 
-        console.log(dict_body_innerHTML_fragment);
+        // console.log(dict_body_innerHTML_fragment);
+        // if(dict_body_innerHTML_fragment !== null) {
+        //     dict_body_innerHTML_fragment.firstChild.setAttribute("data-dict_type", this.dict_type);
+        //     const dict_body = document.getElementById("dict_body");
+        //     this.updateDictHistoryStack(dict_body);
+
+        //     dict_body.innerHTML = "";
+        //     dict_body.style.display = "flex";
+        //     dict_body.append(dict_body_innerHTML_fragment);
+
+            
+        // }
+        return dict_body_innerHTML_fragment; 
+    }
+
+    displayDictResult(dict_body_innerHTML_fragment) {
         if(dict_body_innerHTML_fragment !== null) {
             dict_body_innerHTML_fragment.firstChild.setAttribute("data-dict_type", this.dict_type);
             const dict_body = document.getElementById("dict_body");
@@ -325,9 +343,7 @@ class Dictionary {
             dict_body.innerHTML = "";
             dict_body.style.display = "flex";
             dict_body.append(dict_body_innerHTML_fragment);
-
-            
-        } 
+        }
     }
 
     noResultsFound(message="No results found") {
@@ -1057,31 +1073,58 @@ class Dictionary {
         }
     };
 
-    OE_results = [];
-    MR_glossaryLookup = (query) => {
+    // MR_glossaryLookup = (query) => {
+    //     const results = this.OE_glossary.filter(entry => entry[2].startsWith(this.wiktionariseOldEnglish(query).toLowerCase()));
+    //     this.OE_results = results;
+    //     const dict_body = document.getElementById("dict_body");
+    //     if(results.length == 0) {
+    //         this.noResultsFound("This term was not found in M&R's glossary");
+    //         return;
+    //     }
+
+    //     results.forEach((result, i) => {
+    //         if(result[0] == true) {
+    //             dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+result[1] + ' <span class="MR_link">see</span> <span class="MR_clickable">'+ result[3]+'</span></div></div>'));
+    //         }
+    //         else {
+    //             dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+result[1] +' <span class="MR_grammar">'+result[4]+'</span></div></div>'));
+    //             dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+result[3]+'</div></div>'));
+    //         }
+    //     });
+
+    //     document.querySelectorAll(".MR_clickable").forEach(clickable => {
+    //         clickable.addEventListener('click', this.lookUpClick);
+    //     });
+    // };
+/////////////////////////////////////////////
+    getMR_glossaryResultFragment = (query) => {
         const results = this.OE_glossary.filter(entry => entry[2].startsWith(this.wiktionariseOldEnglish(query).toLowerCase()));
-        this.OE_results = results;
-        const dict_body = document.getElementById("dict_body");
         if(results.length == 0) {
             this.noResultsFound("This term was not found in M&R's glossary");
-            return;
+            return null;
         }
+        let MR_result_html = "";
 
         results.forEach((result, i) => {
             if(result[0] == true) {
-                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+result[1] + ' <span class="MR_link">see</span> <span class="MR_clickable">'+ result[3]+'</span></div></div>'));
+                MR_result_html += '<div class="dict_row"><div class="dict_cell dict_pos">'+result[1] + ' <span class="MR_link">see</span> <span class="MR_clickable">'+ result[3]+'</span></div></div>';
             }
             else {
-                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+result[1] +' <span class="MR_grammar">'+result[4]+'</span></div></div>'));
-                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell Wk">'+result[3]+'</div></div>'));
+                MR_result_html += '<div class="dict_row"><div class="dict_cell dict_pos">'+result[1] +' <span class="MR_grammar">'+result[4]+'</span></div></div>';
+                MR_result_html += '<div class="dict_row"><div class="dict_cell Wk">'+result[3]+'</div></div>';
             }
         });
 
-        document.querySelectorAll(".MR_clickable").forEach(clickable => {
-            clickable.addEventListener('click', this.lookUpClick);
-    });
-    };
+        const MR_result_fragment = document.createRange().createContextualFragment(MR_result_html);
 
+        MR_result_fragment.querySelectorAll(".MR_clickable").forEach(clickable => {
+            clickable.addEventListener('click', this.lookUpClick);
+        });
+
+        return MR_result_fragment;
+
+    };
+/////////////////////////////////////////////////////////////////////
 
     dictOldEnglishInput = (event) => {
 
@@ -1227,9 +1270,9 @@ class Dictionary {
         }
     };
 
-    danskeOrdbogAudio = [];
+    //danskeOrdbogAudio = [];
     scrapeDanskeOrdbogen = (response_text) => {
-        this.danskeOrdbogAudio = [];
+        //this.danskeOrdbogAudio = [];
 
         
         const parser = new DOMParser();
@@ -1277,8 +1320,11 @@ class Dictionary {
                 else if(childNode.className == "lydskrift") {
                     childNode.childNodes.forEach(lydskrift_node => {
                         if(lydskrift_node.nodeName == "AUDIO") {
-                            this.danskeOrdbogAudio.push(new Audio(lydskrift_node.querySelector(".hiddenStructure > a").href));
-                            scraped_html += "<img src='speaker.gif' class='ddo_speaker'>"
+                            // console.log("new Audio() constructor input-text:", lydskrift_node.querySelector(".hiddenStructure > a").href);
+                            // this.danskeOrdbogAudio.push(new Audio(lydskrift_node.querySelector(".hiddenStructure > a").href));
+                            scraped_html += "<img src='speaker.gif' class='ddo_speaker'>";
+
+                            scraped_html += "<audio preload=\"auto\" src=\""+lydskrift_node.querySelector(".hiddenStructure > a").href+"\"></audio>"
                         }
                         else {
                             scraped_html += "<span class='ddo_lydskrift'>" + lydskrift_node.textContent + "</span>";
@@ -1327,7 +1373,8 @@ class Dictionary {
         
         danskeOrdbog_body_fragment.querySelectorAll(".ddo_speaker").forEach((speaker_icon, i) => {
             speaker_icon.addEventListener('click', () => {
-                this.danskeOrdbogAudio[i].play();
+                //this.danskeOrdbogAudio[i].play();
+                speaker_icon.nextSibling.play();
             });
         });
 
@@ -1338,10 +1385,8 @@ class Dictionary {
     }
 
 
-    philolog_entries = ["", ""];
+    // philolog_entries = ["", ""];
     scrapePhilolog = (response_text) => {
-        this.philolog_entries[0] = "";
-        this.philolog_entries[1] = "";
         const json_response = JSON.parse(response_text);
 
         if(json_response.error == "1") {
@@ -1353,14 +1398,17 @@ class Dictionary {
         const word1 = json_response.json_result.word;
         const word2 = json_response.json_result2.word
 
-        this.philolog_entries[0] = json_response.json_result.def;
+        //this.philolog_entries[0] = json_response.json_result.def;
         if(word1 + "2" == word2) {
-            let homonyms_header = "<div class=\"dict_row phil_hom_header\"><div id=\"phil_hom_1\" class=\"phil_hom_btn\"><span>" + word1 + "<sup>1</sup></span></div><div id=\"phil_hom_2\" class=\"phil_hom_btn deactive\"><span>"+word1 + "<sup>2</sup></span></div></div>";
-            philolog_body_html = homonyms_header + "<div id=\"philolog_body\">" + this.philolog_entries[0] + "</div>";
+            //this.philolog_entries[1] = json_response.json_result2.def;
 
-            this.philolog_entries[1] = json_response.json_result2.def;
+            let homonyms_header = "<div class=\"dict_row phil_hom_header\"><div id=\"phil_hom_1\" class=\"phil_hom_btn\"><span>" + word1 + "<sup>1</sup></span></div><div id=\"phil_hom_2\" class=\"phil_hom_btn deactive\"><span>"+word1 + "<sup>2</sup></span></div></div>";
+            philolog_body_html = homonyms_header + "<div class=\"philolog_body\" id=\"philolog_body_first\">" + json_response.json_result.def + "</div>";
+            philolog_body_html += "<div class=\"philolog_body\" id=\"philolog_body_second\" style=\"display:none\">" + json_response.json_result2.def + "</div>";
+
+            
         }
-        else philolog_body_html = "<div id=\"philolog_body\">" + json_response.json_result.def + "</div>";
+        else philolog_body_html = "<div class=\"philolog_body\" id=\"philolog_body_first\">" + json_response.json_result.def + "</div>";
 
         // const dict_body = document.getElementById("dict_body");
         // dict_body.innerHTML = "";
@@ -1385,9 +1433,16 @@ class Dictionary {
             phil_hom_buttons.forEach(btn => btn.classList.add('deactive'));
             btn.classList.remove('deactive');
             
-            const philolog_body = document.getElementById("philolog_body");
-            philolog_body.innerHTML = this.philolog_entries[Number(btn.id.slice(-1)) - 1];
-            philolog_body.scrollTop = 0;
+            const philolog_homonym_bodies = btn.parentElement.parentElement.querySelectorAll(".philolog_body");
+            philolog_homonym_bodies.forEach((homonym_div, i) => {
+                homonym_div.style.display = "";
+                if(Number(btn.id.slice(-1)) - 1 != i) {
+                    homonym_div.style.display = "none";
+                }
+                homonym_div.scrollTop = 0;
+            })
+            // philolog_body.innerHTML = this.philolog_entries[Number(btn.id.slice(-1)) - 1];
+            
 
         }
     };
