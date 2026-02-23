@@ -1421,6 +1421,8 @@ class Dictionary {
             phil_hom_btn.addEventListener('click', this.switchPhilologHomonym);
         });
         //dict_body.append(philolog_body_fragment);
+
+        if(this.m_lang_id == 14) document.getElementById("dict_searchbox").value = word1;
         
         //NOTE NEED TO SORT OUT THE HOMONYM STACK IF I IMPLEMENT DICT HISTORY
         return philolog_body_fragment;
