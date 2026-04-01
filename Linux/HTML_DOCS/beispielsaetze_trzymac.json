@@ -1,0 +1,311 @@
+[
+  [
+    1,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    39,
+    44,
+    49,
+    54,
+    59,
+    64,
+    69,
+    74,
+    79,
+    84,
+    89,
+    94
+  ],
+  {
+    "source_language": 2,
+    "example": 3
+  },
+  "pl",
+  {
+    "type_hint": 4,
+    "id": 5,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 8,
+    "target": 9
+  },
+  "translation",
+  "Tdepl10389453",
+  1,
+  0,
+  "<span class=\"example\">trzymać pasiekę</span>",
+  "eine Imkerei haben",
+  {
+    "source_language": 2,
+    "example": 11
+  },
+  {
+    "type_hint": 4,
+    "id": 12,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 13,
+    "target": 14
+  },
+  "Tdepl10157745",
+  "<span class=\"idiom_proverb\">trzymać <strong class=\"tilde\">fason</strong></span>",
+  "die Fassung bewahren",
+  {
+    "source_language": 2,
+    "example": 16
+  },
+  {
+    "type_hint": 4,
+    "id": 17,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 18,
+    "target": 19
+  },
+  "Tdepl10597040",
+  "<span class=\"example\">trzymać wartę</span>",
+  "Wache halten",
+  {
+    "source_language": 2,
+    "example": 21
+  },
+  {
+    "type_hint": 4,
+    "id": 22,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 23,
+    "target": 24
+  },
+  "Tdepl10257818",
+  "<span class=\"example\">trzymać <strong class=\"tilde\">kurs</strong></span>",
+  "den Kurs halten",
+  {
+    "source_language": 2,
+    "example": 26
+  },
+  {
+    "type_hint": 4,
+    "id": 27,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 28,
+    "target": 29
+  },
+  "Tdepl10107946",
+  "<span class=\"idiom_proverb\">trzymać <strong class=\"tilde\">ciepło</strong></span> <span class=\"sense\">(termos)</span>",
+  "warm halten",
+  {
+    "source_language": 2,
+    "example": 31
+  },
+  {
+    "type_hint": 4,
+    "id": 32,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 33,
+    "target": 34
+  },
+  "Tdepl10574978",
+  "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> butelkę</span>",
+  "eine Flasche in der Hand halten",
+  {
+    "source_language": 2,
+    "example": 36
+  },
+  {
+    "type_hint": 4,
+    "id": 37,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 38,
+    "target": 24
+  },
+  "Tdepl10575020",
+  "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kurs</span>",
+  {
+    "source_language": 2,
+    "example": 40
+  },
+  {
+    "type_hint": 4,
+    "id": 41,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 42,
+    "target": 43
+  },
+  "Tdepl10575033",
+  "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> kury</span>",
+  "Hühner halten",
+  {
+    "source_language": 2,
+    "example": 45
+  },
+  {
+    "type_hint": 4,
+    "id": 46,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 47,
+    "target": 48
+  },
+  "Tdepl10575035",
+  "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> ciepło</span>",
+  "die Wärme halten",
+  {
+    "source_language": 2,
+    "example": 50
+  },
+  {
+    "type_hint": 4,
+    "id": 51,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 52,
+    "target": 53
+  },
+  "Tdepl10575036",
+  "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> fason</span>",
+  "die Fason wahren",
+  {
+    "source_language": 2,
+    "example": 55
+  },
+  {
+    "type_hint": 4,
+    "id": 56,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 57,
+    "target": 58
+  },
+  "Tdepl10550733",
+  "<span class=\"idiom_proverb\">trzymać z kimś sztamę</span>",
+  "mit <acronym title=\"jemandem\">jdm</acronym> durch dick und dünn gehen",
+  {
+    "source_language": 2,
+    "example": 60
+  },
+  {
+    "type_hint": 4,
+    "id": 61,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 62,
+    "target": 63
+  },
+  "Tdepl10579103",
+  "<span class=\"idiom_proverb\">trzymać się na uboczu</span>",
+  "abseits stehen",
+  {
+    "source_language": 2,
+    "example": 65
+  },
+  {
+    "type_hint": 4,
+    "id": 66,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 67,
+    "target": 68
+  },
+  "Tdepl10501663",
+  "<span class=\"example\">trzymać kogoś w ryzach</span>",
+  "<acronym title=\"jemanden\">jdn</acronym> unter der Fuchtel haben <span class=\"style\"><acronym title=\"umgangssprachlich\">ugs</acronym></span>",
+  {
+    "source_language": 2,
+    "example": 70
+  },
+  {
+    "type_hint": 4,
+    "id": 71,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 72,
+    "target": 73
+  },
+  "Tdepl10520959",
+  "<span class=\"idiom_proverb\">trzymać kogoś za <strong class=\"tilde\">słowo</strong></span>",
+  "<acronym title=\"jemanden\">jdn</acronym> beim Wort nehmen",
+  {
+    "source_language": 2,
+    "example": 75
+  },
+  {
+    "type_hint": 4,
+    "id": 76,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 77,
+    "target": 78
+  },
+  "Tdepl10141565",
+  "<span class=\"idiom_proverb\">trzymać się na <strong class=\"tilde\">dystans</strong></span>",
+  "sich  <span class=\"case\"><acronym title=\"Akkusativ\">Akk</acronym></span>  auf Distanz halten",
+  {
+    "source_language": 2,
+    "example": 80
+  },
+  {
+    "type_hint": 4,
+    "id": 81,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 82,
+    "target": 83
+  },
+  "Tdepl10141566",
+  "<span class=\"idiom_proverb\">trzymać kogoś na <strong class=\"tilde\">dystans</strong></span>",
+  "<acronym title=\"jemanden\">jdn</acronym> auf Distanz halten",
+  {
+    "source_language": 2,
+    "example": 85
+  },
+  {
+    "type_hint": 4,
+    "id": 86,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 87,
+    "target": 88
+  },
+  "Tdepl10527659",
+  "<span class=\"example\">trzymać zapasy w spiżarni</span>",
+  "Vorräte in der Speisekammer aufbewahren",
+  {
+    "source_language": 2,
+    "example": 90
+  },
+  {
+    "type_hint": 4,
+    "id": 91,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 92,
+    "target": 93
+  },
+  "Tdepl10277005",
+  "<span class=\"example\">trzymać coś w <strong class=\"tilde\">magazynie</strong></span>",
+  "<acronym title=\"etwas\">etw</acronym> auf Lager halten",
+  {
+    "source_language": 2,
+    "example": 95
+  },
+  {
+    "type_hint": 4,
+    "id": 96,
+    "translation_type": 6,
+    "examples": 7,
+    "source": 97,
+    "target": 98
+  },
+  "Tdepl10157527",
+  "<span class=\"idiom_proverb\">trzymać się matczynego <strong class=\"tilde\">fartucha</strong></span>",
+  "der Mutter am Rockzipfel  <span class=\"target\">[<span class=\"or\"><acronym title=\"oder\">o.</acronym></span> Rockschoß]</span>  hängen"
+]

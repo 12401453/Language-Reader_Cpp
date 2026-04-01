@@ -1,0 +1,486 @@
+[
+  {
+    "lang": "pl",
+    "hits": [
+      {
+        "type": "entry",
+        "opendict": false,
+        "roms": [
+          {
+            "headword": "trzymać",
+            "headword_full": "trzymać <span class=\"flexion\">&lt;‑ma&gt;</span> <span class=\"phonetics\">[tʃɨmatɕ]</span> <span class=\"wordclass\"><acronym title=\"verb\">VB</acronym></span> <span class=\"verbclass\"><acronym title=\"transitive verb\">trans</acronym></span>",
+            "wordclass": "transitive verb",
+            "arabs": [
+              {
+                "header": "1. trzymać <span class=\"sense\">(chwycić kogoś <acronym title=\"lub\">lub</acronym> coś)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> butelkę</span>",
+                    "target": "eine Flasche in der Hand halten"
+                  },
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> kogoś za coś</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> an <acronym title=\"etwas\">etw</acronym> <span class=\"case\"><acronym title=\"dative\">dat</acronym></span> halten"
+                  },
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> kogoś w objęciach</span> <span class=\"example\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> uścisku]</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> in den Armen <span class=\"target\">[<span class=\"or\"><acronym title=\"oder\">o.</acronym></span> im Arm]</span> halten"
+                  },
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> dziecko na rękach</span>",
+                    "target": "das Kind auf dem Arm halten"
+                  },
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> coś w dziobie/pysku</span>",
+                    "target": "<acronym title=\"etwas\">etw</acronym> im Schnabel/im Maul halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś na kolanach</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> auf seinem Schoß haben"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś w garści</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> in der Hand haben"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś w ryzach</span> <span class=\"idiom_proverb\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> karbach]</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> kurz halten <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś w ryzach</span> <span class=\"idiom_proverb\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> karbach]</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> in Schranken <span class=\"target\">[<span class=\"or\"><acronym title=\"oder\">o.</acronym></span> unter der Fuchtel <span class=\"style\"><acronym title=\"informal\">inf</acronym></span> ]</span> halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">trzymam cię za słowo</span>",
+                    "target": "ich nehme dich beim Wort"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> czyjąś stronę</span>",
+                    "target": "zu <acronym title=\"jemandem\">jdm</acronym> halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś pod kloszem</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> unter der Glocke halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś pod kloszem</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> überbeschützen"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś krótko</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> kurz halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> uczucia/nerwy/temperament na wodzy</span>",
+                    "target": "die Gefühle/die Nerven/das Temperament zügeln"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> język na wodzy</span>",
+                    "target": "die Zunge in Zaum halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> dziecko do chrztu</span>",
+                    "target": "die Taufpatenschaft übernehmen"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś za mordę</span> <span class=\"style\"><acronym title=\"vulgar\">vulg</acronym></span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> kurz halten <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś za mordę</span> <span class=\"style\"><acronym title=\"vulgar\">vulg</acronym></span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> an der Kette halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">trzymaj gębę [<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> mordę] na kłódkę!</span> <span class=\"style\"><acronym title=\"vulgar\">vulg</acronym></span>",
+                    "target": "halt’s Maul!"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> dwie sroki [<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> kilka srok] za ogon</span>",
+                    "target": "auf zwei Hochzeiten tanzen [wollen] <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">złapał Kozak Tatarzyna, a Tatarzyn za łeb trzyma</span> <span class=\"rhetoric\"><acronym title=\"proverbial\">proverbial</acronym></span>",
+                    "target": "der Sieger <span class=\"genus\"><acronym title=\"masculine\">m</acronym></span> steht erst am Ende des Rennen fest"
+                  }
+                ]
+              },
+              {
+                "header": "2. trzymać <span class=\"sense\">(zmuszać do pozostania)</span>:",
+                "translations": [
+                  {
+                    "source": "<strong class=\"headword\">trzymać</strong>",
+                    "target": "aufhalten"
+                  },
+                  {
+                    "source": "<span class=\"example\">idź sobie, nikt cię tu przecież nie trzyma!</span>",
+                    "target": "geh doch, niemand hält dich hier [fest]!"
+                  },
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> kogoś w niewoli</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> in Gefangenschaft halten"
+                  },
+                  {
+                    "source": "<span class=\"example\">psy powinny być trzymane na smyczy</span>",
+                    "target": "Hunde <span class=\"genus\"><acronym title=\"masculine plural\">mpl</acronym></span> sollten an der Kette gehalten werden"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś pod kluczem</span> <span class=\"idiom_proverb\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> strażą]</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> unter Verschluss halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś przy sobie</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> bei sich <span class=\"case\"><acronym title=\"dative\">dat</acronym></span> halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś z dala od siebie</span>",
+                    "target": "sich <span class=\"case\"><acronym title=\"dative\">dat</acronym></span> <acronym title=\"jemanden\">jdn</acronym> vom Leibe halten <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś pod pantoflem</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> unter dem Pantoffel halten"
+                  }
+                ]
+              },
+              {
+                "header": "3. trzymać <span class=\"sense\">(przechowywać)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> kawę w puszce</span>",
+                    "target": "den Kaffee in einer Dose aufbewahren"
+                  }
+                ]
+              },
+              {
+                "header": "4. trzymać <span class=\"sense\">(trwać w pozycji)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> ręce na kolanach</span>",
+                    "target": "die Hände auf den Knien halten"
+                  },
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> ręce do góry</span>",
+                    "target": "die Hände hoch halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> język za zębami</span>",
+                    "target": "die Zunge hüten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> rękę na pulsie</span>",
+                    "target": "auf dem Laufenden sein"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> za kogoś kciuki</span>",
+                    "target": "<acronym title=\"jemandem\">jdm</acronym> die Daumen halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">jest to cnota nad cnotami, <strong class=\"tilde\">trzymać</strong> język za zębami</span> <span class=\"rhetoric\"><acronym title=\"proverbial\">proverbial</acronym></span>",
+                    "target": "Reden <span class=\"genus\"><acronym title=\"neuter\">nt</acronym></span> ist Silber, Schweigen <span class=\"genus\"><acronym title=\"neuter\">nt</acronym></span> ist Gold <span class=\"rhetoric\"><acronym title=\"proverbial\">proverbial</acronym></span>"
+                  }
+                ]
+              },
+              {
+                "header": "5. trzymać <span class=\"sense\">(zachowywać w jakimś stanie)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\">jakaś myśl trzyma kogoś przy życiu</span>",
+                    "target": "ein Gedanke <span class=\"genus\"><acronym title=\"masculine\">m</acronym></span> hält <acronym title=\"jemanden\">jdn</acronym> am Leben"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kurs</span>",
+                    "target": "den Kurs halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">ten film trzymał mnie w napięciu</span>",
+                    "target": "der Film <span class=\"genus\"><acronym title=\"masculine\">m</acronym></span> war sehr spannend"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś w niepewności</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> in Unsicherheit lassen <span class=\"target\">[<span class=\"or\"><acronym title=\"oder\">o.</acronym></span> halten]</span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś w niepewności</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> auf die Folter spannen <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś w nieświadomości</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> in Unwissenheit halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> coś w tajemnicy</span> <span class=\"idiom_proverb\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> sekrecie]</span>",
+                    "target": "<acronym title=\"etwas\">etw</acronym> verheimlichen <span class=\"target\">[<span class=\"or\"><acronym title=\"oder\">o.</acronym></span> geheim halten]</span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś/coś w pogotowiu</span> <span class=\"idiom_proverb\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> gotowości]</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym>/<acronym title=\"etwas\">etw</acronym> in Bereitschaft halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś/coś w rezerwie</span> <span class=\"idiom_proverb\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> odwodzie]</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym>/<acronym title=\"etwas\">etw</acronym> in Reserve halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś w szachu</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> in Schach halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> kogoś na muszce</span>",
+                    "target": "<acronym title=\"jemanden\">jdn</acronym> im Visier haben"
+                  }
+                ]
+              },
+              {
+                "header": "6. trzymać <span class=\"rhetoric\"><acronym title=\"figurative\">fig</acronym></span> <span class=\"sense\">(nadzorować)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> straż</span> <span class=\"example\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> wartę]</span>",
+                    "target": "Wache halten"
+                  }
+                ]
+              },
+              {
+                "header": "7. trzymać <span class=\"style\"><acronym title=\"informal\">inf</acronym></span> <span class=\"sense\">(hodować)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> kury</span>",
+                    "target": "Hühner halten"
+                  }
+                ]
+              },
+              {
+                "header": "8. trzymać <span class=\"rhetoric\"><acronym title=\"figurative\">fig</acronym></span> <span class=\"style\"><acronym title=\"informal\">inf</acronym></span> <span class=\"sense\">(utrzymywać)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> ciepło</span>",
+                    "target": "die Wärme halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> fason</span>",
+                    "target": "die Fason wahren"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "headword": "trzymać",
+            "headword_full": "trzymać <span class=\"flexion\">&lt;‑ma&gt;</span> <span class=\"phonetics\">[tʃɨmatɕ]</span> <span class=\"wordclass\"><acronym title=\"verb\">VB</acronym></span> <span class=\"verbclass\"><acronym title=\"intransitive verb\">intr</acronym></span>",
+            "wordclass": "intransitive verb",
+            "arabs": [
+              {
+                "header": "1. trzymać <span class=\"style\"><acronym title=\"informal\">inf</acronym></span> <span class=\"sense\">(sympatyzować)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> z kimś/czymś</span>",
+                    "target": "zu <acronym title=\"jemandem\">jdm</acronym>/<acronym title=\"etwas\">etw</acronym> halten"
+                  }
+                ]
+              },
+              {
+                "header": "2. trzymać <span class=\"rhetoric\"><acronym title=\"figurative\">fig</acronym></span> <span class=\"sense\">(nie ustępować)</span>:",
+                "translations": [
+                  {
+                    "source": "<strong class=\"headword\">trzymać</strong>",
+                    "target": "nicht nachlassen"
+                  },
+                  {
+                    "source": "<span class=\"example\">trzyma mróz</span>",
+                    "target": "der Frost <span class=\"genus\"><acronym title=\"masculine\">m</acronym></span> lässt nicht nach"
+                  }
+                ]
+              },
+              {
+                "header": "3. trzymać <span class=\"style\"><acronym title=\"informal\">inf</acronym></span> <span class=\"sense\">(przetrwać)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\">konstrukcja nie trzyma</span>",
+                    "target": "die Konstruktion <span class=\"genus\"><acronym title=\"feminine\">f</acronym></span> hält nicht"
+                  },
+                  {
+                    "source": "<span class=\"example\">lina mocno trzyma</span>",
+                    "target": "das Seil <span class=\"genus\"><acronym title=\"neuter\">nt</acronym></span> hält"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "headword": "trzymać",
+            "headword_full": "trzymać <span class=\"flexion\">&lt;‑ma&gt;</span> <span class=\"phonetics\">[tʃɨmatɕ]</span> <span class=\"wordclass\"><acronym title=\"verb\">VB</acronym></span> <span class=\"verbclass\"><acronym title=\"reflexive verb\">refl</acronym></span>",
+            "wordclass": "reflexive verb",
+            "arabs": [
+              {
+                "header": "1. trzymać <span class=\"sense\">(nie puszczać)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> się czegoś</span>",
+                    "target": "sich <span class=\"case\"><acronym title=\"accusative\">acc</acronym></span> an <acronym title=\"etwas\">etw</acronym> <span class=\"case\"><acronym title=\"dative\">dat</acronym></span> festhalten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się przy życiu</span>",
+                    "target": "sich <span class=\"case\"><acronym title=\"accusative\">acc</acronym></span> am Leben halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">żarty się go trzymają</span>",
+                    "target": "er ist ein Spaßvogel <span class=\"genus\"><acronym title=\"masculine\">m</acronym></span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się kogoś/czegoś kurczowo</span>",
+                    "target": "sich <span class=\"case\"><acronym title=\"accusative\">acc</acronym></span> an <acronym title=\"jemanden\">jdn</acronym>/<acronym title=\"etwas\">etw</acronym> klammern"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się za kieszeń</span>",
+                    "target": "die Hand auf der Tasche halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">pieniądze się kogoś nie trzymają</span>",
+                    "target": "<acronym title=\"jemandem\">jdm</acronym> rinnt das Geld <span class=\"genus\"><acronym title=\"neuter\">nt</acronym></span> durch die Finger"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się czyjejś spódnicy</span>",
+                    "target": "sich <span class=\"case\"><acronym title=\"accusative\">acc</acronym></span> an <acronym title=\"jemandes\">jds</acronym> Rock halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się kogoś/czegoś jak pijany płotu</span> <span class=\"idiom_proverb\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> jak rzep psiego ogona]</span>",
+                    "target": "<acronym title=\"jemandem\">jdm</acronym> nicht von der Pelle gehen <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się kogoś/czegoś jak pijany płotu</span> <span class=\"idiom_proverb\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> jak rzep psiego ogona]</span>",
+                    "target": "an <acronym title=\"jemandem\">jdm</acronym>/<acronym title=\"etwas\">etw</acronym> festhalten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się kogoś/czegoś rękami i nogami</span>",
+                    "target": "mit Händen und Füßen an <acronym title=\"jemandem\">jdm</acronym>/<acronym title=\"etwas\">etw</acronym> festhalten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się matczynej spódnicy</span>",
+                    "target": "ein Muttersöhnchen sein"
+                  }
+                ]
+              },
+              {
+                "header": "2. trzymać <span class=\"sense\">(wspierać się)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\">konstrukcja trzyma się na filarach</span>",
+                    "target": "die Konstruktion <span class=\"genus\"><acronym title=\"feminine\">f</acronym></span> stützt sich auf Pfeiler"
+                  },
+                  {
+                    "source": "<span class=\"example\">gwóźdź nie trzyma się w ścianie</span>",
+                    "target": "der Nagel <span class=\"genus\"><acronym title=\"masculine\">m</acronym></span> hält sich <span class=\"case\"><acronym title=\"accusative\">acc</acronym></span> nicht in der Wand"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">coś się trzyma na słowo honoru</span>",
+                    "target": "<acronym title=\"etwas\">etw</acronym> hält die Ehre aufrecht"
+                  }
+                ]
+              },
+              {
+                "header": "3. trzymać <span class=\"sense\">(pozostawać w określonej pozycji)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> się prosto</span>",
+                    "target": "sich <span class=\"case\"><acronym title=\"accusative\">acc</acronym></span> gerade halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">ledwo [<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> z trudem] się <strong class=\"tilde\">trzymać</strong> na nogach</span>",
+                    "target": "sich kaum <span class=\"target\">[<span class=\"or\"><acronym title=\"oder\">o.</acronym></span> mit Mühe]</span> auf den Beinen halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się na uboczu</span> <span class=\"idiom_proverb\">[<span class=\"or\"><acronym title=\"lub\">lub</acronym></span> z boku]</span>",
+                    "target": "sich <span class=\"case\"><acronym title=\"accusative\">acc</acronym></span> abseits halten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">głupstwa się go trzymają</span>",
+                    "target": "er hat Dummheiten im Kopf"
+                  }
+                ]
+              },
+              {
+                "header": "4. trzymać <span class=\"sense\">(zachowywać kierunek)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> się prawej strony</span>",
+                    "target": "sich rechts <span class=\"target\">[<span class=\"or\"><acronym title=\"oder\">o.</acronym></span> auf der rechten Seite]</span> halten"
+                  }
+                ]
+              },
+              {
+                "header": "5. trzymać <span class=\"sense\">(zachowywać się w określony sposób)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> się swoich zasad</span>",
+                    "target": "an seinen Prinzipien festhalten"
+                  },
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> się dzielnie</span>",
+                    "target": "sich <span class=\"case\"><acronym title=\"accusative\">acc</acronym></span> tapfer halten <span class=\"target\">[<span class=\"or\"><acronym title=\"oder\">o.</acronym></span> wacker schlagen <span class=\"style\"><acronym title=\"informal\">inf</acronym></span> ]</span>"
+                  }
+                ]
+              },
+              {
+                "header": "6. trzymać <span class=\"style\"><acronym title=\"informal\">inf</acronym></span> <span class=\"sense\">(pozostawać w dobrej kondycji)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\">pomimo wieku ona dobrze się trzyma</span>",
+                    "target": "trotz ihres Alters hält sie sich gut <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">trzymaj się ciepło!</span> <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>",
+                    "target": "mach’s gut! <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">trzymaj się ciepło!</span> <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>",
+                    "target": "halt die Ohren steif! <span class=\"rhetoric\"><acronym title=\"humorous\">hum</acronym></span> <span class=\"style\"><acronym title=\"informal\">inf</acronym></span>"
+                  }
+                ]
+              },
+              {
+                "header": "7. trzymać <span class=\"style\"><acronym title=\"informal\">inf</acronym></span> <span class=\"sense\">(być odpornym psychicznie)</span>:",
+                "translations": [
+                  {
+                    "source": "<strong class=\"headword\">trzymać</strong>",
+                    "target": "durchhalten"
+                  },
+                  {
+                    "source": "<span class=\"example\">trzymaj się!</span>",
+                    "target": "halte durch!"
+                  }
+                ]
+              },
+              {
+                "header": "8. trzymać <span class=\"sense\">(być w dobrym stanie)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\">makijaż trzymał się przez cały dzień</span>",
+                    "target": "das Make-up <span class=\"genus\"><acronym title=\"neuter\">nt</acronym></span> hielt sich den ganzen Tag"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\">coś się kupy nie trzyma</span>",
+                    "target": "<acronym title=\"etwas\">etw</acronym> passt nicht in den Rahmen"
+                  }
+                ]
+              },
+              {
+                "header": "9. trzymać <span class=\"sense\">(przestawać w czyimś towarzystwie)</span>:",
+                "translations": [
+                  {
+                    "source": "<span class=\"example\"><strong class=\"tilde\">trzymać</strong> się kurczowo swoich znajomych</span>",
+                    "target": "sich krampfhaft an seinen Bekannten festhalten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się razem</span>",
+                    "target": "zusammenhalten"
+                  },
+                  {
+                    "source": "<span class=\"idiom_proverb\"><strong class=\"tilde\">trzymać</strong> się na dystans</span>",
+                    "target": "auf Distanz bleiben"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

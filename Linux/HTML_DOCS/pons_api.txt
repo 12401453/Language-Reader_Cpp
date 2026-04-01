@@ -1,3 +1,72 @@
 047bb1c2d510a75b3ea75c9b0e491c4afd66778f5652d2e379655bb5325f2600
 Example using curl:
 curl -v --header "X-Secret: 047bb1c2d510a75b3ea75c9b0e491c4afd66778f5652d2e379655bb5325f2600" "https://api.pons.com/v1/dictionary?l=deen&q=house"
+
+
+To get Beispielsätze:
+
+POST request to https://de.pons.com/_actions/getExampleSentences with following JSON payload:
+{"sourceLang":"pl","targetLang":"de","query":"trzymać","dictionary":"depl","locale":"de","from":1}
+
+Important here is the "query" field; that needs to be the same as what was returned in the "headword" field of the original result JSON
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(Other request headers, note Content-Type: application/json):
+
+:authority
+de.pons.com
+:method
+POST
+:path
+/_actions/getExampleSentences
+:scheme
+https
+accept
+application/json
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+en-GB,en;q=0.6
+content-length
+99
+content-type
+application/json
+cookie
+puu=562b6f316a9ff9941df73abe631532cf; ff01=AAA=; tmp-new-page=true; last_left=bg; STARTPAGE_AB=hpde~b/hpen~a/hpes~b/hppl~a/hppt~a/rpde~b/rpen~a/rpes~b/rppl~a/rppt~a; pons-pure=consent-given; AMP_MKTG_ef513b7e57=JTdCJTdE; AMP_ef513b7e57=JTdCJTIyZGV2aWNlSWQlMjIlM0ElMjIzZGU4MTJkZC1hNmY3LTQ0NTgtYjVhMi02ZmU3OGFjMzQ0YjAlMjIlMkMlMjJzZXNzaW9uSWQlMjIlM0ExNzc0OTczMzk1NTcyJTJDJTIyb3B0T3V0JTIyJTNBZmFsc2UlMkMlMjJsYXN0RXZlbnRUaW1lJTIyJTNBMTc3NDk3MzQwNDAxNiUyQyUyMmxhc3RFdmVudElkJTIyJTNBNSUyQyUyMnBhZ2VDb3VudGVyJTIyJTNBMCU3RA==; lang=en; last_search=bgen; i18next=de; iawpvccs=1; iawpvc=1
+origin
+https://de.pons.com
+priority
+u=1, i
+referer
+https://de.pons.com/%C3%BCbersetzung/polnisch-deutsch/trzyma%C4%87
+sec-ch-ua
+"Chromium";v="146", "Not-A.Brand";v="24", "Brave";v="146"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Linux"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+sec-gpc
+1
+user-agent
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
