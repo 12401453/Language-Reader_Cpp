@@ -20,6 +20,17 @@ class WebServer : public TcpListener {
             else {
                 std::cout << "No kaz_cookies.txt file found\n";
             }
+
+            std::ifstream pons_api_key_file;
+            pons_api_key_file.open("pons_api_key.txt");
+            if(pons_api_key_file.good()) {
+                std::getline(pons_api_key_file, m_pons_api_key);
+                pons_api_key_file.close();
+            }
+            else {
+                std::cout << "No pons_api_key.txt file found\n";
+                m_pons_api_key = "";
+            }
         }
 
     protected:
@@ -76,7 +87,7 @@ class WebServer : public TcpListener {
         bool retrieveMultiwordMeanings(std::string _POST[2], int clientSocket);
         bool pullInMultiwordByForm(std::string _POST[4], int clientSocket);
 
-        bool curlLookup(std::string _POST[1], int clientSocket);
+        bool curlLookup(std::string _POST[2], int clientSocket);
         bool curlLookup_sozdik(std::string _POST[1], int clientSocket);
         bool curlPhilolog(std::string _POST[2], int clientSocket);
 
@@ -100,6 +111,8 @@ class WebServer : public TcpListener {
         bool                m_show_output;
 
         std::string         m_dict_cookies;
+
+        std::string         m_pons_api_key;
 
         std::string m_page_toknos_arr {"[]"};
         sqlite3_int64 m_dt_end;

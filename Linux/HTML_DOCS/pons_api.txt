@@ -6,9 +6,9 @@ curl -v --header "X-Secret: 047bb1c2d510a75b3ea75c9b0e491c4afd66778f5652d2e37965
 To get Beispielsätze:
 
 POST request to https://de.pons.com/_actions/getExampleSentences with following JSON payload:
-{"sourceLang":"pl","targetLang":"de","query":"trzymać","dictionary":"depl","locale":"de","from":1}
+{\"sourceLang\":\"pl\",\"targetLang\":\"de\",\"query\":\"trzymać\",\"dictionary\":\"depl\",\"locale\":\"de\",\"from\":1}
 
-Important here is the "query" field; that needs to be the same as what was returned in the "headword" field of the original result JSON
+Important here is the "query" field; that needs to be the same as what was returned in the "headword" field of the original result JSON and NOT encodeURIComponent()ed
 
 
 

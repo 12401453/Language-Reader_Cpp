@@ -71,35 +71,35 @@ class Dictionary {
 
     urlMaker(word, dict_type=this.dict_type, PONS_german=this.PONS_german) {
         if(dict_type == 1) {
-            let PONS_lang_dir = "";
-            const PONS_target = PONS_german ? "deutsch/" : "englisch/";
+            let lang_pair = "";
+            
             
             switch(this.m_lang_id) {
                 case 1:
-                    PONS_lang_dir = "russisch-";
+                    lang_pair = PONS_german ? "deru" : "enru";
                     break;
                 case 3:
-                    PONS_lang_dir = "polnisch-";
+                    lang_pair = PONS_german ? "depl" : "enpl";
                     break;
                 case 4:
-                    PONS_lang_dir = "bulgarisch-";
+                    lang_pair = PONS_german ? "bgde" : "bgen";
                     break;
                 case 5:
-                    PONS_lang_dir = "deutsch-";
+                    lang_pair = "deen";
                     break;
                 case 6:
-                    PONS_lang_dir = "schwedisch-";
+                    lang_pair = PONS_german ? "desv" : "ensv";
                     break;
                 case 7:
-                    PONS_lang_dir = "t%C3%BCrkisch-";
+                    lang_pair = PONS_german ? "detr" : "entr";
                     break;
                 case 8:
-                    PONS_lang_dir = "d%C3%A4nisch-";
+                    lang_pair = PONS_german ? "dade" : "daen";
                     break;
             }
             PONS_lang_dir += PONS_target;
 
-            return "https://de.pons.com/%C3%BCbersetzung/" + PONS_lang_dir + encodeURIComponent(word);
+            return "https://api.pons.com/v1/dictionary?l=" + lang_pair + "&q=" + encodeURIComponent(word);
         }
         else if(dict_type == 2) {
             if(this.m_lang_id == 10) {
@@ -121,9 +121,6 @@ class Dictionary {
         }
         else if(dict_type == 7) {
             return "https://ordnet.dk/ddo/ordbog?query=" + encodeURIComponent(word);
-        }
-        else if(dict_type == 8) {
-            return encodeURIComponent(this.wiktionariseLatin(word));
         }
         else if(dict_type == 9) {
             return 'https://bildilchin.az:8888/bildilchin/get/description?selectedWord=' + encodeURIComponent(word) + '&indexLang=az';
@@ -275,12 +272,17 @@ class Dictionary {
             document.getElementById("dict_searchbox").value = word;
         }
 
-        let send_data = "url="+this.urlMaker(word, dict_type, PONS_german); //this has all been URI-encoded already
+        let send_data = ""; 
         let request_url = "curl_lookup.php";
 
         if(dict_type == 8) {
             request_url = "curl_philolog.php";
-            send_data += "&lang_id="+this.m_lang_id;
+            send_data = "search_term=" + encodeURIComponent(this.wiktionariseLatin(word)) + "&lang_id="+this.m_lang_id;
+        }
+        else {
+            const double_encoded_url = encodeURIComponent(this.urlMaker(word, dict_type, PONS_german));//the actual queries get URI-encoded by the urlMaker, but URLs can contain & or = signs (e.g., bildilchin, dict.cc), and that mess up my server's parsing out of the POSTed data, which isn't a problem if I'm only expecting one piece, but is still retarded. Therefore I will encodeURIComponent() the whole URL again
+
+            send_data = "url=" + double_encoded_url + "&dict_type=" + dict_type;
         }
 
         
@@ -552,30 +554,7 @@ class Dictionary {
             });
             return text.trim();
         };
-        /*const extractHeaderText = (node_list) => {
-            let text = "";
-            let span_inserted = false;
-            node_list.forEach( (node, i) => {
-                if(node.nodeType == 1 && node.className != "headword_attributes" && span_inserted == false && node.className != "separator") {
-                    text += '<span class="PONS_title_info">';
-                    span_inserted = true;
-                }
-                else if(node.className == "separator") {
-                    text = text.substring(0, text.length - 1);
-                    text += node.textContent.trim();
-                }
-                else if(node.nodeType == 3) {
-                    text += node.textContent.trim();
-                    text += " ";     
-                }
-                else {
-                    text += node.textContent.trim();
-                    text += " ";
-                }
-            });
-            text += '</span>';
-            return text;
-        }; */
+    
         const extractHeaderText = (node_list) => {
             let text = "";
             node_list.forEach( (node) => {

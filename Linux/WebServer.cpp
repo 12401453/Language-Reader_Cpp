@@ -780,7 +780,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/update_MW_translations.php")) return 3;
     else if(!strcmp(url, "/pull_multiword.php")) return 2;
     else if(!strcmp(url, "/pull_mw_by_form.php")) return 4;
-    else if(!strcmp(url, "/curl_lookup.php")) return 1;
+    else if(!strcmp(url, "/curl_lookup.php")) return 2;
     else if(!strcmp(url, "/disregard_word.php")) return 2;
     else if(!strcmp(url, "/clear_table.php")) return 0;
     else if(!strcmp(url, "/dump_lemmas.php")) return 1;
@@ -3545,19 +3545,40 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
     }
 }
 
-bool WebServer::curlLookup(std::string _POST[1], int clientSocket) {
+bool WebServer::curlLookup(std::string _POST[2], int clientSocket) {
     
-    CurlFetcher query(_POST[0].c_str(), m_dict_cookies);
-    query.fetch();
+    std::string single_encoded_url = URIDecode(_POST[0]);
+    int dict_type = safeStrToInt(_POST[1], 0);
+
+    std::cout << "m_pons_api_key: " << m_pons_api_key << "\n";
+
+    if(dict_type == 1) {
+        CurlFetcher query(single_encoded_url.c_str(), m_dict_cookies, m_pons_api_key);
+        query.fetch();
+        
+        std::ostringstream post_response;
+        int content_length = query.m_get_html.size();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << query.m_get_html;
     
-    std::ostringstream post_response;
-    int content_length = query.m_get_html.size();
-    post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << query.m_get_html;
-
-    int length = post_response.str().size() + 1;
-
-    sendToClient(clientSocket, post_response.str().c_str(), length);
-    return true;
+        int length = post_response.str().size() + 1;
+    
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+        return true;
+    }
+    else {
+        CurlFetcher query(single_encoded_url.c_str(), m_dict_cookies);
+        query.fetch();
+        
+        std::ostringstream post_response;
+        int content_length = query.m_get_html.size();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << query.m_get_html;
+    
+        int length = post_response.str().size() + 1;
+    
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+        return true;
+    }
+    
 }
 
 bool WebServer::disregardWord(std::string _POST[2], int clientSocket) {
@@ -4285,7 +4306,7 @@ bool WebServer::curlPhilolog(std::string _POST[2], int clientSocket) {
 
     std::string philolog_text_query = lang_id == 11 ? "https://philolog.us/ls/query?n=101&idprefix=lemmata&x=0.225928550768416&requestTime=1748717865303&page=0&mode=context&query=%7B%22regex%22%3A0%2C%22lexicon%22%3A%22ls%22%2C%22tag_id%22%3A0%2C%22root_id%22%3A0%2C%22w%22%3A%22" + search_term + "%22%7D" : "https://philolog.us/lsj/query?n=101&idprefix=lemmata&x=0.4444108310977324&requestTime=1763088361247&page=0&mode=context&query=%7B%22regex%22%3A0%2C%22lexicon%22%3A%22lsj%22%2C%22tag_id%22%3A0%2C%22root_id%22%3A0%2C%22w%22%3A%22" + search_term + "%22%7D";
 
-    CurlFetcher query(philolog_text_query.c_str());
+    CurlFetcher query(philolog_text_query.c_str(), "");
 
     query.fetch();
 
@@ -4320,7 +4341,7 @@ bool WebServer::curlPhilolog(std::string _POST[2], int clientSocket) {
 
     auto philolog_lemma_id_queries_pair = getPhilologLemmaIdQueries(lang_id, philolog_lemma_id_str);
 
-    CurlFetcher second_query(philolog_lemma_id_queries_pair.second.c_str());
+    CurlFetcher second_query(philolog_lemma_id_queries_pair.second.c_str(), "");
 
     std::thread query1([&](){
         query.fetch(philolog_lemma_id_queries_pair.first);

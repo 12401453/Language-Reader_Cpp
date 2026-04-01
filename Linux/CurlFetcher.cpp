@@ -4,15 +4,17 @@
 
 class CurlFetcher {
     public:
-        CurlFetcher(const char* dict_url, std::string curl_cookies="") {
+        CurlFetcher(const char* dict_url, std::string curl_cookies, std::string pons_api_key="") {
             m_dict_url = dict_url;
             m_curl_cookies = curl_cookies;
+            m_pons_api_key = pons_api_key;               
         }
         void fetch(std::string query_url="") {
             CURL *curl;
             CURLcode res;
             m_get_html.clear();
             curl = curl_easy_init();
+            struct curl_slist *headers_list = nullptr;
 
             if(query_url.empty()) query_url = m_dict_url;
 
@@ -25,7 +27,13 @@ class CurlFetcher {
 
                 if(!m_curl_cookies.empty()) {
                     curl_easy_setopt(curl, CURLOPT_COOKIE, m_curl_cookies.c_str());
+                }
 
+                if(!m_pons_api_key.empty()) {
+                    
+                    std::string pons_api_x_secret_header = "X-Secret: " + m_pons_api_key;
+                    headers_list = curl_slist_append(headers_list, pons_api_x_secret_header.c_str());
+                    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers_list);
                 }
 
                 curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_get_html);
@@ -45,7 +53,7 @@ class CurlFetcher {
 
                     error_state = true;
                 }
-
+                curl_slist_free_all(headers_list);
                 curl_easy_cleanup(curl);
                 
             }
@@ -62,4 +70,5 @@ class CurlFetcher {
 
         const char* m_dict_url;
         std::string m_curl_cookies;
+        std::string m_pons_api_key;
 };
