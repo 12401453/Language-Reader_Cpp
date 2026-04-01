@@ -3550,7 +3550,7 @@ bool WebServer::curlLookup(std::string _POST[2], int clientSocket) {
     std::string single_encoded_url = URIDecode(_POST[0]);
     int dict_type = safeStrToInt(_POST[1], 0);
 
-    std::cout << "m_pons_api_key: " << m_pons_api_key << "\n";
+    std::cout << "single_encoded_url: " << single_encoded_url << "\n";
 
     if(dict_type == 1) {
         CurlFetcher query(single_encoded_url.c_str(), m_dict_cookies, m_pons_api_key);
