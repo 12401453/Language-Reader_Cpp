@@ -3545,7 +3545,7 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
     }
 }
 
-bool WebServer::curlLookup(std::string _POST[2], int clientSocket) {
+bool WebServer::curlLookup(std::string _POST[3], int clientSocket) {
     
     std::string single_encoded_url = URIDecode(_POST[0]);
     int dict_type = safeStrToInt(_POST[1], 0);
@@ -3553,6 +3553,9 @@ bool WebServer::curlLookup(std::string _POST[2], int clientSocket) {
     std::cout << "single_encoded_url: " << single_encoded_url << "\n";
 
     if(dict_type == 1) {
+
+        std::string decoded_query = URIDecode(_POST[2]);
+
         CurlFetcher query(single_encoded_url.c_str(), m_dict_cookies, m_pons_api_key);
         query.fetch();
         

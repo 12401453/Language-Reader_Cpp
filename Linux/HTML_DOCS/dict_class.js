@@ -288,7 +288,7 @@ class Dictionary {
         else {
             const double_encoded_url = encodeURIComponent(this.urlMaker(word, dict_type, PONS_german));//the actual queries get URI-encoded by the urlMaker, but URLs can contain & or = signs (e.g., bildilchin, dict.cc), and that mess up my server's parsing out of the POSTed data, which isn't a problem if I'm only expecting one piece, but is still retarded. Therefore I will encodeURIComponent() the whole URL again
 
-            send_data = "url=" + double_encoded_url + "&dict_type=" + dict_type;
+            send_data = "url=" + double_encoded_url + "&dict_type=" + dict_type + "&query=" + encodeURIComponent(word);
         }
 
         
@@ -346,7 +346,7 @@ class Dictionary {
     }
 
     displayDictResult(dict_body_innerHTML_fragment) {
-        if(dict_body_innerHTML_fragment !== null) {
+        if(dict_body_innerHTML_fragment !== null && dict_body_innerHTML_fragment.firstChild) {
             dict_body_innerHTML_fragment.firstChild.setAttribute("data-dict_type", this.dict_type);
             const dict_body = document.getElementById("dict_body");
             this.updateDictHistoryStack(dict_body);
@@ -356,6 +356,9 @@ class Dictionary {
             dict_body.append(dict_body_innerHTML_fragment);
 
             dict_body.scrollTop = 0;
+        }
+        else {
+            this.noResultsFound("Parsed dictionary object is empty");
         }
     }
 
@@ -552,18 +555,20 @@ class Dictionary {
             
 
             for(const hit of lang_pair_entries.hits ?? []) { //"??" is the "nullish coalescing operator", which changes the value of an expression into its right-hand operand if the left-hand is null or undefined
-                console.log(hit);
+                //console.log(hit);
 
                 if(hit.type == "translation") {
                     pons_html += '<div class="dict_row"><div class="dict_cell left">'+hit.source+'</div><div class="dict_cell right">'+hit.target+'</div></div>';
                 }
 
                 for(const rom of hit.roms ?? []) {
-                    console.log(rom);
+                    //console.log(rom);
                     const headword = rom.headword;
                     const headword_full = rom.headword_full;
 
                     pons_html += '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + headword_full + '</span></div></div>';
+
+                    const headword_full_elem = document.createRange().createContextualFragment(headword_full);
 
                     for(const arab of rom.arabs ?? []) {
 
