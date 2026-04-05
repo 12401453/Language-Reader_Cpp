@@ -1,0 +1,66 @@
+[
+  {
+    "lang": "cs",
+    "hits": [
+      {
+        "type": "translation",
+        "opendict": false,
+        "source": "<span class=\"example\">pravé <strong class=\"tilde\">křídlo\n</strong> </span> <span class=\"topic\"> <abbr title=\"Sport\">SPORT</abbr> </span>",
+        "target": "Rechtsaußen <span class=\"genus\"> <abbr title=\"maskulin\">m</abbr> </span>"
+      },
+      {
+        "type": "translation",
+        "opendict": false,
+        "source": "<span class=\"example\">prožit pravé <strong class=\"tilde\">martyrium\n</strong> </span>",
+        "target": "ein wahres Martyrium durchmachen"
+      },
+      {
+        "type": "translation",
+        "opendict": false,
+        "source": "<span class=\"example\"> <strong class=\"tilde\">hrát</strong> pravé křídlo</span> <span class=\"topic\"> <abbr title=\"Sport\">SPORT</abbr> </span>",
+        "target": "am rechten Flügel spielen"
+      }
+    ]
+  },
+  {
+    "lang": "de",
+    "hits": [
+      {
+        "type": "translation",
+        "opendict": false,
+        "source": "<strong class=\"headword\">Rechtsaußen</strong>",
+        "target": "pravé křídlo <span class=\"genus\"><abbr title=\"Neutrum\">nt</abbr></span>"
+      },
+      {
+        "type": "translation",
+        "opendict": false,
+        "source": "<strong class=\"headword\">Pocken</strong>",
+        "target": "(pravé) neštovice <span class=\"genus\"><abbr title=\"Femininum Plural\">f/pl</abbr></span>"
+      },
+      {
+        "type": "translation",
+        "opendict": false,
+        "source": "<span class=\"example\">das ist eine wahre <strong class=\"tilde\">Wohltat</strong></span>",
+        "target": "to je pravé dobrodiní"
+      },
+      {
+        "type": "translation",
+        "opendict": false,
+        "source": "<span class=\"example\"><strong class=\"tilde\">rechter</strong> Hand</span>",
+        "target": "po pravé ruce"
+      },
+      {
+        "type": "translation",
+        "opendict": false,
+        "source": "<span class=\"example\">das Richtige für uns</span>",
+        "target": "to pravé pro nás"
+      },
+      {
+        "type": "translation",
+        "opendict": false,
+        "source": "<span class=\"example\">das ist nicht das Gelbe vom Ei</span>",
+        "target": "to není to pravé ořechové"
+      }
+    ]
+  }
+]

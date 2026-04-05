@@ -1,6 +1,6 @@
 047bb1c2d510a75b3ea75c9b0e491c4afd66778f5652d2e379655bb5325f2600
 Example using curl:
-curl -v --header "X-Secret: 047bb1c2d510a75b3ea75c9b0e491c4afd66778f5652d2e379655bb5325f2600" "https://api.pons.com/v1/dictionary?l=deen&q=house"
+curl -H "X-Secret: 047bb1c2d510a75b3ea75c9b0e491c4afd66778f5652d2e379655bb5325f2600" "https://api.pons.com/v1/dictionary?l=deen&q=house"
 
 
 To get Beispielsätze:

@@ -553,6 +553,11 @@ class Dictionary {
 
             for(const hit of lang_pair_entries.hits ?? []) { //"??" is the "nullish coalescing operator", which changes the value of an expression into its right-hand operand if the left-hand is null or undefined
                 console.log(hit);
+
+                if(hit.type == "translation") {
+                    pons_html += '<div class="dict_row"><div class="dict_cell left">'+hit.source+'</div><div class="dict_cell right">'+hit.target+'</div></div>';
+                }
+
                 for(const rom of hit.roms ?? []) {
                     console.log(rom);
                     const headword = rom.headword;
