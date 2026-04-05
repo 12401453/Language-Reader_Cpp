@@ -61,6 +61,10 @@ class Dictionary {
                 this.dict_type = 8;
                 this.lang_name = "Ancient Greek";
                 break;
+            case 15:
+                this.dict_type = 1;
+                this.lang_name = "Czech";
+                break;
         }
         this.PONS_german = this.m_lang_id == 5 ? false : true;
 
@@ -95,6 +99,9 @@ class Dictionary {
                     break;
                 case 8:
                     lang_pair = PONS_german ? "dade" : "daen";
+                    break;
+                case 15:
+                    lang_pair = PONS_german ? "csde" : "csen";
                     break;
             }
             return "https://api.pons.com/v1/dictionary?l=" + lang_pair + "&q=" + encodeURIComponent(word);
@@ -161,19 +168,20 @@ class Dictionary {
         }
     };
     allowable_dicts = {
-        1: [2],
+        1: [2,1],
         2: [3,4,2],
         3: [1,2],
         4: [1,2,5],
-        5: [5,2],
-        6: [2],
-        7: [2],
+        5: [5,2,1],
+        6: [2,1],
+        7: [2,1],
         8: [1,2,7,5],
         10: [6,2],
         11: [2, 8],
         12: [2, 9],
         13: [2],
         14: [8, 2],
+        15: [1,2],
     };
 
     //TEMP REMOVE
@@ -346,6 +354,8 @@ class Dictionary {
             dict_body.innerHTML = "";
             dict_body.style.display = "flex";
             dict_body.append(dict_body_innerHTML_fragment);
+
+            dict_body.scrollTop = 0;
         }
     }
 
@@ -526,17 +536,14 @@ class Dictionary {
     scrapePONS(response_text) {
         const pons_json = JSON.parse(response_text);
 
-        let headword_full = "";
+        let pons_html = "";
 
-        let first_content_object = Object.create(null);
+        let first_content_object = pons_json
         if(pons_json[0].content) {
             //the Bulgarian entries still have different structure even on the JSON API
             first_content_object = pons_json[0].content;
         }
-        else {
-            first_content_object = pons_json
-        }
-
+    
         for(const lang_pair_entries of first_content_object) {
             const entries_lang_code = lang_pair_entries.lang;
 
@@ -544,27 +551,30 @@ class Dictionary {
 
             
 
-            for(const hit of lang_pair_entries.hits ?? []) { //"??" is the "nullish coalescing operator", that changes the value of an expression into its right-hand operand if the left-hand is null or undefined
+            for(const hit of lang_pair_entries.hits ?? []) { //"??" is the "nullish coalescing operator", which changes the value of an expression into its right-hand operand if the left-hand is null or undefined
                 console.log(hit);
                 for(const rom of hit.roms ?? []) {
                     console.log(rom);
                     const headword = rom.headword;
-                    /*const*/ headword_full = rom.headword_full;
+                    const headword_full = rom.headword_full;
+
+                    pons_html += '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + headword_full + '</span></div></div>';
 
                     for(const arab of rom.arabs ?? []) {
 
+                        if(arab.header) { //an empty string is falsey apparently (thanks Brendan)
+                            pons_html += '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + arab.header + '</span></div></div>';
+                        }
+
                         for(const translation of arab.translations ?? []) {
-                            //console.log("Source", entries_lang_code, ": ", translation.source, " => ", translation.target);
+
+                            pons_html += '<div class="dict_row"><div class="dict_cell left">'+translation.source+'</div><div class="dict_cell right">'+translation.target+'</div></div>';
                         }
                     }
                 }
 
             }
         }
-
-        //const headword_full = pons_json[0].hits[0].roms[0].headword_full;
-        
-        let pons_html = '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + headword_full + '</span></div></div>';
 
         return document.createRange().createContextualFragment(pons_html);
 
@@ -579,33 +589,35 @@ class Dictionary {
         for(let i in this.dict_result_PONS) {
             if(i == "beispielsaetze") {
                 if(Object.keys(this.dict_result_PONS.beispielsaetze).length > 0) {
-                    dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">Beispielsätze</div></div>'));
+                    // dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">Beispielsätze</div></div>'));
                     dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell dict_pos">Beispielsätze</div></div>';
                     
                     for(let x in this.dict_result_PONS.beispielsaetze) {
-                        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS.beispielsaetze[x][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS.beispielsaetze[x][1]+'</div></div>'));
+                        // dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS.beispielsaetze[x][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS.beispielsaetze[x][1]+'</div></div>'));
                         dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS.beispielsaetze[x][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS.beispielsaetze[x][1]+'</div></div>';
                     }
                 }
             }
             else {
-                dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i].h2_text+'</div></div>'));
+                // dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i].h2_text+'</div></div>'));
                 dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i].h2_text+'</div></div>';
 
                 for(let j in this.dict_result_PONS[i]) {    
                     if(j == "h2_text") continue;
                     if(j == "wendungen") {
-                        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">Wendungen</div></div>'));
+                        // dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">Wendungen</div></div>'));
                         dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell dict_pos">Wendungen</div></div>';
                     }
                     else if(Object.keys(this.dict_result_PONS[i][j].h3_text).length > 0) {
-                        dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i][j].h3_text+'</div></div>'));
+                        // dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i][j].h3_text+'</div></div>'));
                         dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell dict_pos">'+this.dict_result_PONS[i][j].h3_text+'</div></div>';
                     }
                     for(let k in this.dict_result_PONS[i][j]) {
                         if(k == "h3_text") continue;
-                        else dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>'));
-                        dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>';
+                        else {
+                            // dict_body.appendChild(document.createRange().createContextualFragment('<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>'));
+                            dict_body_inner_html_text += '<div class="dict_row"><div class="dict_cell left">'+this.dict_result_PONS[i][j][k][0]+'</div><div class="dict_cell right">'+this.dict_result_PONS[i][j][k][1]+'</div></div>';
+                        }
                     }
                 
                 }
