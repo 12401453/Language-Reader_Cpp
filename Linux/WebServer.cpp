@@ -780,7 +780,7 @@ int WebServer::getPostFields(const char* url) {
     else if(!strcmp(url, "/update_MW_translations.php")) return 3;
     else if(!strcmp(url, "/pull_multiword.php")) return 2;
     else if(!strcmp(url, "/pull_mw_by_form.php")) return 4;
-    else if(!strcmp(url, "/curl_lookup.php")) return 2;
+    else if(!strcmp(url, "/curl_lookup.php")) return 4;
     else if(!strcmp(url, "/disregard_word.php")) return 2;
     else if(!strcmp(url, "/clear_table.php")) return 0;
     else if(!strcmp(url, "/dump_lemmas.php")) return 1;
@@ -3545,7 +3545,7 @@ bool WebServer::deleteMultiword(std::string _POST[4], int clientSocket) {
     }
 }
 
-bool WebServer::curlLookup(std::string _POST[3], int clientSocket) {
+bool WebServer::curlLookup(std::string _POST[4], int clientSocket) {
     
     std::string single_encoded_url = URIDecode(_POST[0]);
     int dict_type = safeStrToInt(_POST[1], 0);
@@ -3555,13 +3555,86 @@ bool WebServer::curlLookup(std::string _POST[3], int clientSocket) {
     if(dict_type == 1) {
 
         std::string decoded_query = URIDecode(_POST[2]);
+        int lang_id = safeStrToInt(_POST[3], 1);
 
-        CurlFetcher query(single_encoded_url.c_str(), m_dict_cookies, m_pons_api_key);
-        query.fetch();
+        CurlFetcher pons_query_main(single_encoded_url.c_str(), m_dict_cookies, m_pons_api_key);
+        CurlFetcher pons_query_beispielsaetze("https://de.pons.com/_actions/getExampleSentences", m_dict_cookies);
+
         
+        std::thread query_beispielsaetze_thread([&](){
+
+            std::string pons_langcode, pons_dictcode, pons_targetlang{"de"};
+            switch(lang_id) {
+                case 1:
+                    pons_langcode = "ru";
+                    pons_dictcode = "deru";
+                    break;
+                case 3:
+                    pons_langcode = "pl";
+                    pons_dictcode = "depl";
+                    break;
+                case 4:
+                    pons_langcode = "bg";
+                    pons_dictcode = "bgde";
+                    break;
+                case 5:
+                    pons_langcode = "de";
+                    pons_dictcode = "deen";
+                    pons_targetlang = "en";
+                    break;
+                case 6:
+                    pons_langcode = "sv";
+                    pons_dictcode = "desv";
+                    break;
+                case 7:
+                    pons_langcode = "tr";
+                    pons_dictcode = "detr";
+                    break;
+                case 8:
+                    pons_langcode = "da";
+                    pons_dictcode = "dade";
+                    break;
+                case 15:
+                    pons_langcode = "cs";
+                    pons_dictcode = "csde";
+                    break;
+                
+                default:
+                    pons_langcode = "ru";
+                    pons_dictcode = "deru";
+                    break;
+            }
+
+            std::string pons_post_data = "{\"sourceLang\":\"" + pons_langcode + "\",\"targetLang\":\"" + pons_targetlang + "\",\"query\":\"" + decoded_query + "\",\"dictionary\":\"" + pons_dictcode + "\",\"locale\":\"de\",\"from\":0}";
+            
+            pons_query_beispielsaetze.fetchPOST(pons_post_data, CurlFetcher::ContentType::JSON);
+
+            std::cout << pons_post_data << "\n";
+
+            std::cout << "PONS beispielsaetze query has returned\n";
+
+            std::cout << pons_query_beispielsaetze.m_post_response << "\n";
+        });
+        std::thread query_main_thread([&](){
+            pons_query_main.fetch();
+            std::cout << "PONS main query has returned\n";
+        });
+    
+        query_main_thread.join();
+        query_beispielsaetze_thread.join();
+        
+        if(!(pons_query_main.m_get_html[0] == '[')) {
+            pons_query_main.m_get_html = "\"" + pons_query_main.m_get_html + "\"";
+        }
+        if(!(pons_query_beispielsaetze.m_post_response[0] == '[')) {
+            pons_query_beispielsaetze.m_post_response = "\"" + pons_query_beispielsaetze.m_post_response + "\"";
+        }
+        std::string pons_json_responses = "{\"main_query_response\":" + pons_query_main.m_get_html + ",\"beispielsaetze_response\":" + pons_query_beispielsaetze.m_post_response + "}";
+
         std::ostringstream post_response;
-        int content_length = query.m_get_html.size();
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << query.m_get_html;
+
+        int content_length = pons_json_responses.size();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << pons_json_responses;
     
         int length = post_response.str().size() + 1;
     

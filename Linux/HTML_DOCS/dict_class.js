@@ -17,7 +17,7 @@ class Dictionary {
                 this.lang_name = "Polish";
                 break;
             case 4:
-                this.dict_type = 2;
+                this.dict_type = 1;
                 this.lang_name = "Bulgarian";
                 break;
             case 5:
@@ -25,15 +25,15 @@ class Dictionary {
                 this.lang_name = "German";
                 break;
             case 6:
-                this.dict_type = 2;
+                this.dict_type = 1;
                 this.lang_name = "Swedish";
                 break;
             case 7:
-                this.dict_type = 2;
+                this.dict_type = 1;
                 this.lang_name = "Turkish";
                 break;
             case 8:
-                this.dict_type = 2;
+                this.dict_type = 1;
                 this.lang_name = "Danish";
                 break;
             case 10:
@@ -173,8 +173,8 @@ class Dictionary {
         3: [1,2],
         4: [1,2,5],
         5: [5,2,1],
-        6: [2,1],
-        7: [2,1],
+        6: [1,2],
+        7: [1,2],
         8: [1,2,7,5],
         10: [6,2],
         11: [2, 8],
@@ -288,7 +288,7 @@ class Dictionary {
         else {
             const double_encoded_url = encodeURIComponent(this.urlMaker(word, dict_type, PONS_german));//the actual queries get URI-encoded by the urlMaker, but URLs can contain & or = signs (e.g., bildilchin, dict.cc), and that mess up my server's parsing out of the POSTed data, which isn't a problem if I'm only expecting one piece, but is still retarded. Therefore I will encodeURIComponent() the whole URL again
 
-            send_data = "url=" + double_encoded_url + "&dict_type=" + dict_type + "&query=" + encodeURIComponent(word);
+            send_data = "url=" + double_encoded_url + "&dict_type=" + dict_type + "&query=" + encodeURIComponent(word) + "&lang_id=" + this.m_lang_id;
         }
 
         
@@ -358,7 +358,7 @@ class Dictionary {
             dict_body.scrollTop = 0;
         }
         else {
-            this.noResultsFound("Parsed dictionary object is empty");
+            this.noResultsFound();
         }
     }
 
@@ -537,14 +537,22 @@ class Dictionary {
 
     dict_result_PONS = Object.create(null);
     scrapePONS(response_text) {
+
         const pons_json = JSON.parse(response_text);
+
+        const pons_json_main = pons_json.main_query_response;
+        const pons_json_beispielsaetze = pons_json.beispielsaetze_response;
+
+        if(pons_json_main == "") {
+            return null;
+        }
 
         let pons_html = "";
 
-        let first_content_object = pons_json
-        if(pons_json[0].content) {
+        let first_content_object = pons_json_main
+        if(pons_json_main[0].content) {
             //the Bulgarian entries still have different structure even on the JSON API
-            first_content_object = pons_json[0].content;
+            first_content_object = pons_json_main[0].content;
         }
     
         for(const lang_pair_entries of first_content_object) {
@@ -583,6 +591,18 @@ class Dictionary {
                     }
                 }
 
+            }
+        }
+
+        if(typeof(pons_json_beispielsaetze) != "string" && pons_json_beispielsaetze[0]?.length > 0) {
+            pons_html += '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + "Beispielsätze" + '</span></div></div>';
+            for(const instruction_idx of pons_json_beispielsaetze[0] ?? []) {
+                const example_idx = pons_json_beispielsaetze[instruction_idx].example;
+
+                const source_sentence_idx = pons_json_beispielsaetze[example_idx].source;
+                const target_sentence_idx = pons_json_beispielsaetze[example_idx].target;
+
+                pons_html += '<div class="dict_row"><div class="dict_cell left">'+pons_json_beispielsaetze[source_sentence_idx]+'</div><div class="dict_cell right">'+pons_json_beispielsaetze[target_sentence_idx]+'</div></div>';
             }
         }
 
