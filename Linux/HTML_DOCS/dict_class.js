@@ -544,12 +544,23 @@ class Dictionary {
             let headword_full_main_part = "";
             let headword_full_auxiliary_parts = "";
 
+            let prev_node_separator_bool = false;
             headword_full_elem.childNodes.forEach((child_node, i) => {
                 if(i == 0 && child_node.nodeType == 3) {
-                    headword_full_main_part = child_node.textContent.trim();
+                    headword_full_main_part += child_node.textContent.trim();
+                    prev_node_separator_bool = false;
                 }
                 else if(i == 0 && child_node.nodeType == 1) {
                     headword_full_main_part += child_node.textContent.trim();
+                    prev_node_separator_bool = false;
+                }
+                else if(child_node.nodeType == 1 && child_node.className == "separator") {
+                    headword_full_main_part += child_node.outerHTML;
+                    prev_node_separator_bool = true;
+                }
+                else if(child_node.nodeType == 3 && prev_node_separator_bool == true) {
+                    headword_full_main_part += child_node.textContent.trim();
+                    prev_node_separator_bool = false;
                 }
                 else if(child_node.nodeType == 1) {
                     headword_full_auxiliary_parts += child_node.outerHTML;
