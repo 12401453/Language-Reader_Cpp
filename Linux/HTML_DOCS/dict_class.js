@@ -538,6 +538,30 @@ class Dictionary {
     dict_result_PONS = Object.create(null);
     scrapePONS(response_text) {
 
+        const reprocessHeaderHTML = (header_html) => {
+            const headword_full_elem = document.createRange().createContextualFragment(header_html);
+
+            let headword_full_main_part = "";
+            let headword_full_auxiliary_parts = "";
+
+            headword_full_elem.childNodes.forEach((child_node, i) => {
+                if(i == 0 && child_node.nodeType == 3) {
+                    headword_full_main_part = child_node.textContent.trim();
+                }
+                else if(i == 0 && child_node.nodeType == 1) {
+                    headword_full_main_part += child_node.textContent.trim();
+                }
+                else if(child_node.nodeType == 1) {
+                    headword_full_auxiliary_parts += child_node.outerHTML;
+                }
+                else {
+                    headword_full_auxiliary_parts += child_node.textContent;
+                }
+            });
+
+            return '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + headword_full_main_part + '<br><span class="wiki_headword_grammar">' + headword_full_auxiliary_parts + '</span></div></div>';
+        };
+
         const pons_json = JSON.parse(response_text);
 
         const pons_json_main = pons_json.main_query_response;
@@ -574,14 +598,24 @@ class Dictionary {
                     const headword = rom.headword;
                     const headword_full = rom.headword_full;
 
-                    pons_html += '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + headword_full + '</span></div></div>';
+                    //pons_html += '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + headword_full + '</span></div></div>';
 
-                    const headword_full_elem = document.createRange().createContextualFragment(headword_full);
+                    const headword_html = reprocessHeaderHTML(headword_full);
+
+                    console.log(headword_html);
+
+                    pons_html += headword_html;
 
                     for(const arab of rom.arabs ?? []) {
 
                         if(arab.header) { //an empty string is falsey apparently (thanks Brendan)
-                            pons_html += '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + arab.header + '</span></div></div>';
+                            //pons_html += '<div class="dict_row"><div class="dict_cell dict_pos"><span class="wiki_headword">' + arab.header + '</span></div></div>';
+
+                            const arab_headword_html = reprocessHeaderHTML(arab.header);
+
+                            console.log(arab_headword_html);
+
+                            pons_html += arab_headword_html;
                         }
 
                         for(const translation of arab.translations ?? []) {

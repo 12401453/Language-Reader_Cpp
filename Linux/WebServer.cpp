@@ -3605,7 +3605,7 @@ bool WebServer::curlLookup(std::string _POST[4], int clientSocket) {
                     break;
             }
 
-            std::string pons_post_data = "{\"sourceLang\":\"" + pons_langcode + "\",\"targetLang\":\"" + pons_targetlang + "\",\"query\":\"" + decoded_query + "\",\"dictionary\":\"" + pons_dictcode + "\",\"locale\":\"de\",\"from\":0}";
+            std::string pons_post_data = "{\"sourceLang\":\"" + pons_langcode + "\",\"targetLang\":\"" + pons_targetlang + "\",\"query\":\"" + escapeQuotes(decoded_query) + "\",\"dictionary\":\"" + pons_dictcode + "\",\"locale\":\"de\",\"from\":0}";
             
             pons_query_beispielsaetze.fetchPOST(pons_post_data, CurlFetcher::ContentType::JSON);
 

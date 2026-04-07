@@ -87,7 +87,7 @@ class CurlFetcher {
                     break;
             }
 
-            std::string content_length_header = "Content-Length: " + post_data.size();
+            std::string content_length_header = "Content-Length: " + std::to_string(post_data.size());
 
             headers_list = curl_slist_append(headers_list, content_type_header.c_str());
             headers_list = curl_slist_append(headers_list, content_length_header.c_str());
