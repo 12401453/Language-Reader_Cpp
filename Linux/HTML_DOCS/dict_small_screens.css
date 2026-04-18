@@ -192,6 +192,17 @@
     color: rgb(230, 230, 230);
     font-size: 9.5px;
 }
+.collocator {
+    font-size: 9px;
+    opacity: 0.7;
+}
+.collocator::before {
+    content: "[";
+}
+.collocator::after {
+    content: "]";
+}
+
 
 #dict_logo {    
     height: 80%;
