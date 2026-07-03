@@ -3641,6 +3641,23 @@ bool WebServer::curlLookup(std::string _POST[4], int clientSocket) {
         sendToClient(clientSocket, post_response.str().c_str(), length);
         return true;
     }
+    else if(dict_type == 10) {
+        //Uzbek firespeaker
+        CurlFetcher firespeaker_query("https://uzbek.firespeaker.org", m_dict_cookies);
+        std::string uri_encoded_uzbek_word = _POST[2];
+        std::string firespeaker_post_data = "initialise=1&search=" + uri_encoded_uzbek_word + "&slanguage=u&how=word";
+
+        firespeaker_query.fetchPOST(firespeaker_post_data);
+
+        std::ostringstream post_response;
+        int content_length = firespeaker_query.m_get_html.size();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << firespeaker_query.m_get_html;
+    
+        int length = post_response.str().size() + 1;
+    
+        sendToClient(clientSocket, post_response.str().c_str(), length);
+        return true;
+    }
     else {
         CurlFetcher query(single_encoded_url.c_str(), m_dict_cookies);
         query.fetch();

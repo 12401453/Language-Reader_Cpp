@@ -130,6 +130,9 @@ class Dictionary {
         else if(dict_type == 9) {
             return 'https://bildilchin.az:8888/bildilchin/get/description?selectedWord=' + encodeURIComponent(word) + '&indexLang=az';
         }
+        else if(dict_type == 10) {
+            return "https://uzbek.firespeaker.org";
+        }
     }
     dict_name = "";
     lang_name = "";
@@ -329,6 +332,7 @@ class Dictionary {
         else if(dict_type == 7) dict_body_innerHTML_fragment = this.scrapeDanskeOrdbogen(response_text);
         else if(dict_type == 8) dict_body_innerHTML_fragment = this.scrapePhilolog(response_text);
         else if(dict_type == 9) dict_body_innerHTML_fragment = this.scrapeBildilchin(response_text);
+        else if(dict_type == 10) dict_body_innerHTML_fragment = this.scrapeFirespeaker(response_text);
 
         // console.log(dict_body_innerHTML_fragment);
         // if(dict_body_innerHTML_fragment !== null) {
@@ -1349,6 +1353,20 @@ class Dictionary {
         }
         
     };
+
+    scrapeFirespeaker = (response_text) => {
+        const parser = new DOMParser();
+        const firespeaker_page = parser.parseFromString(response_text, 'text/html');
+
+        const content_block = firespeaker_page.querySelector(".content");
+
+        content_block.childNodes.forEach(child_node => {
+            console.log(child_node);
+        });
+
+        const firespeaker_fragment = document.createRange().createContextualFragment("");
+        return firespeaker_fragment;
+    }
 
     dict_history_stack = Object.create(null);
     //dict_history_position = 0;
