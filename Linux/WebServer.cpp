@@ -3650,8 +3650,8 @@ bool WebServer::curlLookup(std::string _POST[4], int clientSocket) {
         firespeaker_query.fetchPOST(firespeaker_post_data);
 
         std::ostringstream post_response;
-        int content_length = firespeaker_query.m_get_html.size();
-        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << firespeaker_query.m_get_html;
+        int content_length = firespeaker_query.m_post_response.size();
+        post_response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << content_length << "\r\n\r\n" << firespeaker_query.m_post_response;
     
         int length = post_response.str().size() + 1;
     

@@ -1360,9 +1360,24 @@ class Dictionary {
 
         const content_block = firespeaker_page.querySelector(".content");
 
-        content_block.childNodes.forEach(child_node => {
-            console.log(child_node);
+        const searched_for_elem_indices = new Array();
+        content_block.childNodes.forEach((child_node, i) => {
+            if(child_node.className == "searchedfor") {
+                searched_for_elem_indices.push(i);
+            }
         });
+
+        const entry_headwords_arr = new Array();
+        for(const idx of searched_for_elem_indices) {
+            let entry_headword = ""
+            entry_headword += content_block.childNodes[idx].textContent;
+            if(content_block.childNodes[idx+1].nodeType == 3) {
+                entry_headword += content_block.childNodes[idx+1].textContent;
+            }
+            entry_headwords_arr.push(entry_headword);
+        }
+
+        console.log(entry_headwords_arr);
 
         const firespeaker_fragment = document.createRange().createContextualFragment("");
         return firespeaker_fragment;
