@@ -1360,24 +1360,56 @@ class Dictionary {
 
         const content_block = firespeaker_page.querySelector(".content");
 
-        const searched_for_elem_indices = new Array();
-        content_block.childNodes.forEach((child_node, i) => {
+        const searchedfor_elem_indices = new Array();
+        const blockquote_elem_indices = new Array();
+
+        const content_child_nodes = content_block.childNodes
+        content_child_nodes.forEach((child_node, i) => {
             if(child_node.className == "searchedfor") {
-                searched_for_elem_indices.push(i);
+                searchedfor_elem_indices.push(i);
+            }
+            else if(child_node.tagName == "BLOCKQUOTE") {
+                blockquote_elem_indices.push(i);
             }
         });
 
         const entry_headwords_arr = new Array();
-        for(const idx of searched_for_elem_indices) {
-            let entry_headword = ""
-            entry_headword += content_block.childNodes[idx].textContent;
-            if(content_block.childNodes[idx+1].nodeType == 3) {
-                entry_headword += content_block.childNodes[idx+1].textContent;
+        const entry_definitions_arr = new Array();
+        for(let i = 0; i < blockquote_elem_indices.length; i++) {
+
+            const def_idx = blockquote_elem_indices[i];
+            let start_header_idx = blockquote_elem_indices[i-1] + 1;
+            if(i == 0) {
+                start_header_idx = searchedfor_elem_indices[0];
+                if(content_child_nodes[start_header_idx - 1].nodeType == 3) start_header_idx--;
             }
+
+            let entry_headword = "";
+            let headword_info = "";
+            for(let i = start_header_idx; i < def_idx; i++) {
+                if(content_child_nodes[i].tagName == "I") {
+                    headword_info += content_child_nodes[i].textContent;
+                }
+                else {
+                    entry_headword += content_child_nodes[i].textContent;
+                }
+            }
+            entry_headword = entry_headword.trim();
+            if(headword_info.length > 0) entry_headword += "<span class='firespeaker_hw_info'>" + headword_info + "</span>";
+
             entry_headwords_arr.push(entry_headword);
+
+            const entry_definition = content_child_nodes[def_idx].textContent.trim();
+            entry_definitions_arr.push(entry_definition);
+
+
+            
         }
 
         console.log(entry_headwords_arr);
+        console.log(entry_definitions_arr);
+        console.log(searchedfor_elem_indices);
+        console.log(blockquote_elem_indices);
 
         const firespeaker_fragment = document.createRange().createContextualFragment("");
         return firespeaker_fragment;
