@@ -280,6 +280,9 @@ class Dictionary {
             word = word.replace(/σ$/, "ς");
             document.getElementById("dict_searchbox").value = word;
         }
+        else if(dict_type == 10) {
+            word = this.latiniseUzbek(word).replaceAll("‘", "\'");//firespeaker uses normal apostrophe and doesn't accept the official mark
+        }
 
         let send_data = ""; 
         let request_url = "curl_lookup.php";
@@ -1413,7 +1416,17 @@ class Dictionary {
 
         const firespeaker_fragment = document.createRange().createContextualFragment("");
         return firespeaker_fragment;
-    }
+    };
+    latin_cyrillic_uzbek_array = new Array(
+        [/(?<=^|[^\p{L}]|[АаЕеЭэИиОоУуЎў])Е/gu, "Ye"], [/(?<=^|[^\p{L}]|[АаЕеЭэИиОоУуЎў])е/gu, "ye"], ["А", "A"], ["а", "a"], ["Б", "B"], ["б", "b"], ["В", "V"], ["в", "v"], ["Г", "G"], ["г", "g"], ["Д", "D"], ["д", "d"], ["Е", "E"], ["е", "e"], ["Ё", "Yo"], ["ё", "yo"], ["Ж", "J"], ["ж", "j"], ["З", "Z"], ["з", "z"], ["И", "I"], ["и", "i"], ["Й", "Y"], ["й", "y"], ["К", "K"], ["к", "k"], ["Л", "L"], ["л", "l"], ["М", "M"], ["м", "m"], ["Н", "N"], ["н", "n"], ["О", "O"], ["о", "o"], ["П", "P"], ["п", "p"], ["Р", "R"], ["р", "r"], ["С", "S"], ["с", "s"], ["Т", "T"], ["т", "t"], ["У", "U"], ["у", "u"], ["Ф", "F"], ["ф", "f"], ["Х", "X"], ["х", "x"], ["Ц", "S"], ["ц", "s"], ["Ч", "Ch"], ["ч", "ch"], ["Ш", "Sh"], ["ш", "sh"], ["ь", ""], ["ъ", "\'"], ["Э", "E"], ["э", "e"], ["Ю", "Yu"], ["ю", "yu"], ["Я", "Ya"], ["я", "ya"], ["Ў", "O‘"], ["ў", "o‘"], ["Қ", "Q"], ["қ", "q"], ["Ғ", "G‘"], ["ғ", "g‘"], ["Ҳ", "H"], ["ҳ", "h"], ["Щ", "Shch"], ["щ", "shch"], ["ы", "i"]
+    );
+    latiniseUzbek = (cyrillic_uzbek) => {
+        let latinised_uzbek = cyrillic_uzbek;
+        for(const replacement_pair of this.latin_cyrillic_uzbek_array) {
+            latinised_uzbek = latinised_uzbek.replaceAll(replacement_pair[0], replacement_pair[1]);
+        }
+        return latinised_uzbek;
+    };
 
     dict_history_stack = Object.create(null);
     //dict_history_position = 0;
