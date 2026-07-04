@@ -65,6 +65,9 @@ class Dictionary {
                 this.dict_type = 1;
                 this.lang_name = "Czech";
                 break;
+            case 16:
+                this.dict_type = 10;
+                this.lang_name = "Uzbek";
         }
         this.PONS_german = this.m_lang_id == 5 ? false : true;
 
@@ -168,6 +171,9 @@ class Dictionary {
         },
         9: {
             logo_url: 'bildilchin.svg" title="bildilchin.az"',
+        },
+        10: {
+            logo_url: 'uzbek_flag.svg" title="uzbek.firespeaker.org"',
         }
     };
     allowable_dicts = {
@@ -185,6 +191,7 @@ class Dictionary {
         13: [2],
         14: [8, 2],
         15: [1,2],
+        16: [10, 2],
     };
 
     //TEMP REMOVE
@@ -280,9 +287,10 @@ class Dictionary {
             word = word.replace(/σ$/, "ς");
             document.getElementById("dict_searchbox").value = word;
         }
-        else if(dict_type == 10) {
+        if(dict_type == 10) {
             word = this.latiniseUzbek(word).replaceAll("‘", "\'");//firespeaker uses normal apostrophe and doesn't accept the official mark
         }
+        
 
         let send_data = ""; 
         let request_url = "curl_lookup.php";
@@ -1367,12 +1375,16 @@ class Dictionary {
         const blockquote_elem_indices = new Array();
 
         const content_child_nodes = content_block.childNodes
+        let hr_elem_idx = 0;
         content_child_nodes.forEach((child_node, i) => {
             if(child_node.className == "searchedfor") {
                 searchedfor_elem_indices.push(i);
             }
             else if(child_node.tagName == "BLOCKQUOTE") {
                 blockquote_elem_indices.push(i);
+            }
+            else if(child_node.nodeName == "HR") {
+                hr_elem_idx = i;
             }
         });
 
@@ -1383,8 +1395,9 @@ class Dictionary {
             const def_idx = blockquote_elem_indices[i];
             let start_header_idx = blockquote_elem_indices[i-1] + 1;
             if(i == 0) {
-                start_header_idx = searchedfor_elem_indices[0];
-                if(content_child_nodes[start_header_idx - 1].nodeType == 3) start_header_idx--;
+                // start_header_idx = searchedfor_elem_indices[0];
+                // if(content_child_nodes[start_header_idx - 1].nodeType == 3) start_header_idx--;
+                start_header_idx = hr_elem_idx + 1;
             }
 
             let entry_headword = "";
@@ -1398,7 +1411,7 @@ class Dictionary {
                 }
             }
             entry_headword = entry_headword.trim();
-            if(headword_info.length > 0) entry_headword += "<span class='firespeaker_hw_info'>" + headword_info + "</span>";
+            if(headword_info.length > 0) entry_headword += " <span class='firespeaker_hw_info'>" + headword_info + "</span>";
 
             entry_headwords_arr.push(entry_headword);
 
@@ -1409,12 +1422,18 @@ class Dictionary {
             
         }
 
-        console.log(entry_headwords_arr);
-        console.log(entry_definitions_arr);
-        console.log(searchedfor_elem_indices);
-        console.log(blockquote_elem_indices);
+        // console.log(entry_headwords_arr);
+        // console.log(entry_definitions_arr);
+        // console.log(searchedfor_elem_indices);
+        // console.log(blockquote_elem_indices);
 
-        const firespeaker_fragment = document.createRange().createContextualFragment("");
+        let firespeaker_html = "";
+
+        for(let i = 0; i < entry_headwords_arr.length; i++) {
+            firespeaker_html += "<div class=\"dict_row\"><div class=\"dict_cell left\">" + entry_headwords_arr[i] + "</div><div class=\"dict_cell right\">" + entry_definitions_arr[i] + "</div></div>";
+        }
+
+        const firespeaker_fragment = document.createRange().createContextualFragment(firespeaker_html);
         return firespeaker_fragment;
     };
     latin_cyrillic_uzbek_array = new Array(

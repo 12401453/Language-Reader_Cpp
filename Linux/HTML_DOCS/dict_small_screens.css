@@ -507,6 +507,11 @@ em {
     color: rgb(0 255 237)
 }
 
+.firespeaker_hw_info {
+    font-style: italic;
+    opacity: 0.7;
+}
+
 /***********************************PHILOLOG STOLEN CSS***********************************/
 @font-face {
     font-family: "WebNewAthenaUnicode";
