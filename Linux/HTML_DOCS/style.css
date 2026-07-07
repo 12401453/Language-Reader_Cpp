@@ -8,6 +8,7 @@ p1 {
   font-family: Bookerly; color: #cbd9f4;
   max-width: 100%;
   align-self: stretch;
+  margin-top: 30px;
 
 }
 
@@ -71,8 +72,15 @@ font-size: 23px;
   padding: 10px;
   border-radius: 5px;
 }
+
+#top_controls {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+  max-width: 100%;
+}
+
 #tt_button {
- 
   background-color: #071022;
   border-radius: 2px;
   padding: 6px;
@@ -81,10 +89,22 @@ font-size: 23px;
   font-family: Calibri;
   font-size: 20px;
   max-width: 97%;
+  width: fit-content;
+  margin-top: 50px;
 }
-
+#autoannotations_button {
+  background-color: #071022;
+  border-radius: 2px;
+  padding: 6px;
+  z-index: 1;
+  color: #cbd9f4;
+  font-family: Calibri;
+  font-size: 20px;
+  max-width: 97%;
+  width: fit-content;
+  margin-top: 10px;
+}
 #select_button {
-
   background-color: #071022;
   border-style: solid;
   border-radius: 2px;
@@ -93,8 +113,10 @@ font-size: 23px;
   color: #cbd9f4;
   font-family: Calibri;
   font-size: 20px;
-  max-width: 97%;
-
+  max-width: 100%;
+  width: fit-content;
+  margin-top: 25px;
+  box-sizing: border-box;
 }
 
 #delete_button {
