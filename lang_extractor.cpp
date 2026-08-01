@@ -3,6 +3,7 @@
 #include <string>
 #include <sqlite3.h>
 #include <thread>
+#include <vector>
 
 //compile: g++ -O3 -std=c++20 lang_extractor.cpp -lsqlite3 -o lang_extractor
 
@@ -525,69 +526,72 @@ void DatabaseExtractor::rewriteDisplayText() {
     }
 }
 
-int main() {
+std::vector<std::pair<int, std::string>> getLanguages(std::string source_db_filepath) {
+    sqlite3* source_DB;
 
+    if(!sqlite3_open(source_db_filepath.c_str(), &source_DB)) {
+        sqlite3_stmt* get_langs_stmt;
+        sqlite3_prepare_v2(source_DB, "SELECT lang_id, lang_name FROM languages", -1, &get_langs_stmt, nullptr);
+
+        std::vector<std::pair<int, std::string>> language_pairs_vec;
+        language_pairs_vec.reserve(32);
+
+        while(sqlite3_step(get_langs_stmt) == SQLITE_ROW) {
+            int lang_id = sqlite3_column_int(get_langs_stmt, 0);
+            std::string lang_name = (const char*)sqlite3_column_text(get_langs_stmt, 1);
+
+            language_pairs_vec.emplace_back(std::pair{lang_id, lang_name});
+        }
+        sqlite3_finalize(get_langs_stmt);
+
+        sqlite3_close(source_DB);
+
+        return language_pairs_vec;
+    }
+    else {
+        std::cout << "Failed to open database at" << source_db_filepath << "\n";
+        return std::vector<std::pair<int, std::string>>();
+    }
+}
+
+void replaceAll(std::string &source, const std::string yeeted, const std::string replacement) {
+    
+    size_t yeeted_length = yeeted.length();
+    if(yeeted_length == 0) return;
+    size_t replacement_length = replacement.length();
+
+    size_t yeeted_pos = source.find(yeeted);
+    while(yeeted_pos != std::string::npos) {
+        source.replace(yeeted_pos, yeeted_length, replacement); 
+        yeeted_pos = source.find(yeeted, yeeted_pos + replacement_length);
+    }
+}
+
+int main() {
     std::cout.setstate(std::ios_base::failbit);
 
-    DatabaseExtractor OE_db_extractor = DatabaseExtractor("Kazakh.db", "Old_English.db", 10);
-    DatabaseExtractor DK_db_extractor = DatabaseExtractor("Kazakh.db", "Danish.db", 8);
-    DatabaseExtractor SV_db_extractor = DatabaseExtractor("Kazakh.db", "Swedish.db", 6);
-    DatabaseExtractor KK_db_extractor = DatabaseExtractor("Kazakh.db", "Kazakh_sole.db", 2);
-    DatabaseExtractor RU_db_extractor = DatabaseExtractor("Kazakh.db", "Russian.db", 1);
-    DatabaseExtractor BG_db_extractor = DatabaseExtractor("Kazakh.db", "Bulgarian.db", 4);
-    DatabaseExtractor PL_db_extractor = DatabaseExtractor("Kazakh.db", "Polish.db", 3);
-    DatabaseExtractor DE_db_extractor = DatabaseExtractor("Kazakh.db", "German.db", 5);
-    DatabaseExtractor TK_db_extractor = DatabaseExtractor("Kazakh.db", "Turkish.db", 7);
-    DatabaseExtractor LA_db_extractor = DatabaseExtractor("Kazakh.db", "Latin.db", 11);
-    DatabaseExtractor AZ_db_extractor = DatabaseExtractor("Kazakh.db", "Azerbaijani.db", 12);
-    
-    
-    std::thread dk_thread ([&]() {
-        DK_db_extractor.extractAllTables();
-    });
-    std::thread oe_thread([&]() {
-        OE_db_extractor.extractAllTables();
-    });
-    std::thread sv_thread([&]() {
-        SV_db_extractor.extractAllTables();  
-    });
-    std::thread kk_thread([&]() {
-        KK_db_extractor.extractAllTables();
-    });
-    std::thread ru_thread([&]() {
-        RU_db_extractor.extractAllTables();
-    });
-    std::thread bg_thread([&]() {
-        BG_db_extractor.extractAllTables();
-    });
-    std::thread pl_thread([&]() {
-        PL_db_extractor.extractAllTables();
-    });
-    std::thread de_thread([&]() {
-        DE_db_extractor.extractAllTables();
-    });
-    std::thread tk_thread([&]() {
-        TK_db_extractor.extractAllTables();
-    });
-    std::thread la_thread([&]() {
-        LA_db_extractor.extractAllTables();
-    });
-    std::thread az_thread([&]() {
-        AZ_db_extractor.extractAllTables();
-    });
+    auto languages = getLanguages("Kazakh.db");
 
-    oe_thread.join();
-    sv_thread.join();
-    kk_thread.join();
-    ru_thread.join();
-    pl_thread.join();
-    bg_thread.join();
-    de_thread.join();
-    tk_thread.join();
-    dk_thread.join();
-    la_thread.join();
-    az_thread.join();
-    
+    std::vector<std::thread> lang_threads;
+    lang_threads.reserve(languages.size());
+    for(auto pair : languages) {
+        std::string lang_name = pair.second;
+        replaceAll(pair.second, " ", "_");
+        if(pair.second == "Kazakh") {
+            pair.second = "Kazakh_sole";
+        }
+        std::string new_db_filename = pair.second+".db";
+
+        lang_threads.emplace_back(std::thread([=](){
+            DatabaseExtractor db_extractor = DatabaseExtractor("Kazakh.db", new_db_filename, pair.first);
+            db_extractor.extractAllTables();
+            std::cout << "Extracting " << lang_name << " to " << new_db_filename << "...\n";
+        }));
+    }
+
+    for(auto& extractor_thread : lang_threads) {
+        extractor_thread.join();
+    }
 
     return 0;
 }
