@@ -131,7 +131,8 @@ class Dictionary {
             return "https://ordnet.dk/ddo/ordbog?query=" + encodeURIComponent(word);
         }
         else if(dict_type == 9) {
-            return 'https://bildilchin.az:8888/bildilchin/get/description?selectedWord=' + encodeURIComponent(word) + '&indexLang=az';
+            // return 'https://bildilchin.az:8888/bildilchin/get/description?selectedWord=' + encodeURIComponent(word) + '&indexLang=az';
+            return 'https://bildilchin.az/bildilchin/get/description?selectedWord=' + encodeURIComponent(word) + '&indexLang=az';
         }
         else if(dict_type == 10) {
             return "https://uzbek.firespeaker.org";
