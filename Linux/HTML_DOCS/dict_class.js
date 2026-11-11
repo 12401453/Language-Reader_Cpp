@@ -128,7 +128,7 @@ class Dictionary {
             return "https://www.dict.cc/?s=" + encodeURIComponent(word);
         }
         else if(dict_type == 7) {
-            return "https://ordnet.dk/ddo/ordbog?query=" + encodeURIComponent(word);
+            return "https://gammel.ordnet.dk/ddo/ordbog?query=" + encodeURIComponent(word);
         }
         else if(dict_type == 9) {
             // return 'https://bildilchin.az:8888/bildilchin/get/description?selectedWord=' + encodeURIComponent(word) + '&indexLang=az';
@@ -1158,6 +1158,7 @@ class Dictionary {
         const topLineHeader = danskeOrdbog_pg.querySelector(".artikel > .definitionBoxTop");
         if(topLineHeader == null) {
             this.noResultsFound();
+            console.log("no toplineHeader");
             return null;
         }
 
@@ -1299,7 +1300,10 @@ class Dictionary {
         });
         //dict_body.append(philolog_body_fragment);
 
-        if(this.m_lang_id == 14) document.getElementById("dict_searchbox").value = word1;
+        if(this.m_lang_id == 14) {
+            document.getElementById("dict_searchbox").value = word1;
+            document.getElementById("dict_searchbox").select();
+        }
         
         //NOTE NEED TO SORT OUT THE HOMONYM STACK IF I IMPLEMENT DICT HISTORY
         return philolog_body_fragment;
